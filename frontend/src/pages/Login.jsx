@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowRight, Lock, Mail, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Lock, Mail, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -59,7 +59,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative">
+      {/* Tombol Kembali - dipindah ke luar card */}
+      <a 
+        href="/" 
+        className="absolute top-6 left-6 md:top-8 md:left-8 inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold hover:opacity-90 transition-all"
+        style={{ boxShadow: "var(--shadow-glow)" }}
+      >
+        <ArrowLeft className="h-4 w-4" />
+        <span className="hidden sm:inline">Kembali ke Beranda</span>
+      </a>
+
       <div className="w-full max-w-md p-8 rounded-2xl border border-border bg-card" style={{ boxShadow: "var(--shadow-elegant)" }}>
         <div className="text-center mb-8">
           <a href="/" className="flex flex-col items-center leading-none mb-6">
