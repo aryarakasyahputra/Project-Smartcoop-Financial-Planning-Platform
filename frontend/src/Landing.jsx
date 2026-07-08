@@ -59,7 +59,10 @@ export default function Landing() {
             <a className="text-[#414751] font-medium text-[14px] hover:text-[#005fa4] transition-colors duration-200" href="#pricing">Pricing</a>
           </div>
           <div className="flex items-center gap-4">
-            <a href="/login" className="px-6 py-2 bg-[#005fa4] text-[#ffffff] rounded-full text-[14px] font-bold flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all">
+            <a href="/register" className="px-6 py-2 bg-[#005fa4] text-white rounded-full text-[14px] font-bold hover:opacity-90 active:scale-95 transition-all">
+              Coba Gratis
+            </a>
+            <a href="/login" className="px-6 py-2 border border-[#005fa4] text-[#005fa4] rounded-full text-[14px] font-bold flex items-center gap-1 hover:bg-[#005fa4]/5 active:scale-95 transition-all">
               Login
               <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
             </a>
@@ -292,6 +295,10 @@ export default function Landing() {
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="material-symbols-outlined text-[#005fa4] check-icon">check_circle</span>
+                    <span className="text-[#414751] text-[16px]">Maksimal 1 Project/Financial Model</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="material-symbols-outlined text-[#005fa4] check-icon">check_circle</span>
                     <span className="text-[#414751] text-[16px]">Community support</span>
                   </li>
                   <li className="flex items-start gap-3 opacity-40">
@@ -299,9 +306,9 @@ export default function Landing() {
                     <span className="text-[#414751] text-[16px]">Fundraising tracker</span>
                   </li>
                 </ul>
-                <button className="w-full py-4 border border-[#005fa4] text-[#005fa4] rounded-lg text-[14px] font-bold hover:bg-[#005fa4]/5 transition-colors active:scale-95">
+                <a href="/register" className="w-full py-4 border border-[#005fa4] text-[#005fa4] rounded-lg text-[14px] font-bold hover:bg-[#005fa4]/5 transition-colors active:scale-95 block text-center">
                   Mulai Gratis
-                </button>
+                </a>
               </div>
 
               {/* Professional */}
