@@ -1,12 +1,13 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import Landing from './Landing.jsx'
-import Login from './Login.jsx'
-import Register from './Register.jsx'
-import Onboarding from './Onboarding.jsx'
-import Dashboard from './Dashboard.jsx'
-import AuthCallback from './AuthCallback.jsx'
+import Landing from './pages/Landing.jsx'
+import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
+import Onboarding from './pages/Onboarding.jsx'
+import Dashboard from './pages/Dashboard.jsx'
+import AdminDashboard from './pages/AdminDashboard.jsx'
+import AuthCallback from './pages/AuthCallback.jsx'
 
 const path = window.location.pathname;
 const token = localStorage.getItem("token");
@@ -39,6 +40,12 @@ if (path === '/login') {
     setTimeout(() => { window.location.pathname = '/login'; }, 0);
   } else {
     componentToRender = <Dashboard />;
+  }
+} else if (path === '/admin' || path === '/admin/dashboard') {
+  if (!token) {
+    setTimeout(() => { window.location.pathname = '/login'; }, 0);
+  } else {
+    componentToRender = <AdminDashboard />;
   }
 }
 
