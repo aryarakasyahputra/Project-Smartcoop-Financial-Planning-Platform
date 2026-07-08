@@ -1,26 +1,39 @@
 import React, { useState } from "react";
-import { ArrowRight, Lock, Mail, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Lock, Mail, User, AlertCircle, CheckCircle2 } from "lucide-react";
 
-export default function Login() {
+export default function Register() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  const handleLogin = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setSuccess(null);
 
+    if (password !== passwordConfirmation) {
+      setError("Password dan Konfirmasi Password tidak cocok.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await fetch("/api/login", {
+      const res = await fetch("/api/register", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          password_confirmation: passwordConfirmation,
+        }),
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json"
+          "Accept": "application/json",
         },
       });
 
@@ -28,21 +41,21 @@ export default function Login() {
 
       if (res.ok) {
         localStorage.setItem("token", data.access_token);
-        const roleName = data.user?.role?.name || "Unknown Role";
-        setSuccess(`Kamu berhasil login sebagai ${roleName.toUpperCase()}. Mengalihkan...`);
-        
+        setSuccess("Pendaftaran berhasil! Mengalihkan ke onboarding...");
         setTimeout(() => {
-          if (!data.user?.company_accesses || data.user.company_accesses.length === 0) {
-            window.location.pathname = "/onboarding";
-          } else {
-            window.location.pathname = "/dashboard";
-          }
+          window.location.pathname = "/onboarding";
         }, 1500);
       } else {
-        setError(data.message || "Login failed");
+        // Handle validation errors from Laravel
+        if (data.errors) {
+          const firstErrorMsg = Object.values(data.errors)[0][0];
+          setError(firstErrorMsg);
+        } else {
+          setError(data.message || "Pendaftaran gagal");
+        }
       }
     } catch (err) {
-      setError("An error occurred while logging in.");
+      setError("Terjadi kesalahan koneksi saat mendaftar.");
     } finally {
       setLoading(false);
     }
@@ -60,25 +73,42 @@ export default function Login() {
               financial
             </span>
           </a>
-          <h1 className="text-2xl font-bold text-foreground">Selamat Datang</h1>
-          <p className="text-sm text-muted-foreground mt-2">Silakan masuk ke akun Anda</p>
+          <h1 className="text-2xl font-bold text-foreground">Daftar Akun Baru</h1>
+          <p className="text-sm text-muted-foreground mt-2">Mulai kelola perencanaan keuangan bisnis Anda</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-3">
+          <div className="mb-6 p-4 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-3 animate-fade-up">
             <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
             <p className="text-sm text-destructive">{error}</p>
           </div>
         )}
 
         {success && (
-          <div className="mb-6 p-4 rounded-lg bg-green-500/10 border border-green-500/20 flex items-start gap-3">
+          <div className="mb-6 p-4 rounded-lg bg-green-500/10 border border-green-500/20 flex items-start gap-3 animate-fade-up">
             <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
             <p className="text-sm text-green-500 font-medium">{success}</p>
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleRegister} className="space-y-4">
+          {/* Nama Lengkap */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Nama Lengkap</label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full rounded-lg border border-border bg-background px-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                placeholder="John Doe"
+              />
+            </div>
+          </div>
+
+          {/* Email */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Email</label>
             <div className="relative">
@@ -89,11 +119,12 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-lg border border-border bg-background px-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-                placeholder="admin@test.com"
+                placeholder="nama@perusahaan.com"
               />
             </div>
           </div>
 
+          {/* Password */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Password</label>
             <div className="relative">
@@ -109,28 +140,39 @@ export default function Login() {
             </div>
           </div>
 
+          {/* Konfirmasi Password */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Konfirmasi Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <input
+                type="password"
+                required
+                value={passwordConfirmation}
+                onChange={(e) => setPasswordConfirmation(e.target.value)}
+                className="w-full rounded-lg border border-border bg-background px-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
             className="w-full mt-6 inline-flex justify-center items-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-3 text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-50"
             style={{ boxShadow: "var(--shadow-glow)" }}
           >
-            {loading ? "Memproses..." : "Masuk"} <ArrowRight className="h-4 w-4" />
+            {loading ? "Memproses..." : "Daftar"} <ArrowRight className="h-4 w-4" />
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Belum punya akun?{" "}
-          <a href="/register" className="text-[#005fa4] font-semibold hover:underline">
-            Daftar di sini
-          </a>
-        </p>
-
-        <div className="mt-8 border-t border-border pt-6 text-center text-sm text-muted-foreground">
-          <p>Test Accounts:</p>
-          <p className="mt-1">admin@test.com | founder@test.com</p>
-          <p>finance@test.com | investorviewer@test.com</p>
-          <p className="mt-1 font-mono text-xs">(password: password)</p>
+        <div className="mt-8 text-center text-sm text-muted-foreground">
+          <p>
+            Sudah punya akun?{" "}
+            <a href="/login" className="text-primary font-semibold hover:underline">
+              Masuk di sini
+            </a>
+          </p>
         </div>
       </div>
     </div>
