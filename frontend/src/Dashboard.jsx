@@ -304,6 +304,85 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Invite Team Member Section (Visible only to founder/admin) */}
+        {(userData?.role?.name === 'founder' || userData?.role?.name === 'admin') && primaryCompany && (
+          <section className="bg-card rounded-2xl border border-border p-6 md:p-8 mt-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+                <User className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold">Undang Anggota Tim</h2>
+                <p className="text-sm text-muted-foreground">Kirim undangan ke CFO, Finance, atau Investor untuk bergabung ke perusahaan Anda.</p>
+              </div>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const email = e.target.email.value;
+              const role_id = e.target.role_id.value;
+              
+              try {
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/invitations', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                  },
+                  body: JSON.stringify({
+                    email,
+                    role_id,
+                    company_id: primaryCompany.id
+                  })
+                });
+                
+                const data = await res.json();
+                if (res.ok) {
+                  alert("Undangan berhasil dikirim!");
+                  e.target.reset();
+                } else {
+                  alert(data.message || "Gagal mengirim undangan");
+                }
+              } catch (err) {
+                alert("Terjadi kesalahan sistem.");
+              }
+            }} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="col-span-1">
+                <label className="text-xs font-semibold text-muted-foreground uppercase">Email Tujuan</label>
+                <input 
+                  name="email" 
+                  type="email" 
+                  required 
+                  placeholder="email@contoh.com"
+                  className="w-full mt-1 px-4 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+              <div className="col-span-1">
+                <label className="text-xs font-semibold text-muted-foreground uppercase">Role Akses</label>
+                <select 
+                  name="role_id" 
+                  required
+                  className="w-full mt-1 px-4 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                  <option value="">-- Pilih Role --</option>
+                  <option value="3">Finance (Akses Edit Asumsi)</option>
+                  <option value="4">Investor Viewer (Hanya Baca)</option>
+                </select>
+              </div>
+              <div className="col-span-1 flex items-end">
+                <button 
+                  type="submit"
+                  className="w-full px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-lg text-sm hover:opacity-90 transition-opacity"
+                >
+                  Kirim Undangan
+                </button>
+              </div>
+            </form>
+          </section>
+        )}
+
         {/* Feature Teasers */}
         <section className="bg-card rounded-2xl border border-border p-6 md:p-8 space-y-6">
           <div className="flex items-center gap-3">

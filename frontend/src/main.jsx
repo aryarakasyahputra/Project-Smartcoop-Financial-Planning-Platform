@@ -6,6 +6,7 @@ import Login from './Login.jsx'
 import Register from './Register.jsx'
 import Onboarding from './Onboarding.jsx'
 import Dashboard from './Dashboard.jsx'
+import AuthCallback from './AuthCallback.jsx'
 
 const path = window.location.pathname;
 const token = localStorage.getItem("token");
@@ -19,6 +20,8 @@ if (path === '/login') {
   } else {
     componentToRender = <Login />;
   }
+} else if (path === '/auth/callback') {
+  componentToRender = <AuthCallback />;
 } else if (path === '/register') {
   if (token) {
     setTimeout(() => { window.location.pathname = '/dashboard'; }, 0);
