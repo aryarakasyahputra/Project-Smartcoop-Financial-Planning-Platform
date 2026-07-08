@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import heroBg from "./assets/hero.png";
+import heroBg from "../assets/hero.png";
 import {
   ArrowRight, BarChart3, Building2, Users, Calculator, TrendingUp,
   Wallet, LineChart, Target, PieChart, LayoutDashboard, Sparkles,
@@ -12,16 +12,16 @@ const BRAND_ORANGE = "#f28c1f";
 const driverChain = ["Customer", "Subscription", "Revenue", "Gross Margin", "EBITDA", "Cash Flow", "Valuation", "ROI"];
 
 const modules = [
-  { icon: Building2, title: "Company Profile", desc: "Informasi perusahaan, cap table, struktur organisasi, produk & layanan.", tint: "blue" },
-  { icon: Calculator, title: "Assumption Engine", desc: "Pusat konfigurasi seluruh asumsi bisnis — harga, growth, churn, payroll.", tint: "orange" },
-  { icon: Users, title: "Customer Growth Engine", desc: "Beginning, new, churn, ending customer — dihitung otomatis.", tint: "blue" },
-  { icon: TrendingUp, title: "Revenue Engine", desc: "Subscription, setup fee, white label, academy, PPOB, AI Agent, marketplace.", tint: "orange" },
-  { icon: Wallet, title: "Cost Engine", desc: "COGS, operating expenses, payroll, marketing, G&A — end to end.", tint: "blue" },
-  { icon: LineChart, title: "Financial Statement", desc: "Revenue, gross profit, EBITDA, cash flow, BEP, profitability.", tint: "orange" },
-  { icon: BarChart3, title: "SaaS Metrics", desc: "MRR, ARR, ARPU, CAC, LTV, NRR, burn rate, runway, Rule of 40.", tint: "blue" },
-  { icon: PieChart, title: "Valuation Engine", desc: "Revenue & ARR multiple, DCF, comparable, enterprise & post-money.", tint: "orange" },
-  { icon: Target, title: "Fundraising Engine", desc: "Investment needed, use of funds, dilution, MOIC, IRR, exit value.", tint: "blue" },
-  { icon: LayoutDashboard, title: "Executive Dashboard", desc: "Seluruh KPI perusahaan dalam dashboard interaktif real-time.", tint: "orange" },
+  { icon: Building2, title: "Profil & Struktur", desc: "Atur informasi dasar perusahaan, cap table, dan susunan tim Anda dengan rapi.", tint: "blue" },
+  { icon: Calculator, title: "Simulasi Skenario Bisnis", desc: "Atur asumsi harga, target pertumbuhan, hingga biaya operasional dengan mudah tanpa merusak rumus.", tint: "orange" },
+  { icon: Users, title: "Proyeksi Pelanggan", desc: "Pantau otomatis pergerakan pelanggan baru, tingkat retensi, hingga metrik churn setiap bulannya.", tint: "blue" },
+  { icon: TrendingUp, title: "Kalkulator Pendapatan", desc: "Hitung otomatis seluruh sumber pemasukan Anda, dari biaya langganan hingga layanan tambahan.", tint: "orange" },
+  { icon: Wallet, title: "Manajemen Biaya", desc: "Lacak dan proyeksikan pengeluaran operasional (OPEX), gaji tim, hingga COGS secara end-to-end.", tint: "blue" },
+  { icon: LineChart, title: "Laporan Keuangan Otomatis", desc: "Dapatkan laporan laba rugi, cash flow, dan titik impas (BEP) instan tanpa perlu repot menyusun jurnal manual.", tint: "orange" },
+  { icon: BarChart3, title: "Metrik Kinerja Bisnis", desc: "Pantau kesehatan bisnis lewat indikator penting seperti MRR, CAC, LTV, dan Burn Rate secara real-time.", tint: "blue" },
+  { icon: PieChart, title: "Estimasi Valuasi", desc: "Ketahui proyeksi nilai perusahaan Anda saat ini untuk persiapan negosiasi pendanaan dengan investor.", tint: "orange" },
+  { icon: Target, title: "Strategi Pendanaan", desc: "Hitung kebutuhan investasi, alokasi dana, hingga estimasi pengembalian (ROI) untuk calon investor.", tint: "blue" },
+  { icon: LayoutDashboard, title: "Dashboard Utama", desc: "Pantau seluruh ringkasan KPI perusahaan Anda dalam satu layar interaktif yang mudah dipahami.", tint: "orange" },
 ];
 
 const benefits = [
@@ -35,6 +35,40 @@ function tintStyles(tint) {
     ? { bg: "rgba(242, 140, 31, 0.10)", color: BRAND_ORANGE, border: "rgba(242, 140, 31, 0.25)" }
     : { bg: "rgba(43, 108, 184, 0.10)", color: BRAND_BLUE, border: "rgba(43, 108, 184, 0.25)" };
 }
+
+const HeroMockup = () => {
+  return (
+    <div className="relative w-full h-[500px] flex items-center justify-center">
+      {/* Background Glow Effect */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl"></div>
+
+      {/* Isometric Container */}
+      <div 
+        className="relative group"
+        style={{
+          transform: 'perspective(1200px) rotateX(55deg) rotateZ(-40deg) scale(0.8)',
+          transformStyle: 'preserve-3d'
+        }}
+      >
+        {/* Card 1: Executive Dashboard (Kartu Utama) */}
+        <div className="absolute -top-32 -left-32 w-80 h-52 bg-white/90 backdrop-blur-md rounded-xl border border-white/40 shadow-[20px_20px_40px_rgba(0,0,0,0.15)] animate-float-card-1 transition-transform duration-500 group-hover:-translate-y-4 group-hover:shadow-[30px_30px_50px_rgba(0,0,0,0.2)]">
+          <img src="/assets/dashboard-utama.png" className="w-full h-full object-cover rounded-xl" alt="Executive Dashboard" />
+        </div>
+
+        {/* Card 2: Financial Summary (Kartu Bawah - Agak ke Kiri) */}
+        <div className="absolute top-8 -left-48 w-72 h-40 bg-white/80 backdrop-blur-sm rounded-xl border border-white/40 shadow-[15px_15px_30px_rgba(0,0,0,0.1)] animate-float-card-2">
+          <img src="/assets/ringkasan-keuangan.png" className="w-full h-full object-cover rounded-xl" alt="Financial Summary" />
+        </div>
+
+        {/* Card 3: Valuation/Scenario (Kartu Kanan - Agak ke Atas) */}
+        <div className="absolute -top-16 left-32 w-64 h-48 bg-white/85 backdrop-blur-sm rounded-xl border border-white/40 shadow-[25px_25px_45px_rgba(0,0,0,0.12)] animate-float-card-3">
+          <img src="/assets/analisis-skenario.png" className="w-full h-full object-cover rounded-xl" alt="Scenario Analysis" />
+        </div>
+
+      </div>
+    </div>
+  );
+};
 
 export default function Landing() {
   const [isAnnual, setIsAnnual] = useState(true);
@@ -62,9 +96,8 @@ export default function Landing() {
             <a href="/register" className="px-6 py-2 bg-[#005fa4] text-white rounded-full text-[14px] font-bold hover:opacity-90 active:scale-95 transition-all">
               Coba Gratis
             </a>
-            <a href="/login" className="px-6 py-2 border border-[#005fa4] text-[#005fa4] rounded-full text-[14px] font-bold flex items-center gap-1 hover:bg-[#005fa4]/5 active:scale-95 transition-all">
+            <a href="/login" className="px-6 py-2 border border-[#005fa4] text-[#005fa4] rounded-full text-[14px] font-bold hover:bg-[#005fa4]/5 active:scale-95 transition-all">
               Login
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
             </a>
           </div>
         </div>
@@ -81,33 +114,45 @@ export default function Landing() {
                style={{ background: `radial-gradient(circle, ${BRAND_BLUE}55, transparent 70%)`, animationDelay: "-7s" }} />
           <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, transparent 60%, var(--color-background) 100%)" }} />
           <div className="mx-auto max-w-7xl px-6 pt-16 pb-20 relative">
-            <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs mb-8 animate-fade-up"
-                 style={{ borderColor: "rgba(242, 140, 31, 0.35)", background: "rgba(242, 140, 31, 0.08)", color: "#c56d15" }}>
-              <Sparkles className="h-3 w-3" /> Driver-Based Financial Modeling
-            </div>
-            <h1 className="font-display text-5xl md:text-7xl font-bold leading-[1.05] max-w-4xl text-[#131b2e] animate-fade-up" style={{ animationDelay: "0.1s" }}>
-              Business Operating System untuk{" "}
-              <span className="animate-gradient" style={{
-                background: `linear-gradient(120deg, ${BRAND_BLUE}, ${BRAND_ORANGE}, ${BRAND_BLUE})`,
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}>
-                perencanaan &amp; fundraising
-              </span>
-            </h1>
-            <p className="mt-6 text-lg text-muted-foreground max-w-2xl leading-relaxed animate-fade-up" style={{ animationDelay: "0.2s" }}>
-              Susun business plan, proyeksi keuangan, valuasi, dan strategi fundraising dalam satu platform terintegrasi. Ubah satu asumsi — seluruh laporan diperbarui otomatis.
-            </p>
-            <div className="mt-10 flex flex-wrap gap-3 animate-fade-up" style={{ animationDelay: "0.3s" }}>
-              <a href="#cta" className="inline-flex items-center gap-2 rounded-full text-white px-6 py-3 text-sm font-semibold hover:scale-[1.03] transition-transform animate-gradient"
-                 style={{ background: `linear-gradient(120deg, ${BRAND_BLUE}, ${BRAND_ORANGE}, ${BRAND_BLUE})`, boxShadow: "var(--shadow-glow)" }}>
-                Mulai Sekarang <ArrowRight className="h-4 w-4" />
-              </a>
-              <a href="#modules" className="inline-flex items-center gap-2 rounded-full border-2 bg-card px-6 py-3 text-sm font-semibold text-foreground hover:border-[#2b6cb8]/40 transition-colors"
-                 style={{ borderColor: "rgba(43, 108, 184, 0.2)" }}>
-                Lihat Modul
-              </a>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+              
+              {/* Left Column: Text & CTA */}
+              <div className="lg:col-span-7 flex flex-col items-start text-left">
+                <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs mb-8 animate-fade-up"
+                     style={{ borderColor: "rgba(242, 140, 31, 0.35)", background: "rgba(242, 140, 31, 0.08)", color: "#c56d15" }}>
+                  <Sparkles className="h-3 w-3" /> Driver-Based Financial Modeling
+                </div>
+                <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] text-[#131b2e] animate-fade-up" style={{ animationDelay: "0.1s" }}>
+                  Business Operating System untuk{" "}
+                  <span className="animate-gradient" style={{
+                    background: `linear-gradient(120deg, ${BRAND_BLUE}, ${BRAND_ORANGE}, ${BRAND_BLUE})`,
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}>
+                    perencanaan &amp; fundraising
+                  </span>
+                </h1>
+                <p className="mt-6 text-lg text-muted-foreground leading-relaxed animate-fade-up" style={{ animationDelay: "0.2s" }}>
+                  Susun business plan, proyeksi keuangan, valuasi, dan strategi fundraising dalam satu platform terintegrasi. Ubah satu asumsi — seluruh laporan diperbarui otomatis.
+                </p>
+                <div className="mt-10 flex flex-wrap gap-3 animate-fade-up" style={{ animationDelay: "0.3s" }}>
+                  <a href="#cta" className="inline-flex items-center justify-center rounded-full text-white px-6 py-3 text-sm font-semibold hover:scale-[1.03] transition-transform animate-gradient"
+                     style={{ background: `linear-gradient(120deg, ${BRAND_BLUE}, ${BRAND_ORANGE}, ${BRAND_BLUE})`, boxShadow: "var(--shadow-glow)" }}>
+                    Mulai Sekarang
+                  </a>
+                  <a href="#modules" className="inline-flex items-center gap-2 rounded-full border-2 bg-card px-6 py-3 text-sm font-semibold text-foreground hover:border-[#2b6cb8]/40 transition-colors"
+                     style={{ borderColor: "rgba(43, 108, 184, 0.2)" }}>
+                    Lihat Modul
+                  </a>
+                </div>
+              </div>
+
+              {/* Right Column: Isometric 3D Mockup */}
+              <div className="lg:col-span-5 hidden lg:flex justify-center relative w-full h-[500px]">
+                <HeroMockup />
+              </div>
+
             </div>
 
             {/* Driver chain */}
@@ -161,20 +206,20 @@ export default function Landing() {
           <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground">Sepuluh mesin yang saling terhubung</h2>
           <p className="mt-4 text-muted-foreground">Dari input asumsi hingga investor return — setiap perubahan mengalir otomatis ke seluruh laporan.</p>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {modules.map((m, i) => {
             const s = tintStyles(m.tint);
             return (
-              <div key={m.title} className="group p-6 rounded-2xl border bg-card card-lift"
+              <div key={m.title} className="group p-6 rounded-2xl border bg-card card-lift hover:border-[#2b6cb8]/30 transition-all duration-300"
                    style={{ boxShadow: "var(--shadow-card)", borderColor: "rgba(43, 108, 184, 0.08)" }}>
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex items-center justify-between mb-4">
                   <div className="h-11 w-11 rounded-xl flex items-center justify-center border transition-transform group-hover:scale-110"
                        style={{ background: s.bg, color: s.color, borderColor: s.border }}>
                     <m.icon className="h-5 w-5" />
                   </div>
-                  <div className="text-xs text-muted-foreground font-mono">0{i + 1}</div>
+                  <div className="text-xs text-muted-foreground font-mono font-semibold bg-[#faf8ff] px-2.5 py-1 rounded-full border border-border">{i + 1 < 10 ? `0${i + 1}` : i + 1}</div>
                 </div>
-                <h3 className="font-display font-semibold text-lg mb-2 text-foreground">{m.title}</h3>
+                <h3 className="font-display font-semibold text-lg mb-2 text-[#131b2e] group-hover:text-[#005fa4] transition-colors duration-300">{m.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{m.desc}</p>
               </div>
             );
@@ -232,9 +277,9 @@ export default function Landing() {
               <h3 className="font-display text-2xl md:text-3xl font-bold text-[#131b2e]">Siap membangun financial model Anda?</h3>
               <p className="mt-3 text-muted-foreground">Jadwalkan demo dan lihat bagaimana Smartcoop mengubah spreadsheet menjadi keputusan.</p>
               <div className="mt-6 flex flex-wrap gap-3 justify-center">
-                <a href="#" className="inline-flex items-center gap-2 rounded-full text-white px-6 py-3 text-sm font-semibold hover:opacity-90 transition-opacity animate-gradient"
+                <a href="#" className="inline-flex items-center justify-center rounded-full text-white px-6 py-3 text-sm font-semibold hover:opacity-90 transition-opacity animate-gradient"
                    style={{ background: `linear-gradient(120deg, ${BRAND_BLUE}, ${BRAND_ORANGE}, ${BRAND_BLUE})`, boxShadow: "var(--shadow-glow)" }}>
-                  Request Demo <ArrowRight className="h-4 w-4" />
+                  Request Demo
                 </a>
                 <a href="#" className="inline-flex items-center gap-2 rounded-full border border-[#c1c7d3]/30 bg-white px-6 py-3 text-sm font-semibold text-[#131b2e] hover:bg-[#faf8ff] transition-colors">
                   Hubungi Tim
