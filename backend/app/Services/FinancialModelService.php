@@ -273,6 +273,11 @@ class FinancialModelService
             $years = [2025, 2026, 2027, 2028, 2029];
             $summaries = [];
             
+            // Delete existing projections first (Single Source of Truth paradigm)
+            RevenueProjection::where('project_id', $project->id)->delete();
+            CostProjection::where('project_id', $project->id)->delete();
+            FinancialSummary::where('project_id', $project->id)->delete();
+
             // Baseline active cooperatives before 2025 is 215
             $prevEndingActiveCoops = 215;
             $prevTotalRevenue = 0;
@@ -376,22 +381,21 @@ class FinancialModelService
                 $arpu = $endingActiveCoops > 0 ? $totalRevenue / $endingActiveCoops : 0;
 
                 // Save to revenue_projections
-                RevenueProjection::updateOrCreate(
-                    ['project_id' => $project->id, 'year' => $year],
-                    [
-                        'setup_implementation_revenue' => $setupImplementationRevenue,
-                        'saas_subscription_revenue' => $saasSubscriptionRevenue,
-                        'ios_addon_revenue' => $iosAddonRevenue,
-                        'white_label_revenue' => $whiteLabelRevenue,
-                        'ppob_transaction_revenue' => $ppobTransactionRevenue,
-                        'academy_revenue' => $academyRevenue,
-                        'offline_training_revenue' => $offlineTrainingRevenue,
-                        'enterprise_api_revenue' => $enterpriseApiRevenue,
-                        'total_revenue' => $totalRevenue,
-                        'arr' => $arr,
-                        'arpu' => $arpu,
-                    ]
-                );
+                RevenueProjection::create([
+                    'project_id' => $project->id,
+                    'year' => $year,
+                    'setup_implementation_revenue' => $setupImplementationRevenue,
+                    'saas_subscription_revenue' => $saasSubscriptionRevenue,
+                    'ios_addon_revenue' => $iosAddonRevenue,
+                    'white_label_revenue' => $whiteLabelRevenue,
+                    'ppob_transaction_revenue' => $ppobTransactionRevenue,
+                    'academy_revenue' => $academyRevenue,
+                    'offline_training_revenue' => $offlineTrainingRevenue,
+                    'enterprise_api_revenue' => $enterpriseApiRevenue,
+                    'total_revenue' => $totalRevenue,
+                    'arr' => $arr,
+                    'arpu' => $arpu,
+                ]);
 
                 // 4. Perform COGS calculations
                 $cloudCostPerCoopMonth = $assumptions->cloud_cost_per_coop_month;
@@ -435,28 +439,27 @@ class FinancialModelService
                              $otherGaOpex;
 
                 // Save to cost_projections
-                CostProjection::updateOrCreate(
-                    ['project_id' => $project->id, 'year' => $year],
-                    [
-                        'cloud_infrastructure_cost' => $cloudInfrastructureCost,
-                        'implementation_onboarding_cost' => $implementationOnboardingCost,
-                        'customer_support_cost' => $customerSupportCost,
-                        'payment_api_variable_cost' => $paymentApiVariableCost,
-                        'other_cost_of_revenue' => $otherCostOfRevenue,
-                        'total_cogs' => $totalCogs,
-                        'gross_profit' => $grossProfit,
-                        'gross_margin' => $grossMargin,
-                        'payroll_opex' => $payrollOpex,
-                        'sales_marketing_opex' => $salesMarketingOpex,
-                        'office_utilities_opex' => $officeUtilitiesOpex,
-                        'software_tools_opex' => $softwareToolsOpex,
-                        'legal_accounting_opex' => $legalAccountingOpex,
-                        'travel_events_opex' => $travelEventsOpex,
-                        'recruitment_training_opex' => $recruitmentTrainingOpex,
-                        'other_ga_opex' => $otherGaOpex,
-                        'total_opex' => $totalOpex,
-                    ]
-                );
+                CostProjection::create([
+                    'project_id' => $project->id,
+                    'year' => $year,
+                    'cloud_infrastructure_cost' => $cloudInfrastructureCost,
+                    'implementation_onboarding_cost' => $implementationOnboardingCost,
+                    'customer_support_cost' => $customerSupportCost,
+                    'payment_api_variable_cost' => $paymentApiVariableCost,
+                    'other_cost_of_revenue' => $otherCostOfRevenue,
+                    'total_cogs' => $totalCogs,
+                    'gross_profit' => $grossProfit,
+                    'gross_margin' => $grossMargin,
+                    'payroll_opex' => $payrollOpex,
+                    'sales_marketing_opex' => $salesMarketingOpex,
+                    'office_utilities_opex' => $officeUtilitiesOpex,
+                    'software_tools_opex' => $softwareToolsOpex,
+                    'legal_accounting_opex' => $legalAccountingOpex,
+                    'travel_events_opex' => $travelEventsOpex,
+                    'recruitment_training_opex' => $recruitmentTrainingOpex,
+                    'other_ga_opex' => $otherGaOpex,
+                    'total_opex' => $totalOpex,
+                ]);
 
                 // 6. Perform EBITDA & Cash Flow
                 $ebitda = $grossProfit - $totalOpex;
@@ -514,32 +517,31 @@ class FinancialModelService
                 // Actually, doing a second pass over the 5 years to fill in 2029-exit IRR/MOIC metrics for all years makes total sense! 
                 // Because the Cap Table and Exit returns are based on the final Year 5 (2029) exit valuation.
                 
-                $summary = FinancialSummary::updateOrCreate(
-                    ['project_id' => $project->id, 'year' => $year],
-                    [
-                        'active_cooperatives' => $endingActiveCoops,
-                        'total_cooperative_members' => $totalMembers,
-                        'revenue' => $totalRevenue,
-                        'cogs' => $totalCogs,
-                        'opex' => $totalOpex,
-                        'ebitda' => $ebitda,
-                        'ebitda_margin' => $ebitdaMargin,
-                        'ending_cash' => $endingCash,
-                        'runway_months' => $runwayMonths,
-                        'mrr' => $mrr,
-                        'arr' => $arr,
-                        'estimated_cac' => $estimatedCac,
-                        'estimated_ltv' => $estimatedLtv,
-                        'ltv_cac_ratio' => $ltvCacRatio,
-                        'cac_payback_months' => $cacPaybackMonths,
-                        'rule_of_40' => $ruleOf40,
-                        'enterprise_value_conservative' => $enterpriseValueConservative,
-                        'enterprise_value_base' => $enterpriseValueBase,
-                        'enterprise_value_optimistic' => $enterpriseValueOptimistic,
-                        'post_money_valuation' => $postMoneyValuation,
-                        'implied_seed_equity_frac' => $impliedSeedEquityFrac,
-                    ]
-                );
+                $summary = FinancialSummary::create([
+                    'project_id' => $project->id,
+                    'year' => $year,
+                    'active_cooperatives' => $endingActiveCoops,
+                    'total_cooperative_members' => $totalMembers,
+                    'revenue' => $totalRevenue,
+                    'cogs' => $totalCogs,
+                    'opex' => $totalOpex,
+                    'ebitda' => $ebitda,
+                    'ebitda_margin' => $ebitdaMargin,
+                    'ending_cash' => $endingCash,
+                    'runway_months' => $runwayMonths,
+                    'mrr' => $mrr,
+                    'arr' => $arr,
+                    'estimated_cac' => $estimatedCac,
+                    'estimated_ltv' => $estimatedLtv,
+                    'ltv_cac_ratio' => $ltvCacRatio,
+                    'cac_payback_months' => $cacPaybackMonths,
+                    'rule_of_40' => $ruleOf40,
+                    'enterprise_value_conservative' => $enterpriseValueConservative,
+                    'enterprise_value_base' => $enterpriseValueBase,
+                    'enterprise_value_optimistic' => $enterpriseValueOptimistic,
+                    'post_money_valuation' => $postMoneyValuation,
+                    'implied_seed_equity_frac' => $impliedSeedEquityFrac,
+                ]);
 
                 $summaries[$year] = $summary;
             }
