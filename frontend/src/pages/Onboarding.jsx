@@ -11,7 +11,7 @@ export default function Onboarding() {
 
   useEffect(() => {
     const checkUserRole = async () => {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       if (!token) {
         window.location.pathname = "/login";
         return;
@@ -41,7 +41,7 @@ export default function Onboarding() {
           
           setCheckingRole(false);
         } else {
-          localStorage.removeItem("token");
+          sessionStorage.removeItem("token");
           window.location.pathname = "/login";
         }
       } catch (err) {
@@ -59,7 +59,7 @@ export default function Onboarding() {
     setError(null);
     setSuccess(null);
 
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (!token) {
       setError("Sesi Anda telah kedaluwarsa. Silakan login kembali.");
       setLoading(false);

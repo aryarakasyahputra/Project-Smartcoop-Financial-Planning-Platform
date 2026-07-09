@@ -82,6 +82,10 @@
   h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
 }
 
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -108,6 +112,9 @@
   50% { transform: translateY(-10px); }
 }
 
+@utility animate-fadeIn {
+  animation: fade-in 0.3s ease-out both;
+}
 @utility animate-fade-up {
   animation: fade-in-up 0.7s ease-out both;
 }

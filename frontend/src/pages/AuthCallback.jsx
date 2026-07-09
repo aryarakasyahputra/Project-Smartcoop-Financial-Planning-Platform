@@ -6,7 +6,7 @@ export default function AuthCallback() {
     const token = params.get('token');
     
     if (token) {
-      localStorage.setItem('token', token);
+      sessionStorage.setItem('token', token);
       
       // Try to fetch user info to decide where to go
       fetch('/api/me', {

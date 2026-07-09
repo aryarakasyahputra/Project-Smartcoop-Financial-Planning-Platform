@@ -37,7 +37,7 @@ export default function Login() {
       const data = await res.json();
 
       if (res.ok) {
-        localStorage.setItem("token", data.access_token);
+        sessionStorage.setItem("token", data.access_token);
         const roleName = data.user?.role?.name || "Unknown Role";
         setSuccess(`Kamu berhasil login sebagai ${roleName.toUpperCase()}. Mengalihkan...`);
         
@@ -83,6 +83,7 @@ export default function Login() {
           <h1 className="text-2xl font-bold text-foreground">Selamat Datang</h1>
           <p className="text-sm text-muted-foreground mt-2">Silakan masuk ke akun Anda</p>
         </div>
+
 
         {error && (
           <div className="mb-6 p-4 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-3">

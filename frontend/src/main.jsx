@@ -6,29 +6,20 @@ import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import Onboarding from './pages/Onboarding.jsx'
 import Dashboard from './pages/Dashboard.jsx'
-import AdminDashboard from './pages/AdminDashboard.jsx'
+import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 import AuthCallback from './pages/AuthCallback.jsx'
 
 const path = window.location.pathname;
-const token = localStorage.getItem("token");
+const token = sessionStorage.getItem("token");
 
 let componentToRender = <Landing />;
 
 if (path === '/login') {
-  if (token) {
-    // Redirect asynchronously to avoid React state/rendering warnings during import evaluation
-    setTimeout(() => { window.location.pathname = '/dashboard'; }, 0);
-  } else {
-    componentToRender = <Login />;
-  }
+  componentToRender = <Login />;
 } else if (path === '/auth/callback') {
   componentToRender = <AuthCallback />;
 } else if (path === '/register') {
-  if (token) {
-    setTimeout(() => { window.location.pathname = '/dashboard'; }, 0);
-  } else {
-    componentToRender = <Register />;
-  }
+  componentToRender = <Register />;
 } else if (path === '/onboarding') {
   if (!token) {
     setTimeout(() => { window.location.pathname = '/login'; }, 0);

@@ -27,6 +27,11 @@ class OnboardingController extends Controller
                 'company_id' => $company->id,
             ]);
 
+            \App\Models\Project::create([
+                'company_id' => $company->id,
+                'name' => 'Proyeksi Keuangan Utama'
+            ]);
+
             return $company;
         });
 

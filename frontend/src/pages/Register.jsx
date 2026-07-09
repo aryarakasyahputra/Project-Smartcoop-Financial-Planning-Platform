@@ -40,7 +40,7 @@ export default function Register() {
       const data = await res.json();
 
       if (res.ok) {
-        localStorage.setItem("token", data.access_token);
+        sessionStorage.setItem("token", data.access_token);
         setSuccess("Pendaftaran berhasil! Mengalihkan ke onboarding...");
         setTimeout(() => {
           window.location.pathname = "/onboarding";
