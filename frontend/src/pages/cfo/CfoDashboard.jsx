@@ -47,6 +47,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
     exit_revenue_multiple_optimistic: ""
   };
 
+
+
   const [assumptionsByYear, setAssumptionsByYear] = useState({
     2025: { ...emptyYearState },
     2026: { ...emptyYearState },
@@ -640,11 +642,10 @@ export default function CfoDashboard({ userData, handleLogout }) {
 
         {/* TAB 2: Assumption Drivers */}
         {activeTab === "drivers" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fadeIn">
-            {/* Left: Driver Input Cards */}
-            <section className="lg:col-span-1 space-y-4">
-              {/* Year Selector Tabs */}
-              <div className="bg-card border border-border rounded-xl p-2 flex gap-1 justify-between shadow-sm">
+          <div className="space-y-6 animate-fadeIn">
+            {/* Year Selector & Save Button Row */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="bg-card border border-border rounded-xl p-2 flex gap-1 shadow-sm w-full sm:w-auto min-w-[300px]">
                 {[2025, 2026, 2027, 2028, 2029].map((yr) => (
                   <button
                     key={yr}
@@ -659,9 +660,28 @@ export default function CfoDashboard({ userData, handleLogout }) {
                   </button>
                 ))}
               </div>
+              <button
+                onClick={handleSaveAssumptions}
+                disabled={saving || !projectId}
+                className="flex items-center justify-center gap-2 px-6 py-2 bg-primary text-primary-foreground font-semibold rounded-lg text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                {saving ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" /> Menyimpan...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" /> Simpan Asumsi
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Accordions in Masonry Layout */}
+            <div className="columns-1 md:columns-2 gap-6">
 
               {/* Accordion 1: Growth Drivers */}
-              <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+              <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm mb-6 break-inside-avoid">
                 <button
                   onClick={() => toggleSection("growth")}
                   className="w-full flex items-center justify-between p-4 bg-muted/15 hover:bg-muted/30 transition-colors border-b border-border"
@@ -706,7 +726,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
               </div>
 
               {/* Accordion 2: Revenue Streams Pricing */}
-              <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+              <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm mb-6 break-inside-avoid">
                 <button
                   onClick={() => toggleSection("revenue")}
                   className="w-full flex items-center justify-between p-4 bg-muted/15 hover:bg-muted/30 transition-colors border-b border-border"
@@ -858,8 +878,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                 )}
               </div>
 
-              {/* Accordion 3: Cost and Margins */}
-              <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+              {/* Accordion 3: Cost of Goods Sold */}
+              <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm mb-6 break-inside-avoid">
                 <button
                   onClick={() => toggleSection("cogs")}
                   className="w-full flex items-center justify-between p-4 bg-muted/15 hover:bg-muted/30 transition-colors border-b border-border"
@@ -920,8 +940,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                 )}
               </div>
 
-              {/* Accordion 4: Operational Expenses */}
-              <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+              {/* Accordion 4: Operating Expenses */}
+              <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm mb-6 break-inside-avoid">
                 <button
                   onClick={() => toggleSection("opex")}
                   className="w-full flex items-center justify-between p-4 bg-muted/15 hover:bg-muted/30 transition-colors border-b border-border"
@@ -1010,7 +1030,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
               </div>
 
               {/* Accordion 5: Funding & Valuation */}
-              <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+              <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm mb-6 break-inside-avoid">
                 <button
                   onClick={() => toggleSection("funding")}
                   className="w-full flex items-center justify-between p-4 bg-muted/15 hover:bg-muted/30 transition-colors border-b border-border"
@@ -1075,29 +1095,10 @@ export default function CfoDashboard({ userData, handleLogout }) {
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* Action Buttons */}
-              <div className="pt-2">
-                <button
-                  onClick={handleSaveAssumptions}
-                  disabled={saving || !projectId}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-semibold rounded-lg text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
-                >
-                  {saving ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 animate-spin" /> Menyimpan...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4" /> Simpan Asumsi ke Database
-                    </>
-                  )}
-                </button>
-              </div>
-            </section>
-
-            {/* Right: Live visual chart */}
-            <section className="bg-card border border-border rounded-xl p-6 lg:col-span-2 flex flex-col justify-between shadow-sm">
+            {/* Full Width Visual Chart */}
+            <section className="bg-card border border-border rounded-xl p-6 shadow-sm w-full">
               <div>
                 <div className="flex justify-between items-start">
                   <div>
