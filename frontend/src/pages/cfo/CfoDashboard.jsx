@@ -31,12 +31,28 @@ export default function CfoDashboard({ userData, handleLogout }) {
   };
 
   // Full 5-Year Assumptions State
+  const emptyYearState = {
+    new_coops_acquired: "", monthly_churn_rate: "", avg_members_per_coop: "", 
+    subscription_paying_frac: "", setup_fee: "", paid_implementation_coops: "", 
+    monthly_subscription_fee: "", ios_addon_monthly_fee: "", ios_adoption_frac: "", 
+    white_label_projects: "", white_label_fee_per_project: "", ppob_active_coops_frac: "", 
+    ppob_tx_per_coop_month: "", avg_ppob_fee_per_tx: "", academy_participants_frac: "", 
+    academy_avg_price_per_participant: "", offline_trainings_per_month: "", 
+    offline_training_fee_per_coop: "", enterprise_api_revenue: "", cloud_cost_per_coop_month: "", 
+    implementation_cost_per_coop: "", support_cost_per_coop_month: "", payment_api_var_cost_frac: "", 
+    other_cost_of_revenue_frac: "", payroll_cost: "", sales_marketing_spend: "", 
+    office_utilities_internet: "", software_tools_subscriptions: "", legal_accounting_compliance: "", 
+    travel_events: "", recruitment_training: "", other_ga: "", seed_investment: "", 
+    pre_money_valuation: "", exit_revenue_multiple_conservative: "", exit_revenue_multiple_base: "", 
+    exit_revenue_multiple_optimistic: ""
+  };
+
   const [assumptionsByYear, setAssumptionsByYear] = useState({
-    2025: { new_coops_acquired: 35, monthly_churn_rate: 2.0, avg_members_per_coop: 711, subscription_paying_frac: 100.0, setup_fee: 40000000.0, paid_implementation_coops: 25, monthly_subscription_fee: 500000.0, ios_addon_monthly_fee: 200000.0, ios_adoption_frac: 40.0, white_label_projects: 3, white_label_fee_per_project: 20000000.0, ppob_active_coops_frac: 60.0, ppob_tx_per_coop_month: 20, avg_ppob_fee_per_tx: 1000.0, academy_participants_frac: 0.1, academy_avg_price_per_participant: 200000.0, offline_trainings_per_month: 7, offline_training_fee_per_coop: 2500000.0, enterprise_api_revenue: 672000000.0, cloud_cost_per_coop_month: 80000.0, implementation_cost_per_coop: 6000000.0, support_cost_per_coop_month: 75000.0, payment_api_var_cost_frac: 20.0, other_cost_of_revenue_frac: 8.0, payroll_cost: 2394000000.0, sales_marketing_spend: 400000000.0, office_utilities_internet: 180000000.0, software_tools_subscriptions: 120000000.0, legal_accounting_compliance: 80000000.0, travel_events: 150000000.0, recruitment_training: 70000000.0, other_ga: 100000000.0, seed_investment: 8250000000.0, pre_money_valuation: 46200000000.0, exit_revenue_multiple_conservative: 3.0, exit_revenue_multiple_base: 5.0, exit_revenue_multiple_optimistic: 7.0 },
-    2026: { new_coops_acquired: 35, monthly_churn_rate: 2.0, avg_members_per_coop: 700, subscription_paying_frac: 100.0, setup_fee: 40000000.0, paid_implementation_coops: 30, monthly_subscription_fee: 500000.0, ios_addon_monthly_fee: 200000.0, ios_adoption_frac: 40.0, white_label_projects: 4, white_label_fee_per_project: 20000000.0, ppob_active_coops_frac: 60.0, ppob_tx_per_coop_month: 20, avg_ppob_fee_per_tx: 1000.0, academy_participants_frac: 0.1, academy_avg_price_per_participant: 200000.0, offline_trainings_per_month: 8, offline_training_fee_per_coop: 2500000.0, enterprise_api_revenue: 669000000.0, cloud_cost_per_coop_month: 80000.0, implementation_cost_per_coop: 6000000.0, support_cost_per_coop_month: 75000.0, payment_api_var_cost_frac: 20.0, other_cost_of_revenue_frac: 8.0, payroll_cost: 3168000000.0, sales_marketing_spend: 600000000.0, office_utilities_internet: 220000000.0, software_tools_subscriptions: 150000000.0, legal_accounting_compliance: 100000000.0, travel_events: 180000000.0, recruitment_training: 90000000.0, other_ga: 130000000.0, seed_investment: 8250000000.0, pre_money_valuation: 46200000000.0, exit_revenue_multiple_conservative: 3.0, exit_revenue_multiple_base: 5.0, exit_revenue_multiple_optimistic: 7.0 },
-    2027: { new_coops_acquired: 250, monthly_churn_rate: 2.0, avg_members_per_coop: 410, subscription_paying_frac: 100.0, setup_fee: 40000000.0, paid_implementation_coops: 130, monthly_subscription_fee: 500000.0, ios_addon_monthly_fee: 200000.0, ios_adoption_frac: 40.0, white_label_projects: 8, white_label_fee_per_project: 20000000.0, ppob_active_coops_frac: 60.0, ppob_tx_per_coop_month: 20, avg_ppob_fee_per_tx: 1000.0, academy_participants_frac: 0.1, academy_avg_price_per_participant: 200000.0, offline_trainings_per_month: 10, offline_training_fee_per_coop: 2500000.0, enterprise_api_revenue: 747000000.0, cloud_cost_per_coop_month: 70000.0, implementation_cost_per_coop: 5500000.0, support_cost_per_coop_month: 70000.0, payment_api_var_cost_frac: 18.0, other_cost_of_revenue_frac: 7.0, payroll_cost: 4830000000.0, sales_marketing_spend: 900000000.0, office_utilities_internet: 300000000.0, software_tools_subscriptions: 220000000.0, legal_accounting_compliance: 150000000.0, travel_events: 300000000.0, recruitment_training: 150000000.0, other_ga: 200000000.0, seed_investment: 8250000000.0, pre_money_valuation: 46200000000.0, exit_revenue_multiple_conservative: 3.0, exit_revenue_multiple_base: 5.0, exit_revenue_multiple_optimistic: 7.0 },
-    2028: { new_coops_acquired: 400, monthly_churn_rate: 1.5, avg_members_per_coop: 480, subscription_paying_frac: 100.0, setup_fee: 40000000.0, paid_implementation_coops: 180, monthly_subscription_fee: 500000.0, ios_addon_monthly_fee: 200000.0, ios_adoption_frac: 40.0, white_label_projects: 15, white_label_fee_per_project: 20000000.0, ppob_active_coops_frac: 65.0, ppob_tx_per_coop_month: 20, avg_ppob_fee_per_tx: 1000.0, academy_participants_frac: 0.1, academy_avg_price_per_participant: 200000.0, offline_trainings_per_month: 12, offline_training_fee_per_coop: 2500000.0, enterprise_api_revenue: 3660000000.0, cloud_cost_per_coop_month: 60000.0, implementation_cost_per_coop: 5000000.0, support_cost_per_coop_month: 60000.0, payment_api_var_cost_frac: 16.0, other_cost_of_revenue_frac: 6.0, payroll_cost: 6768000000.0, sales_marketing_spend: 1500000000.0, office_utilities_internet: 400000000.0, software_tools_subscriptions: 350000000.0, legal_accounting_compliance: 200000000.0, travel_events: 500000000.0, recruitment_training: 250000000.0, other_ga: 300000000.0, seed_investment: 8250000000.0, pre_money_valuation: 46200000000.0, exit_revenue_multiple_conservative: 3.0, exit_revenue_multiple_base: 5.0, exit_revenue_multiple_optimistic: 7.0 },
-    2029: { new_coops_acquired: 500, monthly_churn_rate: 1.0, avg_members_per_coop: 536, subscription_paying_frac: 100.0, setup_fee: 40000000.0, paid_implementation_coops: 260, monthly_subscription_fee: 500000.0, ios_addon_monthly_fee: 200000.0, ios_adoption_frac: 40.0, white_label_projects: 25, white_label_fee_per_project: 20000000.0, ppob_active_coops_frac: 70.0, ppob_tx_per_coop_month: 20, avg_ppob_fee_per_tx: 1000.0, academy_participants_frac: 0.1, academy_avg_price_per_participant: 200000.0, offline_trainings_per_month: 15, offline_training_fee_per_coop: 2500000.0, enterprise_api_revenue: 10554000000.0, cloud_cost_per_coop_month: 50000.0, implementation_cost_per_coop: 4500000.0, support_cost_per_coop_month: 55000.0, payment_api_var_cost_frac: 15.0, other_cost_of_revenue_frac: 5.0, payroll_cost: 9750000000.0, sales_marketing_spend: 2200000000.0, office_utilities_internet: 550000000.0, software_tools_subscriptions: 500000000.0, legal_accounting_compliance: 300000000.0, travel_events: 800000000.0, recruitment_training: 350000000.0, other_ga: 500000000.0, seed_investment: 8250000000.0, pre_money_valuation: 46200000000.0, exit_revenue_multiple_conservative: 3.0, exit_revenue_multiple_base: 5.0, exit_revenue_multiple_optimistic: 7.0 }
+    2025: { ...emptyYearState },
+    2026: { ...emptyYearState },
+    2027: { ...emptyYearState },
+    2028: { ...emptyYearState },
+    2029: { ...emptyYearState }
   });
 
   const [loadingBackend, setLoadingBackend] = useState(false);
@@ -135,10 +151,10 @@ export default function CfoDashboard({ userData, handleLogout }) {
       const year = years[idx];
       const a = assumptionsByYear[year] || {};
       
-      const newCoops = a.new_coops_acquired ?? 35;
-      const churnRate = a.monthly_churn_rate ?? 2.0;
-      const avgMembers = a.avg_members_per_coop ?? 700;
-      const subFraction = (a.subscription_paying_frac ?? 100.0) / 100;
+      const newCoops = Number(a.new_coops_acquired) || 0;
+      const churnRate = Number(a.monthly_churn_rate) || 0;
+      const avgMembers = Number(a.avg_members_per_coop) || 0;
+      const subFraction = (Number(a.subscription_paying_frac) || 0) / 100;
       
       const beginningCoops = idx === 0 ? 215 : computedYears[years[idx - 1]].endingCoops;
       const churnedCoops = Math.round(beginningCoops * (churnRate / 100));
@@ -146,21 +162,21 @@ export default function CfoDashboard({ userData, handleLogout }) {
       const totalMembers = endingActiveCoops * avgMembers;
       
       // Revenue Streams
-      const setupFee = a.setup_fee ?? 40000000;
-      const paidImplementationCoops = a.paid_implementation_coops ?? 30;
-      const monthlySubscriptionFee = a.monthly_subscription_fee ?? 500000;
-      const iosAddonMonthlyFee = a.ios_addon_monthly_fee ?? 200000;
-      const iosAdoptionFrac = (a.ios_adoption_frac ?? 40.0) / 100;
-      const whiteLabelProjects = a.white_label_projects ?? 0;
-      const whiteLabelFeePerProject = a.white_label_fee_per_project ?? 20000000;
-      const ppobActiveCoopsFrac = (a.ppob_active_coops_frac ?? 60.0) / 100;
-      const ppobTxPerCoopMonth = a.ppob_tx_per_coop_month ?? 20;
-      const avgPpobFeePerTx = a.avg_ppob_fee_per_tx ?? 1000;
-      const academyParticipantsFrac = (a.academy_participants_frac ?? 0.1) / 100;
-      const academyAvgPricePerParticipant = a.academy_avg_price_per_participant ?? 200000;
-      const offlineTrainings_perMonth = a.offline_trainings_per_month ?? 0;
-      const offlineTrainingFee_coop = a.offline_training_fee_per_coop ?? 2500000;
-      const enterpriseAPI_revenue = a.enterprise_api_revenue ?? 0;
+      const setupFee = Number(a.setup_fee) || 0;
+      const paidImplementationCoops = Number(a.paid_implementation_coops) || 0;
+      const monthlySubscriptionFee = Number(a.monthly_subscription_fee) || 0;
+      const iosAddonMonthlyFee = Number(a.ios_addon_monthly_fee) || 0;
+      const iosAdoptionFrac = (Number(a.ios_adoption_frac) || 0) / 100;
+      const whiteLabelProjects = Number(a.white_label_projects) || 0;
+      const whiteLabelFeePerProject = Number(a.white_label_fee_per_project) || 0;
+      const ppobActiveCoopsFrac = (Number(a.ppob_active_coops_frac) || 0) / 100;
+      const ppobTxPerCoopMonth = Number(a.ppob_tx_per_coop_month) || 0;
+      const avgPpobFeePerTx = Number(a.avg_ppob_fee_per_tx) || 0;
+      const academyParticipantsFrac = (Number(a.academy_participants_frac) || 0) / 100;
+      const academyAvgPricePerParticipant = Number(a.academy_avg_price_per_participant) || 0;
+      const offlineTrainings_perMonth = Number(a.offline_trainings_per_month) || 0;
+      const offlineTrainingFee_coop = Number(a.offline_training_fee_per_coop) || 0;
+      const enterpriseAPI_revenue = Number(a.enterprise_api_revenue) || 0;
       
       const setupImplementationRevenue = paidImplementationCoops * setupFee;
       const saasSubscriptionRevenue = endingActiveCoops * subFraction * monthlySubscriptionFee * 12;
@@ -183,11 +199,11 @@ export default function CfoDashboard({ userData, handleLogout }) {
       const arpu = endingActiveCoops > 0 ? totalRevenue / endingActiveCoops : 0;
       
       // COGS
-      const cloudCostPerCoopMonth = a.cloud_cost_per_coop_month ?? 80000;
-      const implementationCostPerCoop = a.implementation_cost_per_coop ?? 6000000;
-      const supportCostPerCoopMonth = a.support_cost_per_coop_month ?? 75000;
-      const paymentApiVarCostFrac = (a.payment_api_var_cost_frac ?? 20.0) / 100;
-      const otherCostOfRevenueFrac = (a.other_cost_of_revenue_frac ?? 8.0) / 100;
+      const cloudCostPerCoopMonth = Number(a.cloud_cost_per_coop_month) || 0;
+      const implementationCostPerCoop = Number(a.implementation_cost_per_coop) || 0;
+      const supportCostPerCoopMonth = Number(a.support_cost_per_coop_month) || 0;
+      const paymentApiVarCostFrac = (Number(a.payment_api_var_cost_frac) || 0) / 100;
+      const otherCostOfRevenueFrac = (Number(a.other_cost_of_revenue_frac) || 0) / 100;
       
       const cloudInfrastructureCost = endingActiveCoops * cloudCostPerCoopMonth * 12;
       const implementationOnboardingCost = paidImplementationCoops * implementationCostPerCoop;
@@ -205,14 +221,14 @@ export default function CfoDashboard({ userData, handleLogout }) {
       const grossMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
       
       // OPEX
-      const payrollOpex = a.payroll_cost ?? 0;
-      const salesMarketingOpex = a.sales_marketing_spend ?? 0;
-      const officeUtilitiesOpex = a.office_utilities_internet ?? 0;
-      const softwareToolsOpex = a.software_tools_subscriptions ?? 0;
-      const legalAccountingOpex = a.legal_accounting_compliance ?? 0;
-      const travelEventsOpex = a.travel_events ?? 0;
-      const recruitmentTrainingOpex = a.recruitment_training ?? 0;
-      const otherGaOpex = a.other_ga ?? 0;
+      const payrollOpex = Number(a.payroll_cost) || 0;
+      const salesMarketingOpex = Number(a.sales_marketing_spend) || 0;
+      const officeUtilitiesOpex = Number(a.office_utilities_internet) || 0;
+      const softwareToolsOpex = Number(a.software_tools_subscriptions) || 0;
+      const legalAccountingOpex = Number(a.legal_accounting_compliance) || 0;
+      const travelEventsOpex = Number(a.travel_events) || 0;
+      const recruitmentTrainingOpex = Number(a.recruitment_training) || 0;
+      const otherGaOpex = Number(a.other_ga) || 0;
       
       const totalOpex = payrollOpex + salesMarketingOpex + officeUtilitiesOpex + softwareToolsOpex +
                         legalAccountingOpex + travelEventsOpex + recruitmentTrainingOpex + otherGaOpex;
@@ -221,7 +237,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
       const ebitdaMargin = totalRevenue > 0 ? (ebitda / totalRevenue) * 100 : 0;
       
       // Cash Flow
-      const seedInflow = year === 2026 ? (a.seed_investment ?? 8250000000) : 0;
+      const seedInflow = year === 2026 ? (Number(a.seed_investment) || 0) : 0;
       const openingCash = idx === 0 ? 0 : computedYears[years[idx - 1]].endingCash;
       const endingCash = openingCash + seedInflow + ebitda;
       
@@ -302,11 +318,11 @@ export default function CfoDashboard({ userData, handleLogout }) {
     const rev2029 = y2029.totalRevenue || 0;
     
     const a2029 = assumptionsByYear[2029] || {};
-    const multCons = a2029.exit_revenue_multiple_conservative ?? 3.0;
-    const multBase = a2029.exit_revenue_multiple_base ?? 5.0;
-    const multOpt = a2029.exit_revenue_multiple_optimistic ?? 7.0;
-    const seedInvestment = a2029.seed_investment ?? 8250000000;
-    const preMoneyVal = a2029.pre_money_valuation ?? 46200000000;
+    const multCons = Number(a2029.exit_revenue_multiple_conservative) || 0;
+    const multBase = Number(a2029.exit_revenue_multiple_base) || 0;
+    const multOpt = Number(a2029.exit_revenue_multiple_optimistic) || 0;
+    const seedInvestment = Number(a2029.seed_investment) || 0;
+    const preMoneyVal = Number(a2029.pre_money_valuation) || 0;
     
     const postMoneyVal = preMoneyVal + seedInvestment;
     const equityFrac = postMoneyVal > 0 ? seedInvestment / postMoneyVal : 0;
@@ -363,7 +379,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
     const breakEvenYear = data.find(row => row.ebitda > 0)?.year || "Belum Tercapai";
     
     const totalEbitda5Y = data.reduce((sum, row) => sum + row.ebitda, 0);
-    const avgChurn = data.reduce((sum, row) => sum + (assumptionsByYear[row.year]?.monthly_churn_rate ?? 2.0), 0) / 5;
+    const avgChurn = data.reduce((sum, row) => sum + (Number(assumptionsByYear[row.year]?.monthly_churn_rate) || 0), 0) / 5;
 
     let healthRating = "Sangat Sehat";
     let healthAdvice = "Model finansial menunjukkan pertumbuhan top-line SaaS yang sangat kuat dengan skala ekonomis yang baik pada EBITDA margin di tahun 2029.";
@@ -661,8 +677,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Koperasi Baru Diakuisisi (Tahun)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.new_coops_acquired ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "new_coops_acquired", parseInt(e.target.value) || 0)}
+                        value={activeAssumptions.new_coops_acquired ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "new_coops_acquired", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
@@ -671,8 +687,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <input 
                         type="number" 
                         step="0.1"
-                        value={activeAssumptions.monthly_churn_rate ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "monthly_churn_rate", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.monthly_churn_rate ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "monthly_churn_rate", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
@@ -680,8 +696,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Rata-rata Anggota / Koperasi</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.avg_members_per_coop ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "avg_members_per_coop", parseInt(e.target.value) || 0)}
+                        value={activeAssumptions.avg_members_per_coop ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "avg_members_per_coop", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
@@ -706,8 +722,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Biaya Setup Per Koperasi (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.setup_fee ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "setup_fee", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.setup_fee ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "setup_fee", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -715,8 +731,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Jumlah Koperasi Implementasi</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.paid_implementation_coops ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "paid_implementation_coops", parseInt(e.target.value) || 0)}
+                        value={activeAssumptions.paid_implementation_coops ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "paid_implementation_coops", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -724,8 +740,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">SaaS Subscription / Bulan (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.monthly_subscription_fee ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "monthly_subscription_fee", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.monthly_subscription_fee ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "monthly_subscription_fee", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -733,8 +749,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Adopsi Tambahan iOS (%)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.ios_adoption_frac ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "ios_adoption_frac", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.ios_adoption_frac ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "ios_adoption_frac", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -742,8 +758,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Biaya Tambahan iOS / Bulan (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.ios_addon_monthly_fee ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "ios_addon_monthly_fee", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.ios_addon_monthly_fee ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "ios_addon_monthly_fee", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -751,8 +767,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Proyek White Label</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.white_label_projects ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "white_label_projects", parseInt(e.target.value) || 0)}
+                        value={activeAssumptions.white_label_projects ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "white_label_projects", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -760,8 +776,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Biaya per White Label (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.white_label_fee_per_project ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "white_label_fee_per_project", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.white_label_fee_per_project ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "white_label_fee_per_project", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -769,8 +785,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">PPOB Active Koperasi (%)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.ppob_active_coops_frac ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "ppob_active_coops_frac", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.ppob_active_coops_frac ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "ppob_active_coops_frac", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -778,8 +794,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">PPOB Transaksi / Coop / Bulan</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.ppob_tx_per_coop_month ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "ppob_tx_per_coop_month", parseInt(e.target.value) || 0)}
+                        value={activeAssumptions.ppob_tx_per_coop_month ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "ppob_tx_per_coop_month", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -787,8 +803,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">PPOB Rata-rata Fee / Tx (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.avg_ppob_fee_per_tx ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "avg_ppob_fee_per_tx", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.avg_ppob_fee_per_tx ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "avg_ppob_fee_per_tx", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -797,8 +813,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <input 
                         type="number" 
                         step="0.001"
-                        value={activeAssumptions.academy_participants_frac ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "academy_participants_frac", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.academy_participants_frac ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "academy_participants_frac", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -806,8 +822,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Harga Tiket Academy (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.academy_avg_price_per_participant ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "academy_avg_price_per_participant", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.academy_avg_price_per_participant ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "academy_avg_price_per_participant", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -815,8 +831,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Training Offline / Bulan</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.offline_trainings_per_month ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "offline_trainings_per_month", parseInt(e.target.value) || 0)}
+                        value={activeAssumptions.offline_trainings_per_month ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "offline_trainings_per_month", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -824,8 +840,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Biaya Training per Coop (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.offline_training_fee_per_coop ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "offline_training_fee_per_coop", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.offline_training_fee_per_coop ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "offline_training_fee_per_coop", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -833,8 +849,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Enterprise API Tahunan (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.enterprise_api_revenue ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "enterprise_api_revenue", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.enterprise_api_revenue ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "enterprise_api_revenue", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -859,8 +875,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Beban Cloud / Active Coop / Bulan (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.cloud_cost_per_coop_month ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "cloud_cost_per_coop_month", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.cloud_cost_per_coop_month ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "cloud_cost_per_coop_month", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -868,8 +884,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Beban Implementasi / Coop Baru (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.implementation_cost_per_coop ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "implementation_cost_per_coop", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.implementation_cost_per_coop ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "implementation_cost_per_coop", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -877,8 +893,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Beban CS / Active Coop / Bulan (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.support_cost_per_coop_month ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "support_cost_per_coop_month", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.support_cost_per_coop_month ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "support_cost_per_coop_month", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -886,8 +902,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Beban Variabel API PPOB (%)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.payment_api_var_cost_frac ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "payment_api_var_cost_frac", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.payment_api_var_cost_frac ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "payment_api_var_cost_frac", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -895,8 +911,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Beban HPP Pendapatan Lain (%)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.other_cost_of_revenue_frac ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "other_cost_of_revenue_frac", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.other_cost_of_revenue_frac ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "other_cost_of_revenue_frac", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -921,8 +937,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Beban Gaji/Payroll Tahunan (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.payroll_cost ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "payroll_cost", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.payroll_cost ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "payroll_cost", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -930,8 +946,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Beban Marketing Tahunan (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.sales_marketing_spend ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "sales_marketing_spend", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.sales_marketing_spend ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "sales_marketing_spend", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -939,8 +955,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Kantor, Listrik & Internet (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.office_utilities_internet ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "office_utilities_internet", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.office_utilities_internet ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "office_utilities_internet", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -948,8 +964,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Software & Berlangganan Alat (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.software_tools_subscriptions ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "software_tools_subscriptions", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.software_tools_subscriptions ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "software_tools_subscriptions", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -957,8 +973,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Biaya Legal & Kepatuhan (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.legal_accounting_compliance ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "legal_accounting_compliance", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.legal_accounting_compliance ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "legal_accounting_compliance", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -966,8 +982,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Perjalanan Dinas & Event (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.travel_events ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "travel_events", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.travel_events ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "travel_events", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -975,8 +991,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Rekrutmen & Pelatihan (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.recruitment_training ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "recruitment_training", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.recruitment_training ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "recruitment_training", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -984,8 +1000,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Biaya Administrasi & Umum Lain (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.other_ga ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "other_ga", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.other_ga ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "other_ga", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -1010,8 +1026,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Injeksi Modal Seed (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.seed_investment ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "seed_investment", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.seed_investment ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "seed_investment", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -1019,8 +1035,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                       <label className="text-[10px] uppercase font-bold text-muted-foreground">Pre-Money Valuation (Rp)</label>
                       <input 
                         type="number" 
-                        value={activeAssumptions.pre_money_valuation ?? 0}
-                        onChange={(e) => handleInputChange(selectedEditYear, "pre_money_valuation", parseFloat(e.target.value) || 0)}
+                        value={activeAssumptions.pre_money_valuation ?? ""}
+                        onChange={(e) => handleInputChange(selectedEditYear, "pre_money_valuation", e.target.value === "" ? "" : Number(e.target.value))}
                         className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm font-semibold"
                       />
                     </div>
@@ -1030,8 +1046,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                         <input 
                           type="number" 
                           step="0.5"
-                          value={activeAssumptions.exit_revenue_multiple_conservative ?? 0}
-                          onChange={(e) => handleInputChange(selectedEditYear, "exit_revenue_multiple_conservative", parseFloat(e.target.value) || 0)}
+                          value={activeAssumptions.exit_revenue_multiple_conservative ?? ""}
+                          onChange={(e) => handleInputChange(selectedEditYear, "exit_revenue_multiple_conservative", e.target.value === "" ? "" : Number(e.target.value))}
                           className="w-full px-2 py-1 bg-background border border-border rounded-lg text-xs font-semibold"
                         />
                       </div>
@@ -1040,8 +1056,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                         <input 
                           type="number" 
                           step="0.5"
-                          value={activeAssumptions.exit_revenue_multiple_base ?? 0}
-                          onChange={(e) => handleInputChange(selectedEditYear, "exit_revenue_multiple_base", parseFloat(e.target.value) || 0)}
+                          value={activeAssumptions.exit_revenue_multiple_base ?? ""}
+                          onChange={(e) => handleInputChange(selectedEditYear, "exit_revenue_multiple_base", e.target.value === "" ? "" : Number(e.target.value))}
                           className="w-full px-2 py-1 bg-background border border-border rounded-lg text-xs font-semibold"
                         />
                       </div>
@@ -1050,8 +1066,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
                         <input 
                           type="number" 
                           step="0.5"
-                          value={activeAssumptions.exit_revenue_multiple_optimistic ?? 0}
-                          onChange={(e) => handleInputChange(selectedEditYear, "exit_revenue_multiple_optimistic", parseFloat(e.target.value) || 0)}
+                          value={activeAssumptions.exit_revenue_multiple_optimistic ?? ""}
+                          onChange={(e) => handleInputChange(selectedEditYear, "exit_revenue_multiple_optimistic", e.target.value === "" ? "" : Number(e.target.value))}
                           className="w-full px-2 py-1 bg-background border border-border rounded-lg text-xs font-semibold"
                         />
                       </div>
