@@ -18,9 +18,20 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
+            /** @var \App\Models\User $user */
             $user = Auth::user();
-            // Load the user's role and company accesses
-            $user->load(['role', 'companyAccesses.company']);
+            $user->load(['role', 'companyAccesses.company.projects']);
+            
+            foreach ($user->companyAccesses as $access) {
+                $company = $access->company;
+                if ($company && $company->projects->isEmpty()) {
+                    \App\Models\Project::create([
+                        'company_id' => $company->id,
+                        'name' => 'Proyeksi Keuangan Utama'
+                    ]);
+                }
+            }
+            $user->load(['role', 'companyAccesses.company.projects']);
             
             $token = $user->createToken('auth_token')->plainTextToken;
             
@@ -55,7 +66,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        $user->load(['role', 'companyAccesses.company']);
+        $user->load(['role', 'companyAccesses.company.projects']);
 
         return response()->json([
             'access_token' => $token,
@@ -67,7 +78,19 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         $user = $request->user();
-        $user->load(['role', 'companyAccesses.company']);
+        $user->load(['role', 'companyAccesses.company.projects']);
+        
+        foreach ($user->companyAccesses as $access) {
+            $company = $access->company;
+            if ($company && $company->projects->isEmpty()) {
+                \App\Models\Project::create([
+                    'company_id' => $company->id,
+                    'name' => 'Proyeksi Keuangan Utama'
+                ]);
+            }
+        }
+        $user->load(['role', 'companyAccesses.company.projects']);
+        
         return response()->json($user);
     }
 

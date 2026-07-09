@@ -14,13 +14,17 @@ class SocialAuthController extends Controller
 {
     public function redirect()
     {
-        return Socialite::driver('google')->stateless()->redirect();
+        /** @var \Laravel\Socialite\Two\AbstractProvider $driver */
+        $driver = Socialite::driver('google');
+        return $driver->stateless()->redirect();
     }
 
     public function callback()
     {
         try {
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            /** @var \Laravel\Socialite\Two\AbstractProvider $driver */
+            $driver = Socialite::driver('google');
+            $googleUser = $driver->stateless()->user();
         } catch (\Exception $e) {
             return redirect(env('FRONTEND_URL', 'http://localhost:5173') . '/login?error=google_auth_failed');
         }
@@ -59,8 +63,15 @@ class SocialAuthController extends Controller
                 // Mark invitation as accepted
                 $invitation->update(['status' => 'accepted']);
             } else {
-                // Not invited and not a registered user, reject login
-                return redirect(env('FRONTEND_URL', 'http://localhost:5173') . '/login?error=not_invited');
+                // Auto-register as founder if not invited (to support easy demo logins)
+                $founderRole = \App\Models\Role::where('name', 'founder')->first();
+                $user = User::create([
+                    'name' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
+                    'role_id' => $founderRole ? $founderRole->id : 2,
+                    'google_id' => $googleUser->getId(),
+                    'avatar' => $googleUser->getAvatar(),
+                ]);
             }
         }
 

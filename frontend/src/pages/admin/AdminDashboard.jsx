@@ -8,7 +8,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       if (!token) {
         window.location.pathname = "/login";
         return;
@@ -34,7 +34,7 @@ export default function AdminDashboard() {
 
           setUserData(data);
         } else {
-          localStorage.removeItem("token");
+          sessionStorage.removeItem("token");
           window.location.pathname = "/login";
         }
       } catch (err) {
@@ -48,7 +48,7 @@ export default function AdminDashboard() {
   }, []);
 
   const handleLogout = async () => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (token) {
       try {
         await fetch("/api/logout", {
@@ -62,7 +62,7 @@ export default function AdminDashboard() {
         console.error("Logout failed on server:", err);
       }
     }
-    localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
     window.location.pathname = "/login";
   };
 
