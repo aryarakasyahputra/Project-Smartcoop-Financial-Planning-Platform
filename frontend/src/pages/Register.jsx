@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ArrowRight, Lock, Mail, User, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -9,6 +10,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -43,7 +45,7 @@ export default function Register() {
         sessionStorage.setItem("token", data.access_token);
         setSuccess("Pendaftaran berhasil! Mengalihkan ke onboarding...");
         setTimeout(() => {
-          window.location.pathname = "/onboarding";
+          navigate("/onboarding");
         }, 1500);
       } else {
         // Handle validation errors from Laravel
@@ -65,14 +67,14 @@ export default function Register() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md p-8 rounded-2xl border border-border bg-card" style={{ boxShadow: "var(--shadow-elegant)" }}>
         <div className="text-center mb-8">
-          <a href="/" className="flex flex-col items-center leading-none mb-6">
+          <Link to="/" className="flex flex-col items-center leading-none mb-6">
             <span className="text-[32px] font-bold text-[#005fa4]">
               smart<span className="text-[#FFD700]">coop</span>
             </span>
             <span className="text-[12px] font-medium text-[#005fa4]/70 tracking-[0.2em] uppercase ml-1">
               financial
             </span>
-          </a>
+          </Link>
           <h1 className="text-2xl font-bold text-foreground">Daftar Akun Baru</h1>
           <p className="text-sm text-muted-foreground mt-2">Mulai kelola perencanaan keuangan bisnis Anda</p>
         </div>
@@ -169,9 +171,9 @@ export default function Register() {
         <div className="mt-8 text-center text-sm text-muted-foreground">
           <p>
             Sudah punya akun?{" "}
-            <a href="/login" className="text-primary font-semibold hover:underline">
+            <Link to="/login" className="text-primary font-semibold hover:underline">
               Masuk di sini
-            </a>
+            </Link>
           </p>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, ArrowRight, Lock, Mail, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -7,6 +8,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -43,9 +45,9 @@ export default function Login() {
         
         setTimeout(() => {
           if (!data.user?.company_accesses || data.user.company_accesses.length === 0) {
-            window.location.pathname = "/onboarding";
+            navigate("/onboarding");
           } else {
-            window.location.pathname = "/dashboard";
+            navigate("/dashboard");
           }
         }, 1500);
       } else {
@@ -61,25 +63,25 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 relative">
       {/* Tombol Kembali - dipindah ke luar card */}
-      <a 
-        href="/" 
+      <Link 
+        to="/" 
         className="absolute top-6 left-6 md:top-8 md:left-8 inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold hover:opacity-90 transition-all"
         style={{ boxShadow: "var(--shadow-glow)" }}
       >
         <ArrowLeft className="h-4 w-4" />
         <span className="hidden sm:inline">Kembali ke Beranda</span>
-      </a>
+      </Link>
 
       <div className="w-full max-w-md p-8 rounded-2xl border border-border bg-card" style={{ boxShadow: "var(--shadow-elegant)" }}>
         <div className="text-center mb-8">
-          <a href="/" className="flex flex-col items-center leading-none mb-6">
+          <Link to="/" className="flex flex-col items-center leading-none mb-6">
             <span className="text-[32px] font-bold text-[#005fa4]">
               smart<span className="text-[#FFD700]">coop</span>
             </span>
             <span className="text-[12px] font-medium text-[#005fa4]/70 tracking-[0.2em] uppercase ml-1">
               financial
             </span>
-          </a>
+          </Link>
           <h1 className="text-2xl font-bold text-foreground">Selamat Datang</h1>
           <p className="text-sm text-muted-foreground mt-2">Silakan masuk ke akun Anda</p>
         </div>
@@ -142,9 +144,9 @@ export default function Login() {
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Belum punya akun?{" "}
-          <a href="/register" className="text-[#005fa4] font-semibold hover:underline">
+          <Link to="/register" className="text-[#005fa4] font-semibold hover:underline">
             Daftar di sini
-          </a>
+          </Link>
         </p>
 
         <div className="mt-8 border-t border-border pt-6 text-center text-sm text-muted-foreground">
