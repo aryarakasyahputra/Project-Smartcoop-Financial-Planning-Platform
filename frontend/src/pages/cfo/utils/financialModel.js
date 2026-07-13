@@ -7,10 +7,10 @@ export const simulateProjections = (assumptionsByYear) => {
     const year = years[idx];
     const a = assumptionsByYear[year] || {};
     
-    const newCoops = a.new_coops_acquired ?? 35;
-    const churnRate = a.monthly_churn_rate ?? 2.0;
-    const avgMembers = a.avg_members_per_coop ?? 700;
-    const subFraction = (a.subscription_paying_frac ?? 100.0) / 100;
+    const newCoops = a.new_coops_acquired ?? 0;
+    const churnRate = a.monthly_churn_rate ?? 0;
+    const avgMembers = a.avg_members_per_coop ?? 0;
+    const subFraction = (a.subscription_paying_frac ?? 0) / 100;
     
     const beginningCoops = idx === 0 ? 215 : computedYears[years[idx - 1]].endingCoops;
     const churnedCoops = Math.round(beginningCoops * (churnRate / 100));
@@ -18,20 +18,20 @@ export const simulateProjections = (assumptionsByYear) => {
     const totalMembers = endingActiveCoops * avgMembers;
     
     // Revenue Streams
-    const setupFee = a.setup_fee ?? 40000000;
-    const paidImplementationCoops = a.paid_implementation_coops ?? 30;
-    const monthlySubscriptionFee = a.monthly_subscription_fee ?? 500000;
-    const iosAddonMonthlyFee = a.ios_addon_monthly_fee ?? 200000;
-    const iosAdoptionFrac = (a.ios_adoption_frac ?? 40.0) / 100;
+    const setupFee = a.setup_fee ?? 0;
+    const paidImplementationCoops = a.paid_implementation_coops ?? 0;
+    const monthlySubscriptionFee = a.monthly_subscription_fee ?? 0;
+    const iosAddonMonthlyFee = a.ios_addon_monthly_fee ?? 0;
+    const iosAdoptionFrac = (a.ios_adoption_frac ?? 0) / 100;
     const whiteLabelProjects = a.white_label_projects ?? 0;
-    const whiteLabelFeePerProject = a.white_label_fee_per_project ?? 20000000;
-    const ppobActiveCoopsFrac = (a.ppob_active_coops_frac ?? 60.0) / 100;
-    const ppobTxPerCoopMonth = a.ppob_tx_per_coop_month ?? 20;
-    const avgPpobFeePerTx = a.avg_ppob_fee_per_tx ?? 1000;
-    const academyParticipantsFrac = (a.academy_participants_frac ?? 0.1) / 100;
-    const academyAvgPricePerParticipant = a.academy_avg_price_per_participant ?? 200000;
+    const whiteLabelFeePerProject = a.white_label_fee_per_project ?? 0;
+    const ppobActiveCoopsFrac = (a.ppob_active_coops_frac ?? 0) / 100;
+    const ppobTxPerCoopMonth = a.ppob_tx_per_coop_month ?? 0;
+    const avgPpobFeePerTx = a.avg_ppob_fee_per_tx ?? 0;
+    const academyParticipantsFrac = (a.academy_participants_frac ?? 0) / 100;
+    const academyAvgPricePerParticipant = a.academy_avg_price_per_participant ?? 0;
     const offlineTrainings_perMonth = a.offline_trainings_per_month ?? 0;
-    const offlineTrainingFee_coop = a.offline_training_fee_per_coop ?? 2500000;
+    const offlineTrainingFee_coop = a.offline_training_fee_per_coop ?? 0;
     const enterpriseAPI_revenue = a.enterprise_api_revenue ?? 0;
     
     const setupImplementationRevenue = paidImplementationCoops * setupFee;
@@ -55,11 +55,11 @@ export const simulateProjections = (assumptionsByYear) => {
     const arpu = endingActiveCoops > 0 ? totalRevenue / endingActiveCoops : 0;
     
     // COGS
-    const cloudCostPerCoopMonth = a.cloud_cost_per_coop_month ?? 80000;
-    const implementationCostPerCoop = a.implementation_cost_per_coop ?? 6000000;
-    const supportCostPerCoopMonth = a.support_cost_per_coop_month ?? 75000;
-    const paymentApiVarCostFrac = (a.payment_api_var_cost_frac ?? 20.0) / 100;
-    const otherCostOfRevenueFrac = (a.other_cost_of_revenue_frac ?? 8.0) / 100;
+    const cloudCostPerCoopMonth = a.cloud_cost_per_coop_month ?? 0;
+    const implementationCostPerCoop = a.implementation_cost_per_coop ?? 0;
+    const supportCostPerCoopMonth = a.support_cost_per_coop_month ?? 0;
+    const paymentApiVarCostFrac = (a.payment_api_var_cost_frac ?? 0) / 100;
+    const otherCostOfRevenueFrac = (a.other_cost_of_revenue_frac ?? 0) / 100;
     
     const cloudInfrastructureCost = endingActiveCoops * cloudCostPerCoopMonth * 12;
     const implementationOnboardingCost = paidImplementationCoops * implementationCostPerCoop;
@@ -174,11 +174,11 @@ export const simulateProjections = (assumptionsByYear) => {
   const rev2029 = y2029.totalRevenue || 0;
   
   const a2029 = assumptionsByYear[2029] || {};
-  const multCons = a2029.exit_revenue_multiple_conservative ?? 3.0;
-  const multBase = a2029.exit_revenue_multiple_base ?? 5.0;
-  const multOpt = a2029.exit_revenue_multiple_optimistic ?? 7.0;
-  const seedInvestment = a2029.seed_investment ?? 8250000000;
-  const preMoneyVal = a2029.pre_money_valuation ?? 46200000000;
+  const multCons = a2029.exit_revenue_multiple_conservative ?? 0;
+  const multBase = a2029.exit_revenue_multiple_base ?? 0;
+  const multOpt = a2029.exit_revenue_multiple_optimistic ?? 0;
+  const seedInvestment = a2029.seed_investment ?? 0;
+  const preMoneyVal = a2029.pre_money_valuation ?? 0;
   
   const postMoneyVal = preMoneyVal + seedInvestment;
   const equityFrac = postMoneyVal > 0 ? seedInvestment / postMoneyVal : 0;
