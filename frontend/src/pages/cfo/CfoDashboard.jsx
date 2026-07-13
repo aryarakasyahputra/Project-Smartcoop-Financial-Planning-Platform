@@ -80,15 +80,38 @@ export default function CfoDashboard({ userData, handleLogout }) {
     fetchData();
   }, [fetchData]);
 
-  // Handle inputs
+  // Handle inputs with forward propagation to subsequent years (except HR Planning and OPEX)
   const handleInputChange = (year, field, value) => {
-    setAssumptionsByYear(prev => ({
-      ...prev,
-      [year]: {
-        ...(prev[year] || { year }),
+    setAssumptionsByYear(prev => {
+      const updated = { ...prev };
+      const parsedYear = Number(year);
+      
+      // Update target year
+      updated[parsedYear] = {
+        ...(updated[parsedYear] || { year: parsedYear }),
         [field]: value
+      };
+      
+      // List of HR Planning and OPEX fields that should NOT propagate automatically
+      const excludedFields = [
+        "hr_engineering_fte", "hr_sales_fte", "hr_marketing_fte", "hr_support_fte",
+        "hr_finance_admin_fte", "hr_management_fte", "hr_avg_salary_monthly",
+        "sales_marketing_spend", "office_utilities_internet", "software_tools_subscriptions",
+        "legal_accounting_compliance", "other_opex"
+      ];
+      
+      // Propagate forward to subsequent years only if it's not an excluded field
+      if (!excludedFields.includes(field)) {
+        for (let y = parsedYear + 1; y <= 2029; y++) {
+          updated[y] = {
+            ...(updated[y] || { year: y }),
+            [field]: value
+          };
+        }
       }
-    }));
+      
+      return updated;
+    });
   };
 
   const toggleSection = (section) => {

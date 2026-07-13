@@ -56,14 +56,38 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
             </thead>
             <tbody className="divide-y divide-border">
               {/* --- Koperasi & Anggota --- */}
-              <tr className="bg-muted/5 font-semibold text-muted-foreground"><td colSpan={6} className="px-6 py-2">Metrik Pengguna</td></tr>
-              <tr className="hover:bg-muted/10 transition-colors">
-                <td className="px-6 py-3 font-medium">Koperasi Aktif</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{c.endingCoops}</td>)}
+              <tr className="bg-muted/5 font-semibold text-muted-foreground"><td colSpan={6} className="px-6 py-2">Customer Growth Model</td></tr>
+              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
+                <td className="px-6 py-3 pl-10">Beginning Active Cooperatives</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{new Intl.NumberFormat('id-ID').format(c.beginningCoops)}</td>)}
               </tr>
-              <tr className="hover:bg-muted/10 transition-colors">
-                <td className="px-6 py-3 font-medium">Total Anggota Koperasi</td>
+              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
+                <td className="px-6 py-3 pl-10">New Cooperatives Acquired</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{new Intl.NumberFormat('id-ID').format(c.newCoops)}</td>)}
+              </tr>
+              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
+                <td className="px-6 py-3 pl-10">Churned Cooperatives</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{new Intl.NumberFormat('id-ID').format(c.churnedCoops)}</td>)}
+              </tr>
+              <tr className="hover:bg-muted/10 transition-colors font-bold text-slate-800 bg-slate-50/50">
+                <td className="px-6 py-3 pl-10">Ending Active Cooperatives</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{new Intl.NumberFormat('id-ID').format(c.endingCoops)}</td>)}
+              </tr>
+              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
+                <td className="px-6 py-3 pl-10">Average Members / Cooperative</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{new Intl.NumberFormat('id-ID').format(c.avgMembers)}</td>)}
+              </tr>
+              <tr className="hover:bg-muted/10 transition-colors font-bold text-slate-800 bg-slate-50/50">
+                <td className="px-6 py-3 pl-10">Total Cooperative Members</td>
                 {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{new Intl.NumberFormat('id-ID').format(c.totalMembers)}</td>)}
+              </tr>
+              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
+                <td className="px-6 py-3 pl-10">YoY Active Coop Growth</td>
+                {data.map((c, i) => (
+                  <td key={c.year} className="px-6 py-3 text-right">
+                    {i === 0 ? "-" : `${(c.yoyCoopGrowth * 100).toFixed(1)}%`}
+                  </td>
+                ))}
               </tr>
 
               {/* --- PENDAPATAN --- */}

@@ -167,6 +167,12 @@ export const simulateProjections = (assumptionsByYear) => {
       exitMultipleBase: a.exit_revenue_multiple_base ?? 0,
       exitMultipleOptimistic: a.exit_revenue_multiple_optimistic ?? 0,
       beginning_cooperatives: a.beginning_cooperatives ?? 215,
+      beginningCoops,
+      newCoops,
+      churnedCoops,
+      avgMembers,
+      churnRate,
+      yoyCoopGrowth: idx === 0 ? 0 : (computedYears[years[idx - 1]].endingCoops > 0 ? (endingActiveCoops / computedYears[years[idx - 1]].endingCoops - 1) : 0),
       
       // Breakdowns for projections
       setupImplementationRevenue,
