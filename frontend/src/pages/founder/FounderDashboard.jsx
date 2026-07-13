@@ -133,14 +133,18 @@ export default function FounderDashboard({ userData, handleLogout }) {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row">
+    <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row md:h-screen md:overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-card border-b md:border-b-0 md:border-r border-border flex flex-col justify-between p-6">
+      <aside className="w-full md:w-64 bg-card border-b md:border-b-0 md:border-r border-border flex flex-col justify-between p-6 md:sticky md:top-0 md:h-screen shadow-sm z-10">
         <div className="space-y-8">
           {/* Logo */}
-          <div className="flex flex-col leading-none">
-            <span className="text-2xl font-bold text-primary">smart<span className="text-[#f28c1f]">coop</span></span>
-            <span className="text-[10px] font-medium text-primary/70 tracking-[0.2em] uppercase ml-0.5 mt-1">founder panel</span>
+          <div className="flex flex-col items-start leading-none group">
+            <span className="text-[22px] font-bold text-[#005fa4] tracking-tight">
+              smart<span className="text-[#FFD700]">coop</span>
+            </span>
+            <span className="text-[8px] font-medium text-[#005fa4]/70 tracking-[0.2em] uppercase mt-1">
+              founder panel
+            </span>
           </div>
 
           {/* Navigation */}
@@ -193,7 +197,7 @@ export default function FounderDashboard({ userData, handleLogout }) {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-6 md:p-10 space-y-8 overflow-y-auto">
+      <main className="flex-1 p-6 md:p-10 space-y-8 overflow-y-auto md:h-screen">
         {/* Header */}
         <header id="overview" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>

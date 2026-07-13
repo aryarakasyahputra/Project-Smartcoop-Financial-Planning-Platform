@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { LogOut, Building } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import FounderDashboard from "./founder/FounderDashboard.jsx";
-import CfoDashboard from "./cfo/CfoDashboard.jsx";
-import InvestorDashboard from "./investor/InvestorDashboard.jsx";
+import FounderDashboard from "../founder/FounderDashboard.jsx";
+import CfoDashboard from "../cfo/CfoDashboard.jsx";
+import InvestorDashboard from "../investor/InvestorDashboard.jsx";
 
 export default function Dashboard() {
   const [userData, setUserData] = useState(null);

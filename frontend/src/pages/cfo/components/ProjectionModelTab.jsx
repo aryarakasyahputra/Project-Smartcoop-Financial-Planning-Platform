@@ -10,7 +10,6 @@ import {
   Legend,
   ResponsiveContainer
 } from "recharts";
-import { formatRupiahMillions } from "../utils/financialModel";
 
 export default function ProjectionModelTab({ data, formatRupiah }) {
   return (
@@ -27,7 +26,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               <XAxis dataKey="name" stroke="#9ca3af" fontSize={12} tickMargin={10} />
               <YAxis stroke="#9ca3af" fontSize={12} tickFormatter={(val) => `Rp${val}M`} />
               <Tooltip 
-                formatter={(value, name) => [`Rp ${value} Juta`, name === "revenue" ? "Pendapatan" : name === "expenses" ? "Beban (COGS+OPEX)" : "EBITDA"]}
+                formatter={(value, name) => [`Rp ${new Intl.NumberFormat("id-ID").format(value)} Juta`, name]}
                 labelStyle={{ color: '#111827', fontWeight: 'bold' }}
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
               />

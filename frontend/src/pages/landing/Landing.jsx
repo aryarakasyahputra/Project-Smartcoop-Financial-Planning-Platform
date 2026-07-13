@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import heroBg from "../assets/hero.png";
+import heroBg from "../../assets/hero.png";
 import {
   ArrowRight, BarChart3, Building2, Users, Calculator, TrendingUp,
   Wallet, LineChart, Target, PieChart, LayoutDashboard, Sparkles,

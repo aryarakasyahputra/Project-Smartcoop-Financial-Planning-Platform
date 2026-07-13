@@ -255,7 +255,7 @@ export default function AssumptionDriversTab({
             ) : (
               <Save className="h-4 w-4" />
             )}
-            {saving ? "Menyimpan..." : "Simpan & Hitung Ulang"}
+            {saving ? "Menyimpan..." : "Simpan & Terapkan ke Laporan"}
           </button>
         </div>
       </div>

@@ -261,7 +261,3 @@ export const formatRupiah = (value) => {
     maximumFractionDigits: 0
   }).format(value);
 };
-
-export const formatRupiahMillions = (value) => {
-  return formatRupiah(value * 1000000);
-};
