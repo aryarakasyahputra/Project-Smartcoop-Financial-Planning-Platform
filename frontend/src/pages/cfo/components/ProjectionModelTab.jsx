@@ -120,9 +120,21 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 <td className="px-6 py-3 pl-10">Pelatihan Offline</td>
                 {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.offlineTrainingRevenue)}</td>)}
               </tr>
+              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
+                <td className="px-6 py-3 pl-10">Kontrak Enterprise API</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.enterpriseAPI_revenue)}</td>)}
+              </tr>
               <tr className="bg-green-500/10 font-bold text-green-700">
                 <td className="px-6 py-4">Total Pendapatan</td>
                 {data.map((c) => <td key={c.year} className="px-6 py-4 text-right">{formatRupiah(c.totalRevenue)}</td>)}
+              </tr>
+              <tr className="hover:bg-muted/10 transition-colors text-primary font-medium">
+                <td className="px-6 py-3 pl-10 text-xs">ARR / Recurring SaaS Run-Rate</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.arr)}</td>)}
+              </tr>
+              <tr className="hover:bg-muted/10 transition-colors text-primary font-medium">
+                <td className="px-6 py-3 pl-10 text-xs">ARPU / Active Coop</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.arpu)}</td>)}
               </tr>
 
               {/* --- HPP (COGS) --- */}
