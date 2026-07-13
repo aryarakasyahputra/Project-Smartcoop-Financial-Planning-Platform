@@ -9,6 +9,7 @@ import AssumptionDriversTab from "./components/AssumptionDriversTab";
 import ProjectionModelTab from "./components/ProjectionModelTab";
 
 import { simulateProjections, getAnalystInsights, formatRupiah } from "./utils/financialModel";
+import { toast } from "sonner";
 
 export default function CfoDashboard({ userData, handleLogout }) {
   const [activeTab, setActiveTab] = useState("analyst");
@@ -112,11 +113,10 @@ export default function CfoDashboard({ userData, handleLogout }) {
         body: JSON.stringify(assumptionsByYear)
       });
       if (!res.ok) throw new Error("Failed to save");
-      alert("Asumsi berhasil disimpan dan sekarang dapat dilihat oleh Founder!");
-      // Optionally show a toast notification here
+      toast.success("Asumsi berhasil disimpan dan sekarang dapat dilihat oleh Founder!");
     } catch (err) {
       console.error("Gagal menyimpan asumsi:", err);
-      alert("Gagal menyimpan data ke server.");
+      toast.error("Gagal menyimpan data ke server.");
     } finally {
       setSaving(false);
     }

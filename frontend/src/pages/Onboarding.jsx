@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ArrowRight, Building2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Onboarding() {
   const [companyName, setCompanyName] = useState("");
@@ -8,12 +9,13 @@ export default function Onboarding() {
   const [success, setSuccess] = useState(null);
 
   const [checkingRole, setCheckingRole] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkUserRole = async () => {
       const token = sessionStorage.getItem("token");
       if (!token) {
-        window.location.pathname = "/login";
+        navigate("/login");
         return;
       }
 
@@ -29,20 +31,20 @@ export default function Onboarding() {
           const data = await res.json();
           // Only founder is allowed to perform onboarding
           if (data.role?.name !== "founder") {
-            window.location.pathname = "/dashboard";
+            navigate("/dashboard");
             return;
           }
           
           // If they already have a company, go to dashboard
           if (data.company_accesses && data.company_accesses.length > 0) {
-            window.location.pathname = "/dashboard";
+            navigate("/dashboard");
             return;
           }
           
           setCheckingRole(false);
         } else {
           sessionStorage.removeItem("token");
-          window.location.pathname = "/login";
+          navigate("/login");
         }
       } catch (err) {
         setError("Gagal memverifikasi hak akses pengguna.");
@@ -51,7 +53,7 @@ export default function Onboarding() {
     };
 
     checkUserRole();
-  }, []);
+  }, [navigate]);
 
   const handleOnboarding = async (e) => {
     e.preventDefault();
@@ -86,7 +88,7 @@ export default function Onboarding() {
         
         // Update user state if we need to locally or redirect
         setTimeout(() => {
-          window.location.pathname = "/dashboard";
+          navigate("/dashboard");
         }, 1500);
       } else {
         setError(data.message || "Gagal menyimpan data onboarding");
@@ -113,14 +115,14 @@ export default function Onboarding() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md p-8 rounded-2xl border border-border bg-card" style={{ boxShadow: "var(--shadow-elegant)" }}>
         <div className="text-center mb-8">
-          <a href="/" className="flex flex-col items-center leading-none mb-6">
+          <Link to="/" className="flex flex-col items-center leading-none mb-6">
             <span className="text-[32px] font-bold text-[#005fa4]">
               smart<span className="text-[#FFD700]">coop</span>
             </span>
             <span className="text-[12px] font-medium text-[#005fa4]/70 tracking-[0.2em] uppercase ml-1">
               financial
             </span>
-          </a>
+          </Link>
           <h1 className="text-2xl font-bold text-foreground">Satu langkah lagi...</h1>
           <p className="text-sm text-muted-foreground mt-2">Daftarkan profil perusahaan Anda untuk memulai pemodelan keuangan</p>
         </div>

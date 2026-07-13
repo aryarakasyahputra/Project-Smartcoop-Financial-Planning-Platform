@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { LogOut, Building } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import FounderDashboard from "./founder/FounderDashboard.jsx";
 import CfoDashboard from "./cfo/CfoDashboard.jsx";
 import InvestorDashboard from "./investor/InvestorDashboard.jsx";
@@ -8,12 +9,13 @@ export default function Dashboard() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
       const token = sessionStorage.getItem("token");
       if (!token) {
-        window.location.pathname = "/login";
+        navigate("/login");
         return;
       }
 
@@ -31,20 +33,20 @@ export default function Dashboard() {
 
           // Guard: if user is admin, redirect to admin dashboard
           if (roleName === "admin") {
-            window.location.pathname = "/admin/dashboard";
+            navigate("/admin/dashboard");
             return;
           }
 
           // Check if user has completed onboarding (has at least one company access)
           // ONLY founders need to go to /onboarding if they have no company access.
           if ((!data.company_accesses || data.company_accesses.length === 0) && roleName === "founder") {
-            window.location.pathname = "/onboarding";
+            navigate("/onboarding");
             return;
           }
           setUserData(data);
         } else {
           sessionStorage.removeItem("token");
-          window.location.pathname = "/login";
+          navigate("/login");
         }
       } catch (err) {
         setError("Gagal memuat data pengguna.");
@@ -54,7 +56,7 @@ export default function Dashboard() {
     };
 
     fetchUserData();
-  }, []);
+  }, [navigate]);
 
   const handleLogout = async () => {
     const token = sessionStorage.getItem("token");
@@ -72,7 +74,7 @@ export default function Dashboard() {
       }
     }
     sessionStorage.removeItem("token");
-    window.location.pathname = "/login";
+    navigate("/login");
   };
 
   if (loading) {
