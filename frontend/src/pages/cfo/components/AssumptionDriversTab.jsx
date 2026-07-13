@@ -84,9 +84,7 @@ export default function AssumptionDriversTab({
       id: "growth", no: "1", title: "PEMICU PERTUMBUHAN KOPERASI",
       icon: TrendingUp, color: BRAND_BLUE,
       fields: [
-        ...(selectedEditYear === 2025 ? [
-          { label: "Koperasi Aktif Awal (Baseline)", key: "beginning_cooperatives", parse: parseInt }
-        ] : []),
+        { label: "Koperasi Aktif Awal (Baseline)", key: "beginning_cooperatives", parse: parseInt },
         { label: "Koperasi Baru Diakuisisi (Tahun)", key: "new_coops_acquired", parse: parseInt },
         { label: "Laju Churn Bulanan", key: "monthly_churn_rate", suffix: "%", step: "0.1", parse: parseFloat },
         { label: "Rata-rata Anggota / Koperasi", key: "avg_members_per_coop", parse: parseInt },
@@ -233,7 +231,10 @@ export default function AssumptionDriversTab({
                   <div className="grid md:grid-cols-2 gap-4 pt-2">
                     {s.fields.map((f) => {
                       let val = activeAssumptions[f.key] ?? 0;
-                      if (f.key === "payroll_cost") {
+                      if (f.key === "beginning_cooperatives" && selectedEditYear !== 2025) {
+                        const prevYearData = data?.find(d => d.year === selectedEditYear - 1);
+                        val = prevYearData?.endingCoops ?? 0;
+                      } else if (f.key === "payroll_cost") {
                         const eng = activeAssumptions.hr_engineering_fte ?? 0;
                         const sls = activeAssumptions.hr_sales_fte ?? 0;
                         const mkt = activeAssumptions.hr_marketing_fte ?? 0;
@@ -251,7 +252,7 @@ export default function AssumptionDriversTab({
                           prefix={f.prefix}
                           suffix={f.suffix}
                           step={f.step}
-                          disabled={f.disabled}
+                          disabled={f.disabled || (f.key === "beginning_cooperatives" && selectedEditYear !== 2025)}
                           onChange={(e) =>
                             handleInputChange(
                               selectedEditYear,
