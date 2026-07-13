@@ -24,4 +24,5 @@ Route::middleware('auth:sanctum')->group(function () {
     // Assumption Engine (CFO Dashboard)
     Route::get('/projects/{projectId}/assumptions', [AssumptionController::class, 'get']);
     Route::put('/projects/{projectId}/assumptions', [AssumptionController::class, 'update']);
+    Route::post('/projects/{projectId}/reset', [AssumptionController::class, 'reset']);
 });

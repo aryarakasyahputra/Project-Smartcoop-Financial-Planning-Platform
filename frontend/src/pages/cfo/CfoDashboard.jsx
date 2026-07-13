@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { 
   Building2, Users, LayoutDashboard, Settings, LogOut, 
-  ChevronRight, Brain, PieChart, Activity, Calculator, Search, Bell
+  ChevronRight, Brain, PieChart, Activity, Calculator, Search, Bell, TrendingUp, RefreshCw
 } from "lucide-react";
 
 import FinancialAnalystTab from "./components/FinancialAnalystTab";
 import AssumptionDriversTab from "./components/AssumptionDriversTab";
 import ProjectionModelTab from "./components/ProjectionModelTab";
+import ValuationTab from "./components/ValuationTab";
 
 import { simulateProjections, getAnalystInsights, formatRupiah } from "./utils/financialModel";
 import { toast } from "sonner";
@@ -30,55 +31,54 @@ export default function CfoDashboard({ userData, handleLogout }) {
     funding: false
   });
 
-  // Auth check & data load
-  useEffect(() => {
+  // Auth check & data load function
+  const fetchData = useCallback(async () => {
+    if (!projectId) {
+      setLoading(false);
+      return;
+    }
     const token = sessionStorage.getItem("token");
     if (!token) {
       window.location.href = "/login";
       return;
     }
-
-    const fetchData = async () => {
-      if (!projectId) {
-        setLoading(false);
-        return;
-      }
-      try {
-        const response = await fetch(`http://localhost:8000/api/projects/${projectId}/assumptions`, {
-          headers: { 
-            "Authorization": `Bearer ${token}`,
-            "Accept": "application/json"
-          }
-        });
-        
-        if (response.ok) {
-          const responseData = await response.json();
-          // Convert array to object keyed by year
-          const mapped = {};
-          if (responseData && responseData.assumptions && Array.isArray(responseData.assumptions)) {
-            responseData.assumptions.forEach(item => {
-              const parsedItem = {};
-              for (const key in item) {
-                if (typeof item[key] === 'string' && !isNaN(item[key]) && item[key].trim() !== '') {
-                  parsedItem[key] = Number(item[key]);
-                } else {
-                  parsedItem[key] = item[key];
-                }
-              }
-              mapped[item.year] = parsedItem;
-            });
-          }
-          setAssumptionsByYear(mapped);
+    try {
+      const response = await fetch(`http://localhost:8000/api/projects/${projectId}/assumptions`, {
+        headers: { 
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/json"
         }
-      } catch (err) {
-        console.error("Gagal memuat asumsi:", err);
-      } finally {
-        setLoading(false);
+      });
+      
+      if (response.ok) {
+        const responseData = await response.json();
+        // Convert array to object keyed by year
+        const mapped = {};
+        if (responseData && responseData.assumptions && Array.isArray(responseData.assumptions)) {
+          responseData.assumptions.forEach(item => {
+            const parsedItem = {};
+            for (const key in item) {
+              if (typeof item[key] === 'string' && !isNaN(item[key]) && item[key].trim() !== '') {
+                parsedItem[key] = Number(item[key]);
+              } else {
+                parsedItem[key] = item[key];
+              }
+            }
+            mapped[item.year] = parsedItem;
+          });
+        }
+        setAssumptionsByYear(mapped);
       }
-    };
+    } catch (err) {
+      console.error("Gagal memuat asumsi:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId]);
 
+  useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   // Handle inputs
   const handleInputChange = (year, field, value) => {
@@ -98,6 +98,18 @@ export default function CfoDashboard({ userData, handleLogout }) {
     }));
   };
 
+  const sanitizedAssumptions = useMemo(() => {
+    const sanitized = {};
+    for (const yr in assumptionsByYear) {
+      sanitized[yr] = {};
+      for (const key in assumptionsByYear[yr]) {
+        const val = assumptionsByYear[yr][key];
+        sanitized[yr][key] = val === "" ? 0 : val;
+      }
+    }
+    return sanitized;
+  }, [assumptionsByYear]);
+
   const handleSaveAssumptions = async () => {
     if (!projectId) return;
     const token = sessionStorage.getItem("token");
@@ -110,13 +122,55 @@ export default function CfoDashboard({ userData, handleLogout }) {
           "Content-Type": "application/json",
           "Accept": "application/json"
         },
-        body: JSON.stringify(assumptionsByYear)
+        body: JSON.stringify(sanitizedAssumptions)
       });
       if (!res.ok) throw new Error("Failed to save");
       toast.success("Asumsi berhasil disimpan dan sekarang dapat dilihat oleh Founder!");
     } catch (err) {
       console.error("Gagal menyimpan asumsi:", err);
       toast.error("Gagal menyimpan data ke server.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleResetData = async () => {
+    if (!projectId) return;
+    if (!confirm("Apakah Anda yakin ingin menghapus semua data dan mereset ke nol? Tindakan ini tidak dapat dibatalkan.")) return;
+    
+    const token = sessionStorage.getItem("token");
+    setSaving(true);
+    try {
+      const res = await fetch(`http://localhost:8000/api/projects/${projectId}/reset`, {
+        method: "POST",
+        headers: { 
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/json"
+        }
+      });
+      if (!res.ok) throw new Error("Failed to reset");
+      const responseData = await res.json();
+      
+      // Update local state with zeroes
+      const mapped = {};
+      if (responseData && responseData.data && responseData.data.assumptions && Array.isArray(responseData.data.assumptions)) {
+        responseData.data.assumptions.forEach(item => {
+          const parsedItem = {};
+          for (const key in item) {
+            if (typeof item[key] === 'string' && !isNaN(item[key]) && item[key].trim() !== '') {
+              parsedItem[key] = Number(item[key]);
+            } else {
+              parsedItem[key] = item[key];
+            }
+          }
+          mapped[item.year] = parsedItem;
+        });
+      }
+      setAssumptionsByYear(mapped);
+      toast.success("Seluruh data asumsi berhasil direset ke nol!");
+    } catch (err) {
+      console.error("Gagal mereset asumsi:", err);
+      toast.error("Gagal mereset data di server.");
     } finally {
       setSaving(false);
     }
@@ -129,8 +183,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
   });
 
   // Run projections based on current assumptions
-  const data = useMemo(() => simulateProjections(assumptionsByYear), [assumptionsByYear]);
-  const insights = useMemo(() => getAnalystInsights(data, assumptionsByYear), [data, assumptionsByYear]);
+  const data = useMemo(() => simulateProjections(sanitizedAssumptions), [sanitizedAssumptions]);
+  const insights = useMemo(() => getAnalystInsights(data, sanitizedAssumptions), [data, sanitizedAssumptions]);
 
   if (loading) {
     return (
@@ -180,13 +234,21 @@ export default function CfoDashboard({ userData, handleLogout }) {
             >
               <Activity className="h-4 w-4" /> Input Asumsi Keuangan
             </button>
-            <button
+             <button
               onClick={() => setActiveTab("projection")}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold ${
                 activeTab === "projection" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
               <PieChart className="h-4 w-4" /> Laporan Detail Proforma
+            </button>
+            <button
+              onClick={() => setActiveTab("valuation")}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold ${
+                activeTab === "valuation" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              <TrendingUp className="h-4 w-4" /> Simulasi Valuasi & Cap Table
             </button>
           </div>
           
@@ -195,6 +257,12 @@ export default function CfoDashboard({ userData, handleLogout }) {
             <a href="/settings" className="flex items-center gap-3 px-3 py-2 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-all font-semibold">
               <Settings className="h-4 w-4" /> Pengaturan Data
             </a>
+            <button 
+              onClick={handleResetData}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 transition-all font-semibold text-left"
+            >
+              <RefreshCw className="h-4 w-4 text-red-500" /> Reset Data (Mulai Nol)
+            </button>
           </div>
         </div>
         
@@ -224,9 +292,10 @@ export default function CfoDashboard({ userData, handleLogout }) {
           <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
             <span className="hidden sm:inline">Finance</span>
             <ChevronRight className="h-4 w-4 hidden sm:inline" />
-            <span className="text-foreground font-bold">
+             <span className="text-foreground font-bold">
               {activeTab === "analyst" ? "Rekomendasi & Analisis AI" : 
-               activeTab === "drivers" ? "Input Asumsi Keuangan" : "Laporan Detail Proforma"}
+               activeTab === "drivers" ? "Input Asumsi Keuangan" : 
+               activeTab === "projection" ? "Laporan Detail Proforma" : "Simulasi Valuasi & Cap Table"}
             </span>
           </div>
           
@@ -253,15 +322,17 @@ export default function CfoDashboard({ userData, handleLogout }) {
             {/* Header Title section */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
               <div>
-                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">
+                 <h1 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">
                   {activeTab === "analyst" && "Analisis & Rekomendasi Finansial"}
                   {activeTab === "drivers" && "Input Asumsi Keuangan"}
                   {activeTab === "projection" && "Laporan Laba Rugi Proforma"}
+                  {activeTab === "valuation" && "Simulasi Valuasi & Cap Table"}
                 </h1>
                 <p className="text-muted-foreground mt-1 text-sm font-medium">
                   {activeTab === "analyst" && "Analisis otomatis kelayakan keuangan koperasi, status profitabilitas, dan rekomendasi strategis."}
                   {activeTab === "drivers" && "Masukkan target pertumbuhan dan struktur biaya di bawah ini untuk memperbarui kalkulasi proyeksi."}
                   {activeTab === "projection" && "Laporan laba rugi berdasarkan input asumsi yang diatur di tab sebelumnya."}
+                  {activeTab === "valuation" && "Simulasi valuasi perusahaan, persentase kepemilikan saham, dan potensi ROI investor."}
                 </p>
               </div>
             </div>
@@ -288,8 +359,15 @@ export default function CfoDashboard({ userData, handleLogout }) {
               />
             )}
 
-            {activeTab === "projection" && (
+             {activeTab === "projection" && (
               <ProjectionModelTab 
+                data={data} 
+                formatRupiah={formatRupiah} 
+              />
+            )}
+
+            {activeTab === "valuation" && (
+              <ValuationTab 
                 data={data} 
                 formatRupiah={formatRupiah} 
               />

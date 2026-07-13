@@ -124,18 +124,41 @@ class FinancialModelService
             CostProjection::where('project_id', $project->id)->delete();
             FinancialSummary::where('project_id', $project->id)->delete();
 
-            // Baseline active cooperatives before 2025 is 215
-            $prevEndingActiveCoops = 215;
+            // Baseline active cooperatives before 2025 is read from the 2025 assumptions input (default: 215)
+            $firstYearAssumptions = $newAssumptions[2025] ?? [];
+            $prevEndingActiveCoops = isset($firstYearAssumptions['beginning_cooperatives']) ? (int)$firstYearAssumptions['beginning_cooperatives'] : 215;
             $prevTotalRevenue = 0;
             $prevEndingCash = 0;
 
             foreach ($years as $year) {
                 // 1. Save or update assumptions for this year
                 $yearAssumptions = $newAssumptions[$year] ?? [];
+
+                $engFte = isset($yearAssumptions['hr_engineering_fte']) ? (int)$yearAssumptions['hr_engineering_fte'] : null;
+                $salesFte = isset($yearAssumptions['hr_sales_fte']) ? (int)$yearAssumptions['hr_sales_fte'] : null;
+                $mktFte = isset($yearAssumptions['hr_marketing_fte']) ? (int)$yearAssumptions['hr_marketing_fte'] : null;
+                $suppFte = isset($yearAssumptions['hr_support_fte']) ? (int)$yearAssumptions['hr_support_fte'] : null;
+                $finFte = isset($yearAssumptions['hr_finance_admin_fte']) ? (int)$yearAssumptions['hr_finance_admin_fte'] : null;
+                $mgmtFte = isset($yearAssumptions['hr_management_fte']) ? (int)$yearAssumptions['hr_management_fte'] : null;
+                $avgSalary = isset($yearAssumptions['hr_avg_salary_monthly']) ? (float)$yearAssumptions['hr_avg_salary_monthly'] : null;
+
+                if ($engFte !== null || $salesFte !== null || $mktFte !== null || $suppFte !== null || $finFte !== null || $mgmtFte !== null || $avgSalary !== null) {
+                    $payrollCost = (($engFte ?? 0) + ($salesFte ?? 0) + ($mktFte ?? 0) + ($suppFte ?? 0) + ($finFte ?? 0) + ($mgmtFte ?? 0)) * ($avgSalary ?? 0) * 12;
+                } else {
+                    $payrollCost = isset($yearAssumptions['payroll_cost']) ? (float)$yearAssumptions['payroll_cost'] : null;
+                }
                 
                 $assumptions = AssumptionValue::updateOrCreate(
                     ['project_id' => $project->id, 'year' => $year],
                     array_filter([
+                        'beginning_cooperatives' => $yearAssumptions['beginning_cooperatives'] ?? null,
+                        'hr_engineering_fte' => $engFte,
+                        'hr_sales_fte' => $salesFte,
+                        'hr_marketing_fte' => $mktFte,
+                        'hr_support_fte' => $suppFte,
+                        'hr_finance_admin_fte' => $finFte,
+                        'hr_management_fte' => $mgmtFte,
+                        'hr_avg_salary_monthly' => $avgSalary,
                         'new_coops_acquired' => $yearAssumptions['new_coops_acquired'] ?? null,
                         'monthly_churn_rate' => $yearAssumptions['monthly_churn_rate'] ?? null,
                         'avg_members_per_coop' => $yearAssumptions['avg_members_per_coop'] ?? null,
@@ -160,7 +183,7 @@ class FinancialModelService
                         'support_cost_per_coop_month' => $yearAssumptions['support_cost_per_coop_month'] ?? null,
                         'payment_api_var_cost_frac' => $yearAssumptions['payment_api_var_cost_frac'] ?? null,
                         'other_cost_of_revenue_frac' => $yearAssumptions['other_cost_of_revenue_frac'] ?? null,
-                        'payroll_cost' => $yearAssumptions['payroll_cost'] ?? null,
+                        'payroll_cost' => $payrollCost,
                         'sales_marketing_spend' => $yearAssumptions['sales_marketing_spend'] ?? null,
                         'office_utilities_internet' => $yearAssumptions['office_utilities_internet'] ?? null,
                         'software_tools_subscriptions' => $yearAssumptions['software_tools_subscriptions'] ?? null,
@@ -348,20 +371,6 @@ class FinancialModelService
                 
                 $postMoneyValuation = $assumptions->pre_money_valuation + $assumptions->seed_investment;
                 $impliedSeedEquityFrac = $postMoneyValuation > 0 ? $assumptions->seed_investment / $postMoneyValuation : 0;
-
-                // Investor return calculations at 2029 Exit
-                // Revenue 2029 Exit Projection:
-                // Conservative: Total Revenue 2029 * 0.875
-                // Base: Total Revenue 2029
-                // Optimistic: Total Revenue 2029 * 1.1875
-                // Wait! Since these returns are calculated based on 2029 target, we can compute them dynamically in the service based on 2029's projected revenue.
-                // We'll compute them for the current year based on the 2029 model target or simply calculate it using the current year's numbers as a proxy for the exit year, 
-                // but the Excel sheet explicitly calculates it based on the exit revenue of year 2029. 
-                // So for any year, the 2029 exit figures can be forecasted. Let's write a formula that maps 2029 Exit Valuation!
-                // Wait, to do it cleanly, let's defer IRR/MOIC calculation until the end of the loop, or calculate it using the 2029 revenue stream.
-                // Let's compute 2029 revenue first. Since we are doing a loop, we can store these exit metrics in a second pass, or we can just calculate them using the current year's numbers. 
-                // Actually, doing a second pass over the 5 years to fill in 2029-exit IRR/MOIC metrics for all years makes total sense! 
-                // Because the Cap Table and Exit returns are based on the final Year 5 (2029) exit valuation.
                 
                 $summary = FinancialSummary::create([
                     'project_id' => $project->id,
@@ -436,6 +445,76 @@ class FinancialModelService
             }
 
             return collect(array_values($summaries));
+        });
+    }
+
+    public function resetToZero($projectId)
+    {
+        $project = Project::findOrFail($projectId);
+        $years = [2025, 2026, 2027, 2028, 2029];
+        
+        DB::transaction(function () use ($project, $years) {
+            foreach ($years as $year) {
+                AssumptionValue::updateOrCreate(
+                    ['project_id' => $project->id, 'year' => $year],
+                    [
+                        'beginning_cooperatives' => 0,
+                        'hr_engineering_fte' => 0,
+                        'hr_sales_fte' => 0,
+                        'hr_marketing_fte' => 0,
+                        'hr_support_fte' => 0,
+                        'hr_finance_admin_fte' => 0,
+                        'hr_management_fte' => 0,
+                        'hr_avg_salary_monthly' => 0,
+                        'new_coops_acquired' => 0,
+                        'monthly_churn_rate' => 0,
+                        'avg_members_per_coop' => 0,
+                        'subscription_paying_frac' => 0,
+                        'setup_fee' => 0,
+                        'paid_implementation_coops' => 0,
+                        'monthly_subscription_fee' => 0,
+                        'ios_addon_monthly_fee' => 0,
+                        'ios_adoption_frac' => 0,
+                        'white_label_projects' => 0,
+                        'white_label_fee_per_project' => 0,
+                        'ppob_active_coops_frac' => 0,
+                        'ppob_tx_per_coop_month' => 0,
+                        'avg_ppob_fee_per_tx' => 0,
+                        'academy_participants_frac' => 0,
+                        'academy_avg_price_per_participant' => 0,
+                        'offline_trainings_per_month' => 0,
+                        'offline_training_fee_per_coop' => 0,
+                        'enterprise_api_revenue' => 0,
+                        'cloud_cost_per_coop_month' => 0,
+                        'implementation_cost_per_coop' => 0,
+                        'support_cost_per_coop_month' => 0,
+                        'payment_api_var_cost_frac' => 0,
+                        'other_cost_of_revenue_frac' => 0,
+                        'payroll_cost' => 0,
+                        'sales_marketing_spend' => 0,
+                        'office_utilities_internet' => 0,
+                        'software_tools_subscriptions' => 0,
+                        'legal_accounting_compliance' => 0,
+                        'travel_events' => 0,
+                        'recruitment_training' => 0,
+                        'other_ga' => 0,
+                        'seed_investment' => 0,
+                        'pre_money_valuation' => 0,
+                        'exit_revenue_multiple_conservative' => 0,
+                        'exit_revenue_multiple_base' => 0,
+                        'exit_revenue_multiple_optimistic' => 0,
+                    ]
+                );
+            }
+            
+            $inputs = [];
+            foreach ($years as $year) {
+                $inputs[$year] = AssumptionValue::where('project_id', $project->id)
+                    ->where('year', $year)
+                    ->first()
+                    ->toArray();
+            }
+            $this->recalculate($project->id, $inputs);
         });
     }
 }

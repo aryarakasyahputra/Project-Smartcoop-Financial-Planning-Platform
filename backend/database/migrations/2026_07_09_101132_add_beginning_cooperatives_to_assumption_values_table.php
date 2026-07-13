@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('assumption_values', function (Blueprint $table) {
-            //
+            $table->integer('beginning_cooperatives')->default(215)->after('year');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('assumption_values', function (Blueprint $table) {
-            //
+            $table->dropColumn('beginning_cooperatives');
         });
     }
 };
