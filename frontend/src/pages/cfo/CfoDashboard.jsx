@@ -164,13 +164,13 @@ export default function CfoDashboard({ userData, handleLogout }) {
         <div className="p-4 flex-1 overflow-y-auto space-y-6">
           <div className="space-y-1">
             <p className="px-3 text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Finance & Strategy</p>
-            <button
+             <button
               onClick={() => setActiveTab("analyst")}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold ${
                 activeTab === "analyst" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
-              <Brain className="h-4 w-4" /> AI Analyst
+              <Brain className="h-4 w-4" /> Rekomendasi & Analisis AI
             </button>
             <button
               onClick={() => setActiveTab("drivers")}
@@ -178,7 +178,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
                 activeTab === "drivers" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
-              <Activity className="h-4 w-4" /> Assumption Drivers
+              <Activity className="h-4 w-4" /> Input Asumsi Keuangan
             </button>
             <button
               onClick={() => setActiveTab("projection")}
@@ -186,7 +186,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
                 activeTab === "projection" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
-              <PieChart className="h-4 w-4" /> Model Proyeksi
+              <PieChart className="h-4 w-4" /> Laporan Detail Proforma
             </button>
           </div>
           
@@ -225,8 +225,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
             <span className="hidden sm:inline">Finance</span>
             <ChevronRight className="h-4 w-4 hidden sm:inline" />
             <span className="text-foreground font-bold">
-              {activeTab === "analyst" ? "AI Financial Analyst" : 
-               activeTab === "drivers" ? "Assumption Drivers" : "Model Proyeksi 5 Tahun"}
+              {activeTab === "analyst" ? "Rekomendasi & Analisis AI" : 
+               activeTab === "drivers" ? "Input Asumsi Keuangan" : "Laporan Detail Proforma"}
             </span>
           </div>
           
@@ -255,13 +255,13 @@ export default function CfoDashboard({ userData, handleLogout }) {
               <div>
                 <h1 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">
                   {activeTab === "analyst" && "Analisis & Rekomendasi Finansial"}
-                  {activeTab === "drivers" && "Pengaturan Asumsi Finansial (SaaS)"}
-                  {activeTab === "projection" && "Model Proyeksi Laba Rugi"}
+                  {activeTab === "drivers" && "Input Asumsi Keuangan"}
+                  {activeTab === "projection" && "Laporan Laba Rugi Proforma"}
                 </h1>
                 <p className="text-muted-foreground mt-1 text-sm font-medium">
-                  {activeTab === "analyst" && "Kalkulasi berbasis metrik unit ekonomi dan target exit."}
-                  {activeTab === "drivers" && "Sesuaikan parameter pertumbuhan, harga, dan beban untuk 5 tahun ke depan."}
-                  {activeTab === "projection" && "Proyeksi berdasarkan input asumsi yang diatur di tab sebelumnya."}
+                  {activeTab === "analyst" && "Analisis otomatis kelayakan keuangan koperasi, status profitabilitas, dan rekomendasi strategis."}
+                  {activeTab === "drivers" && "Masukkan target pertumbuhan dan struktur biaya di bawah ini untuk memperbarui kalkulasi proyeksi."}
+                  {activeTab === "projection" && "Laporan laba rugi berdasarkan input asumsi yang diatur di tab sebelumnya."}
                 </p>
               </div>
             </div>
