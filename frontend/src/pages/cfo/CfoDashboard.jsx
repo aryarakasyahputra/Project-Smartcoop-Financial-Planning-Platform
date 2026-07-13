@@ -112,6 +112,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
         body: JSON.stringify(assumptionsByYear)
       });
       if (!res.ok) throw new Error("Failed to save");
+      alert("Asumsi berhasil disimpan dan sekarang dapat dilihat oleh Founder!");
       // Optionally show a toast notification here
     } catch (err) {
       console.error("Gagal menyimpan asumsi:", err);
