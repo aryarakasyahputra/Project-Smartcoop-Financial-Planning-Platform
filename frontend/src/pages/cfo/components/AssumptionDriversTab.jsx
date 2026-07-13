@@ -245,11 +245,6 @@ export default function AssumptionDriversTab({
         </div>
         <div className="flex gap-3">
           <button
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
-          >
-            <RotateCcw className="h-4 w-4" /> Reset Default
-          </button>
-          <button
             onClick={handleSaveAssumptions}
             disabled={saving}
             className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-white text-sm font-semibold shadow-sm hover:opacity-95 transition-all disabled:opacity-50"
