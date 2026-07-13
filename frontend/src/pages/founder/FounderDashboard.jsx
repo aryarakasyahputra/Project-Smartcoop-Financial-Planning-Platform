@@ -1,17 +1,70 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { 
   LogOut, Building, User, Settings, ShieldCheck, Sparkles, 
   Database, LayoutDashboard, BarChart3, LineChart, Users, 
   Mail, UserPlus, RefreshCw, Compass, Shield, ArrowUpRight
 } from "lucide-react";
+import ProjectionModelTab from "../cfo/components/ProjectionModelTab";
+import { simulateProjections, formatRupiah } from "../cfo/utils/financialModel";
 
 export default function FounderDashboard({ userData, handleLogout }) {
+  const [activeTab, setActiveTab] = useState("overview");
   const [activeScenario, setActiveScenario] = useState("base");
   const [inviting, setInviting] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("");
+  const [loadingProjections, setLoadingProjections] = useState(true);
+  const [assumptionsByYear, setAssumptionsByYear] = useState({});
 
   const primaryCompany = userData?.company_accesses?.[0]?.company;
+  const projectId = primaryCompany?.projects?.[0]?.id;
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
+    if (!token) return;
+
+    const fetchData = async () => {
+      if (!projectId) {
+        setLoadingProjections(false);
+        return;
+      }
+      try {
+        const response = await fetch(`http://localhost:8000/api/projects/${projectId}/assumptions`, {
+          headers: { 
+            "Authorization": `Bearer ${token}`,
+            "Accept": "application/json"
+          }
+        });
+        
+        if (response.ok) {
+          const responseData = await response.json();
+          const mapped = {};
+          if (responseData && responseData.assumptions && Array.isArray(responseData.assumptions)) {
+            responseData.assumptions.forEach(item => {
+              const parsedItem = {};
+              for (const key in item) {
+                if (typeof item[key] === 'string' && !isNaN(item[key]) && item[key].trim() !== '') {
+                  parsedItem[key] = Number(item[key]);
+                } else {
+                  parsedItem[key] = item[key];
+                }
+              }
+              mapped[item.year] = parsedItem;
+            });
+          }
+          setAssumptionsByYear(mapped);
+        }
+      } catch (err) {
+        console.error("Gagal memuat asumsi:", err);
+      } finally {
+        setLoadingProjections(false);
+      }
+    };
+
+    fetchData();
+  }, [projectId]);
+
+  const projectionData = useMemo(() => simulateProjections(assumptionsByYear), [assumptionsByYear]);
 
   // Mock financial data that changes based on scenario
   const scenarioData = {
@@ -92,18 +145,30 @@ export default function FounderDashboard({ userData, handleLogout }) {
 
           {/* Navigation */}
           <nav className="space-y-1">
-            <a href="#overview" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary text-sm font-semibold">
+            <button 
+              onClick={() => setActiveTab("overview")}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${activeTab === "overview" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"}`}
+            >
               <LayoutDashboard className="h-4 w-4" /> Workspace Overview
-            </a>
-            <a href="#projections" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-foreground text-sm font-medium transition-colors">
+            </button>
+            <button 
+              onClick={() => setActiveTab("projections")}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${activeTab === "projections" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"}`}
+            >
               <LineChart className="h-4 w-4" /> Proyeksi Keuangan
-            </a>
-            <a href="#scenarios" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-foreground text-sm font-medium transition-colors">
+            </button>
+            <button 
+              onClick={() => { setActiveTab("overview"); setTimeout(() => window.location.hash = "scenarios", 100); }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors text-muted-foreground hover:bg-muted/50 hover:text-foreground`}
+            >
               <Sparkles className="h-4 w-4" /> Skenario Bisnis
-            </a>
-            <a href="#team" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-foreground text-sm font-medium transition-colors">
+            </button>
+            <button 
+              onClick={() => { setActiveTab("overview"); setTimeout(() => window.location.hash = "team", 100); }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors text-muted-foreground hover:bg-muted/50 hover:text-foreground`}
+            >
               <Users className="h-4 w-4" /> Manajemen Tim
-            </a>
+            </button>
           </nav>
         </div>
 
@@ -130,10 +195,14 @@ export default function FounderDashboard({ userData, handleLogout }) {
       {/* Main Content Area */}
       <main className="flex-1 p-6 md:p-10 space-y-8 overflow-y-auto">
         {/* Header */}
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <header id="overview" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Founder Workspace</h1>
-            <p className="text-muted-foreground mt-1">Kelola perusahaan, skenario pertumbuhan, dan undang tim finansial Anda.</p>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {activeTab === "overview" ? "Founder Workspace" : "Model Proyeksi Keuangan"}
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              {activeTab === "overview" ? "Kelola perusahaan, skenario pertumbuhan, dan undang tim finansial Anda." : "Proyeksi laba rugi komprehensif berdasarkan asumsi yang telah diatur oleh tim CFO."}
+            </p>
           </div>
           {primaryCompany && (
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl">
@@ -143,8 +212,28 @@ export default function FounderDashboard({ userData, handleLogout }) {
           )}
         </header>
 
-        {/* Scenario and Quick Metrics Selector */}
-        <section className="bg-card border border-border rounded-2xl p-6 space-y-6" style={{ boxShadow: "var(--shadow-card)" }}>
+        {activeTab === "projections" && (
+          <section id="projections" className="space-y-6">
+            {loadingProjections ? (
+              <div className="flex justify-center p-12">
+                <div className="h-8 w-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+              </div>
+            ) : projectionData && projectionData.length > 0 ? (
+              <div className="overflow-x-auto">
+                <ProjectionModelTab data={projectionData} formatRupiah={formatRupiah} />
+              </div>
+            ) : (
+              <div className="text-center p-12 text-muted-foreground bg-card border border-border rounded-2xl">
+                Data asumsi belum tersedia. Silakan hubungi tim CFO untuk mengatur asumsi finansial.
+              </div>
+            )}
+          </section>
+        )}
+
+        {activeTab === "overview" && (
+          <>
+            {/* Scenario and Quick Metrics Selector */}
+            <section id="scenarios" className="bg-card border border-border rounded-2xl p-6 space-y-6" style={{ boxShadow: "var(--shadow-card)" }}>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-4">
             <div>
               <h2 className="text-lg font-bold flex items-center gap-2">
@@ -208,7 +297,7 @@ export default function FounderDashboard({ userData, handleLogout }) {
         </section>
 
         {/* Lower Grid (Invite widget + Team listing) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div id="team" className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Invite Widget */}
           <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6" style={{ boxShadow: "var(--shadow-card)" }}>
             <div className="flex items-center gap-3">
@@ -300,6 +389,8 @@ export default function FounderDashboard({ userData, handleLogout }) {
             </div>
           </section>
         </div>
+          </>
+        )}
       </main>
     </div>
   );
