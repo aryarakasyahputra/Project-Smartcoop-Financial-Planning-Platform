@@ -9,7 +9,7 @@ const BRAND_BLUE = "#2b6cb8";
 const BRAND_ORANGE = "#f28c1f";
 
 // Reusable input field with prefix/suffix
-function DriverInput({ label, value, onChange, prefix, suffix, step }) {
+function DriverInput({ label, value, onChange, prefix, suffix, step, disabled }) {
   return (
     <div>
       <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 block mb-1.5">
@@ -26,9 +26,10 @@ function DriverInput({ label, value, onChange, prefix, suffix, step }) {
           step={step || "any"}
           value={value ?? 0}
           onChange={onChange}
+          disabled={disabled}
           className={`w-full h-11 rounded-lg bg-slate-50 border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:border-blue-400 focus:bg-white transition-colors ${
-            prefix ? "pl-10" : "pl-4"
-          } ${suffix ? "pr-10" : "pr-4"}`}
+            disabled ? "opacity-60 cursor-not-allowed bg-slate-100" : ""
+          } ${prefix ? "pl-10" : "pl-4"} ${suffix ? "pr-10" : "pr-4"}`}
         />
         {suffix && (
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium pointer-events-none">
@@ -83,6 +84,9 @@ export default function AssumptionDriversTab({
       id: "growth", no: "1", title: "PEMICU PERTUMBUHAN KOPERASI",
       icon: TrendingUp, color: BRAND_BLUE,
       fields: [
+        ...(selectedEditYear === 2025 ? [
+          { label: "Koperasi Aktif Awal (Baseline)", key: "beginning_cooperatives", parse: parseInt }
+        ] : []),
         { label: "Koperasi Baru Diakuisisi (Tahun)", key: "new_coops_acquired", parse: parseInt },
         { label: "Laju Churn Bulanan", key: "monthly_churn_rate", suffix: "%", step: "0.1", parse: parseFloat },
         { label: "Rata-rata Anggota / Koperasi", key: "avg_members_per_coop", parse: parseInt },
@@ -122,10 +126,24 @@ export default function AssumptionDriversTab({
       ],
     },
     {
-      id: "opex", no: "4", title: "BIAYA OPERASIONAL (OPEX)",
+      id: "hr_planning", no: "4", title: "PERENCANAAN SDM (HR PLANNING)",
+      icon: Users, color: "#8b5cf6",
+      infoBox: "Total Gaji Tahunan dihitung otomatis: (Total FTE) x (Rata-rata Gaji Bulanan) x 12.",
+      fields: [
+        { label: "Engineering & Product (FTE)", key: "hr_engineering_fte", parse: parseInt },
+        { label: "Sales & Partnership (FTE)", key: "hr_sales_fte", parse: parseInt },
+        { label: "Marketing (FTE)", key: "hr_marketing_fte", parse: parseInt },
+        { label: "Customer Support & Success (FTE)", key: "hr_support_fte", parse: parseInt },
+        { label: "Finance, HR & Admin (FTE)", key: "hr_finance_admin_fte", parse: parseInt },
+        { label: "Management & Leadership (FTE)", key: "hr_management_fte", parse: parseInt },
+        { label: "Rata-rata Gaji Bulanan", key: "hr_avg_salary_monthly", prefix: "Rp", parse: parseFloat },
+      ],
+    },
+    {
+      id: "opex", no: "5", title: "BIAYA OPERASIONAL (OPEX)",
       icon: Calculator, color: BRAND_ORANGE,
       fields: [
-        { label: "Gaji Tahunan (Semua Divisi)", key: "payroll_cost", prefix: "Rp", parse: parseFloat },
+        { label: "Total Gaji Tahunan (Dihitung Otomatis)", key: "payroll_cost", prefix: "Rp", parse: parseFloat, disabled: true },
         { label: "Sales & Marketing", key: "sales_marketing_spend", prefix: "Rp", parse: parseFloat },
         { label: "Sewa Kantor & Utilitas", key: "office_utilities_internet", prefix: "Rp", parse: parseFloat },
         { label: "Software & Infrastruktur IT", key: "software_tools_subscriptions", prefix: "Rp", parse: parseFloat },
@@ -136,7 +154,7 @@ export default function AssumptionDriversTab({
       ],
     },
     {
-      id: "funding", no: "5", title: "PENDANAAN & VALUASI",
+      id: "funding", no: "6", title: "PENDANAAN & VALUASI",
       icon: Shield, color: "#10b981",
       infoBox: "Hanya digunakan pada simulasi arus kas (2026) dan ROI Investor (2029).",
       fields: [
@@ -213,23 +231,37 @@ export default function AssumptionDriversTab({
                     </div>
                   )}
                   <div className="grid md:grid-cols-2 gap-4 pt-2">
-                    {s.fields.map((f) => (
-                      <DriverInput
-                        key={f.key}
-                        label={f.label}
-                        value={activeAssumptions[f.key] ?? 0}
-                        prefix={f.prefix}
-                        suffix={f.suffix}
-                        step={f.step}
-                        onChange={(e) =>
-                          handleInputChange(
-                            selectedEditYear,
-                            f.key,
-                            f.parse(e.target.value) || 0
-                          )
-                        }
-                      />
-                    ))}
+                    {s.fields.map((f) => {
+                      let val = activeAssumptions[f.key] ?? 0;
+                      if (f.key === "payroll_cost") {
+                        const eng = activeAssumptions.hr_engineering_fte ?? 0;
+                        const sls = activeAssumptions.hr_sales_fte ?? 0;
+                        const mkt = activeAssumptions.hr_marketing_fte ?? 0;
+                        const spt = activeAssumptions.hr_support_fte ?? 0;
+                        const fin = activeAssumptions.hr_finance_admin_fte ?? 0;
+                        const mgt = activeAssumptions.hr_management_fte ?? 0;
+                        const sal = activeAssumptions.hr_avg_salary_monthly ?? 0;
+                        val = (eng + sls + mkt + spt + fin + mgt) * sal * 12;
+                      }
+                      return (
+                        <DriverInput
+                          key={f.key}
+                          label={f.label}
+                          value={val}
+                          prefix={f.prefix}
+                          suffix={f.suffix}
+                          step={f.step}
+                          disabled={f.disabled}
+                          onChange={(e) =>
+                            handleInputChange(
+                              selectedEditYear,
+                              f.key,
+                              e.target.value === "" ? "" : (f.parse(e.target.value) || 0)
+                            )
+                          }
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               )}

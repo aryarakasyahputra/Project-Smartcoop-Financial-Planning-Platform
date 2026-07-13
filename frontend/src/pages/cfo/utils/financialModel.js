@@ -12,7 +12,7 @@ export const simulateProjections = (assumptionsByYear) => {
     const avgMembers = a.avg_members_per_coop ?? 0;
     const subFraction = (a.subscription_paying_frac ?? 0) / 100;
     
-    const beginningCoops = idx === 0 ? 215 : computedYears[years[idx - 1]].endingCoops;
+    const beginningCoops = idx === 0 ? (a.beginning_cooperatives ?? 215) : computedYears[years[idx - 1]].endingCoops;
     const churnedCoops = Math.round(beginningCoops * (churnRate / 100));
     const endingActiveCoops = beginningCoops + newCoops - churnedCoops;
     const totalMembers = endingActiveCoops * avgMembers;
@@ -77,7 +77,25 @@ export const simulateProjections = (assumptionsByYear) => {
     const grossMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
     
     // OPEX
-    const payrollOpex = a.payroll_cost ?? 0;
+    const engFte = a.hr_engineering_fte;
+    const salesFte = a.hr_sales_fte;
+    const mktFte = a.hr_marketing_fte;
+    const suppFte = a.hr_support_fte;
+    const finFte = a.hr_finance_admin_fte;
+    const mgmtFte = a.hr_management_fte;
+    const avgSalary = a.hr_avg_salary_monthly;
+
+    let payrollOpex = a.payroll_cost ?? 0;
+    if (engFte !== undefined || salesFte !== undefined || mktFte !== undefined || suppFte !== undefined || finFte !== undefined || mgmtFte !== undefined || avgSalary !== undefined) {
+      const e = engFte ?? 0;
+      const s = salesFte ?? 0;
+      const mk = mktFte ?? 0;
+      const sp = suppFte ?? 0;
+      const f = finFte ?? 0;
+      const m = mgmtFte ?? 0;
+      const sal = avgSalary ?? 0;
+      payrollOpex = (e + s + mk + sp + f + m) * sal * 12;
+    }
     const salesMarketingOpex = a.sales_marketing_spend ?? 0;
     const officeUtilitiesOpex = a.office_utilities_internet ?? 0;
     const softwareToolsOpex = a.software_tools_subscriptions ?? 0;
@@ -133,6 +151,8 @@ export const simulateProjections = (assumptionsByYear) => {
       totalOpex,
       ebitda,
       ebitdaMargin,
+      openingCash,
+      seedInflow,
       endingCash,
       runwayMonths,
       mrr,
@@ -141,6 +161,12 @@ export const simulateProjections = (assumptionsByYear) => {
       ltvCacRatio,
       cacPaybackMonths,
       ruleOf40,
+      preMoneyValuation: a.pre_money_valuation ?? 0,
+      seedInvestment: a.seed_investment ?? 0,
+      exitMultipleConservative: a.exit_revenue_multiple_conservative ?? 0,
+      exitMultipleBase: a.exit_revenue_multiple_base ?? 0,
+      exitMultipleOptimistic: a.exit_revenue_multiple_optimistic ?? 0,
+      beginning_cooperatives: a.beginning_cooperatives ?? 215,
       
       // Breakdowns for projections
       setupImplementationRevenue,

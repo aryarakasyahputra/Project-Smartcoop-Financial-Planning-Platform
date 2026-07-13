@@ -77,4 +77,20 @@ class AssumptionController extends Controller
             return response()->json(['message' => 'Gagal memperbarui asumsi', 'error' => $e->getMessage()], 500);
         }
     }
+
+    public function reset($projectId)
+    {
+        try {
+            $this->service->resetToZero($projectId);
+            $data = $this->service->getProjectData($projectId);
+            return response()->json([
+                'message' => 'Asumsi berhasil direset ke nol',
+                'data' => $data
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['message' => 'Project tidak ditemukan'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Gagal mereset asumsi', 'error' => $e->getMessage()], 500);
+        }
+    }
 }

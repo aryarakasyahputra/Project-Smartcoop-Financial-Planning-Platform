@@ -1,5 +1,5 @@
 import React from "react";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, Wallet } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -182,6 +182,69 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{c.cacPaybackMonths.toFixed(1)}</td>)}
               </tr>
 
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Cash Flow & Runway Table */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-border bg-muted/10">
+          <h3 className="text-lg font-bold flex items-center gap-2">
+            <Wallet className="h-5 w-5 text-primary" /> Laporan Arus Kas & Runway (Rp)
+          </h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
+              <tr>
+                <th className="px-6 py-4 font-bold">Metrik / Tahun</th>
+                {data.map((col) => (
+                  <th key={col.year} className="px-6 py-4 font-bold text-right">{col.year}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              <tr className="hover:bg-muted/10 transition-colors">
+                <td className="px-6 py-3 font-medium">Opening Cash</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.openingCash)}</td>)}
+              </tr>
+              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
+                <td className="px-6 py-3 pl-10">Seed Investment Inflow</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.seedInflow)}</td>)}
+              </tr>
+              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
+                <td className="px-6 py-3 pl-10">EBITDA</td>
+                {data.map((c) => (
+                  <td key={c.year} className={`px-6 py-3 text-right font-medium ${c.ebitda >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                    {formatRupiah(c.ebitda)}
+                  </td>
+                ))}
+              </tr>
+              <tr className="bg-primary/5 font-bold text-primary border-t border-b">
+                <td className="px-6 py-4">Ending Cash</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-4 text-right font-black">{formatRupiah(c.endingCash)}</td>)}
+              </tr>
+              <tr className="bg-muted/30 text-muted-foreground">
+                <td className="px-6 py-3 font-semibold pl-10 text-xs">Average Monthly Burn / Profit</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right text-xs">{formatRupiah(Math.abs(c.ebitda / 12))}</td>)}
+              </tr>
+              <tr className="bg-muted/30 text-muted-foreground border-b-2 border-border">
+                <td className="px-6 py-3 font-semibold pl-10 text-xs">Runway (Months)</td>
+                {data.map((c) => (
+                  <td key={c.year} className="px-6 py-3 text-right text-xs">
+                    {c.ebitda >= 0 ? (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800">
+                        Profitable
+                      </span>
+                    ) : (
+                      <span className="font-semibold text-slate-700">
+                        {c.runwayMonths ? `${c.runwayMonths.toFixed(1)} Bulan` : '0 Bulan'}
+                      </span>
+                    )}
+                  </td>
+                ))}
+              </tr>
             </tbody>
           </table>
         </div>
