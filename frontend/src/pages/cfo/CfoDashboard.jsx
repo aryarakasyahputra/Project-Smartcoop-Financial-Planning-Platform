@@ -7,7 +7,6 @@ import {
 import FinancialAnalystTab from "./components/FinancialAnalystTab";
 import AssumptionDriversTab from "./components/AssumptionDriversTab";
 import ProjectionModelTab from "./components/ProjectionModelTab";
-import ValuationTab from "./components/ValuationTab";
 
 import { simulateProjections, getAnalystInsights, formatRupiah } from "./utils/financialModel";
 import { toast } from "sonner";
@@ -247,14 +246,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
             >
               <PieChart className="h-4 w-4" /> Laporan Detail Proforma
             </button>
-            <button
-              onClick={() => setActiveTab("valuation")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold ${
-                activeTab === "valuation" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
-            >
-              <TrendingUp className="h-4 w-4" /> Simulasi Valuasi & Cap Table
-            </button>
+
           </div>
           
           <div className="space-y-1">
@@ -300,7 +292,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
              <span className="text-foreground font-bold">
               {activeTab === "analyst" ? "Rekomendasi & Analisis AI" : 
                activeTab === "drivers" ? "Input Asumsi Keuangan" : 
-               activeTab === "projection" ? "Laporan Detail Proforma" : "Simulasi Valuasi & Cap Table"}
+               "Laporan Detail Proforma"}
             </span>
           </div>
           
@@ -331,13 +323,11 @@ export default function CfoDashboard({ userData, handleLogout }) {
                   {activeTab === "analyst" && "Analisis & Rekomendasi Finansial"}
                   {activeTab === "drivers" && "Input Asumsi Keuangan"}
                   {activeTab === "projection" && "Laporan Laba Rugi Proforma"}
-                  {activeTab === "valuation" && "Simulasi Valuasi & Cap Table"}
                 </h1>
                 <p className="text-muted-foreground mt-1 text-sm font-medium">
                   {activeTab === "analyst" && "Analisis otomatis kelayakan keuangan koperasi, status profitabilitas, dan rekomendasi strategis."}
                   {activeTab === "drivers" && "Masukkan target pertumbuhan dan struktur biaya di bawah ini untuk memperbarui kalkulasi proyeksi."}
                   {activeTab === "projection" && "Laporan laba rugi berdasarkan input asumsi yang diatur di tab sebelumnya."}
-                  {activeTab === "valuation" && "Simulasi valuasi perusahaan, persentase kepemilikan saham, dan potensi ROI investor."}
                 </p>
               </div>
             </div>
@@ -366,13 +356,6 @@ export default function CfoDashboard({ userData, handleLogout }) {
 
              {activeTab === "projection" && (
               <ProjectionModelTab 
-                data={data} 
-                formatRupiah={formatRupiah} 
-              />
-            )}
-
-            {activeTab === "valuation" && (
-              <ValuationTab 
                 data={data} 
                 formatRupiah={formatRupiah} 
               />
