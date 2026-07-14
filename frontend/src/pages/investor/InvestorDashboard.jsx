@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import ProjectionModelTab from "../cfo/components/ProjectionModelTab";
 import { simulateProjections, formatRupiah } from "../cfo/utils/financialModel";
+import { useValuationModel } from "../cfo/utils/valuationHelper";
 
 export default function InvestorDashboard({ userData, handleLogout }) {
   const [activeTab, setActiveTab] = useState("overview");
@@ -67,6 +68,7 @@ export default function InvestorDashboard({ userData, handleLogout }) {
   }, [projectId]);
 
   const detailedProjectionData = useMemo(() => simulateProjections(assumptionsByYear), [assumptionsByYear]);
+  const valuation = useValuationModel(detailedProjectionData);
 
   // Mock static financial projection data for investors (Read-Only)
   const projectionData = [
@@ -189,7 +191,7 @@ export default function InvestorDashboard({ userData, handleLogout }) {
               </div>
             ) : detailedProjectionData && detailedProjectionData.length > 0 ? (
               <div className="overflow-x-auto">
-                <ProjectionModelTab data={detailedProjectionData} formatRupiah={formatRupiah} />
+                <ProjectionModelTab data={detailedProjectionData} formatRupiah={formatRupiah} valuation={valuation} />
               </div>
             ) : (
               <div className="text-center p-12 text-muted-foreground bg-card border border-border rounded-2xl">

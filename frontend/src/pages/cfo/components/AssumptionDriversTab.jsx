@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { 
   TrendingUp, DollarSign, Activity, Calculator, Shield,
-  ChevronDown, Save, RotateCcw, Users
+  ChevronDown, Save, RotateCcw, Users, ShieldAlert
 } from "lucide-react";
 import { formatRupiah } from "../utils/financialModel";
 
@@ -50,7 +50,8 @@ export default function AssumptionDriversTab({
   toggleSection,
   handleSaveAssumptions,
   saving,
-  data
+  data,
+  valuation
 }) {
   // Compute summary metrics from projection data for current year
   const currentYearData = data?.find(d => d.year === selectedEditYear) || {};
@@ -270,6 +271,168 @@ export default function AssumptionDriversTab({
           );
         })}
       </div>
+
+      {/* Cap Table Pasca-Pendanaan */}
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between max-w-5xl">
+        <button
+          onClick={() => toggleSection("cap_table")}
+          className="w-full flex items-center gap-4 px-6 py-5 text-left hover:bg-slate-50/50 transition-colors"
+        >
+          <div
+            className="h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: `${BRAND_BLUE}15`, color: BRAND_BLUE }}
+          >
+            <Users className="h-4 w-4" />
+          </div>
+          <div className="flex-1">
+            <span className="font-bold text-slate-900 text-sm">
+              7. CAP TABLE PASCA-PENDANAAN
+            </span>
+          </div>
+          <ChevronDown
+            className={`h-5 w-5 text-slate-400 transition-transform duration-200 ${expandedSections["cap_table"] ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        {expandedSections["cap_table"] && (
+          <div className="border-t border-slate-100">
+            <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="text-[10px] uppercase bg-slate-50 text-slate-500 border-b border-slate-200">
+                <tr>
+                  <th className="px-5 py-4 font-bold tracking-wider">Pemegang Saham</th>
+                  <th className="px-5 py-4 font-bold text-right tracking-wider">Pre-Seed</th>
+                  <th className="px-5 py-4 font-bold text-right tracking-wider">Investasi Masuk</th>
+                  <th className="px-5 py-4 font-bold text-right tracking-wider">Kepemilikan Post-Seed</th>
+                  <th className="px-5 py-4 font-bold tracking-wider">Catatan</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 bg-white">
+                <tr className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-5 py-3 font-semibold text-slate-700">Founders / Existing Shareholders</td>
+                  <td className="px-5 py-3 text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="100"
+                        value={valuation.foundersPreSeed}
+                        onChange={(e) => valuation.setFoundersPreSeed(parseFloat(e.target.value) || 0)}
+                        className="bg-slate-50 focus:bg-white border border-slate-200 focus:border-blue-400 rounded-lg px-2 py-1 text-right w-16 font-mono text-xs text-slate-800 transition-colors outline-none"
+                      />
+                      <span className="font-mono text-xs text-slate-500">%</span>
+                    </div>
+                  </td>
+                  <td className="px-5 py-3 text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <span className="text-[10px] text-slate-400 font-medium">Rp</span>
+                      <input
+                        type="number"
+                        step="10000000"
+                        min="0"
+                        value={valuation.foundersSeedInv}
+                        onChange={(e) => valuation.setFoundersSeedInv(parseFloat(e.target.value) || 0)}
+                        className="bg-slate-50 focus:bg-white border border-slate-200 focus:border-blue-400 rounded-lg px-2 py-1 text-right w-28 font-mono text-xs text-slate-800 transition-colors outline-none"
+                      />
+                    </div>
+                  </td>
+                  <td className="px-5 py-3 text-right font-mono font-bold text-slate-700">
+                    {(valuation.dynamicFoundersEquityFrac * 100).toFixed(1)}%
+                  </td>
+                  <td className="px-5 py-3 text-[10px] text-slate-500 italic">
+                    Sebelum penyesuaian ESOP
+                  </td>
+                </tr>
+                <tr className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-5 py-3 text-slate-700 font-medium">Employee Option Pool (ESOP)</td>
+                  <td className="px-5 py-3 text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="100"
+                        value={valuation.esopPreSeed}
+                        onChange={(e) => valuation.setEsopPreSeed(parseFloat(e.target.value) || 0)}
+                        className="bg-slate-50 focus:bg-white border border-slate-200 focus:border-blue-400 rounded-lg px-2 py-1 text-right w-16 font-mono text-xs text-slate-800 transition-colors outline-none"
+                      />
+                      <span className="font-mono text-xs text-slate-500">%</span>
+                    </div>
+                  </td>
+                  <td className="px-5 py-3 text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <span className="text-[10px] text-slate-400 font-medium">Rp</span>
+                      <input
+                        type="number"
+                        step="10000000"
+                        min="0"
+                        value={valuation.esopSeedInv}
+                        onChange={(e) => valuation.setEsopSeedInv(parseFloat(e.target.value) || 0)}
+                        className="bg-slate-50 focus:bg-white border border-slate-200 focus:border-blue-400 rounded-lg px-2 py-1 text-right w-28 font-mono text-xs text-slate-800 transition-colors outline-none"
+                      />
+                    </div>
+                  </td>
+                  <td className="px-5 py-3 text-right font-mono text-slate-700">
+                    {(valuation.dynamicEsopEquityFrac * 100).toFixed(1)}%
+                  </td>
+                  <td className="px-5 py-3 text-[10px] text-slate-500 italic">
+                    Opsi saham untuk karyawan (dapat disesuaikan)
+                  </td>
+                </tr>
+                <tr className="bg-blue-50/50">
+                  <td className="px-5 py-3 font-semibold" style={{ color: BRAND_BLUE }}>Seed Investor</td>
+                  <td className="px-5 py-3 text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="100"
+                        value={valuation.investorPreSeed}
+                        onChange={(e) => valuation.setInvestorPreSeed(parseFloat(e.target.value) || 0)}
+                        className="bg-white focus:bg-white border border-blue-200 focus:border-blue-400 rounded-lg px-2 py-1 text-right w-16 font-mono text-xs text-blue-900 transition-colors outline-none shadow-sm"
+                      />
+                      <span className="font-mono text-xs text-slate-500">%</span>
+                    </div>
+                  </td>
+                  <td className="px-5 py-3 text-right font-semibold" style={{ color: BRAND_BLUE }}>{formatRupiah(valuation.seedInv)}</td>
+                  <td className="px-5 py-3 text-right font-mono font-black" style={{ color: BRAND_BLUE }}>
+                    {(valuation.dynamicInvestorEquityFrac * 100).toFixed(1)}%
+                  </td>
+                  <td className="px-5 py-3 text-[10px] text-slate-500 italic">
+                    Berdasarkan Investasi / Post-Money Valuation
+                  </td>
+                </tr>
+                <tr className="bg-slate-50 font-bold border-t border-slate-200 text-slate-800">
+                  <td className="px-5 py-4">Total</td>
+                  <td className="px-5 py-4 text-right font-mono">
+                    {(valuation.foundersPreSeed + valuation.esopPreSeed + valuation.investorPreSeed).toFixed(1)}%
+                  </td>
+                  <td className="px-5 py-4 text-right">{formatRupiah(valuation.seedInv + valuation.esopSeedInv)}</td>
+                  <td className="px-5 py-4 text-right font-mono">
+                    {((valuation.dynamicFoundersEquityFrac + valuation.dynamicEsopEquityFrac + valuation.dynamicInvestorEquityFrac) * 100).toFixed(1)}%
+                  </td>
+                  <td className="px-5 py-4"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col gap-2">
+            {Math.abs(valuation.foundersPreSeed + valuation.esopPreSeed + valuation.investorPreSeed - 100) > 0.01 && (
+              <div className="text-red-600 text-[10px] font-bold flex items-center gap-1.5 bg-red-50 p-2 rounded-lg border border-red-100">
+                ⚠️ Total Persentase Pre-Seed harus bernilai 100%! (Saat ini: {(valuation.foundersPreSeed + valuation.esopPreSeed + valuation.investorPreSeed).toFixed(1)}%)
+              </div>
+            )}
+            <div className="flex items-start gap-2.5 text-[10px] text-slate-500">
+              <ShieldAlert className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" style={{ color: BRAND_ORANGE }} />
+              <span>Porsi kepemilikan dihitung dari persentase suntikan dana investasi Seed terhadap Post-Money Valuation.</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
 
       {/* Footer Actions */}
       <div className="flex items-center justify-between bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
