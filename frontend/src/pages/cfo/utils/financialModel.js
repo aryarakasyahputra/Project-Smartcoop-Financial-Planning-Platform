@@ -85,17 +85,18 @@ export const simulateProjections = (assumptionsByYear) => {
     const mgmtFte = a.hr_management_fte;
     const avgSalary = a.hr_avg_salary_monthly;
 
+    const e = engFte ?? 0;
+    const s = salesFte ?? 0;
+    const mk = mktFte ?? 0;
+    const sp = suppFte ?? 0;
+    const f = finFte ?? 0;
+    const m = mgmtFte ?? 0;
+    const sal = avgSalary ?? 0;
     let payrollOpex = a.payroll_cost ?? 0;
     if (engFte !== undefined || salesFte !== undefined || mktFte !== undefined || suppFte !== undefined || finFte !== undefined || mgmtFte !== undefined || avgSalary !== undefined) {
-      const e = engFte ?? 0;
-      const s = salesFte ?? 0;
-      const mk = mktFte ?? 0;
-      const sp = suppFte ?? 0;
-      const f = finFte ?? 0;
-      const m = mgmtFte ?? 0;
-      const sal = avgSalary ?? 0;
       payrollOpex = (e + s + mk + sp + f + m) * sal * 12;
     }
+    const totalFte = e + s + mk + sp + f + m;
     const salesMarketingOpex = a.sales_marketing_spend ?? 0;
     const officeUtilitiesOpex = a.office_utilities_internet ?? 0;
     const softwareToolsOpex = a.software_tools_subscriptions ?? 0;
@@ -172,6 +173,7 @@ export const simulateProjections = (assumptionsByYear) => {
       churnedCoops,
       avgMembers,
       churnRate,
+      totalFte,
       yoyCoopGrowth: idx === 0 ? 0 : (computedYears[years[idx - 1]].endingCoops > 0 ? (endingActiveCoops / computedYears[years[idx - 1]].endingCoops - 1) : 0),
       
       // Breakdowns for projections

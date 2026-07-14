@@ -155,6 +155,10 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 <td className="px-6 py-3 pl-10">Payment API & Integrasi</td>
                 {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.paymentApiVariableCost)}</td>)}
               </tr>
+              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
+                <td className="px-6 py-3 pl-10">Other Cost of Revenue</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.otherCostOfRevenue)}</td>)}
+              </tr>
               <tr className="bg-red-500/10 font-bold text-red-700">
                 <td className="px-6 py-4">Total Beban Pokok (COGS)</td>
                 {data.map((c) => <td key={c.year} className="px-6 py-4 text-right">{formatRupiah(c.totalCogs)}</td>)}
@@ -173,6 +177,10 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               {/* --- OPEX --- */}
               <tr className="bg-muted/5 font-semibold text-muted-foreground"><td colSpan={6} className="px-6 py-2">Beban Operasional (OPEX)</td></tr>
               <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
+                <td className="px-6 py-3 pl-10 text-xs text-slate-500 font-medium italic">Total Headcount (FTE)</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right text-slate-600 font-semibold">{c.totalFte} Orang</td>)}
+              </tr>
+              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
                 <td className="px-6 py-3 pl-10">Beban Pegawai</td>
                 {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.payrollOpex)}</td>)}
               </tr>
@@ -189,9 +197,30 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 {data.map((c) => <td key={c.year} className="px-6 py-4 text-right">{formatRupiah(c.totalOpex)}</td>)}
               </tr>
 
-              {/* --- EBITDA --- */}
+              {/* --- EBITDA Summary --- */}
+              <tr className="bg-muted/5 font-semibold text-muted-foreground"><td colSpan={6} className="px-6 py-2">Ringkasan EBITDA (EBITDA Summary)</td></tr>
+              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
+                <td className="px-6 py-3 pl-10 text-xs">Total Pendapatan</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right text-green-600 font-semibold">{formatRupiah(c.totalRevenue)}</td>)}
+              </tr>
+              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
+                <td className="px-6 py-3 pl-10 text-xs">Total Beban Pokok (COGS)</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right text-red-500">{formatRupiah(c.totalCogs)}</td>)}
+              </tr>
+              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground font-semibold bg-slate-50/40">
+                <td className="px-6 py-3 pl-10 text-xs text-slate-800">Laba Kotor (Gross Profit)</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right text-slate-800">{formatRupiah(c.grossProfit)}</td>)}
+              </tr>
+              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
+                <td className="px-6 py-3 pl-10 text-xs">Gross Margin (%)</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{c.grossMargin.toFixed(1)}%</td>)}
+              </tr>
+              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
+                <td className="px-6 py-3 pl-10 text-xs">Beban Operasional (OPEX)</td>
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right text-red-500">{formatRupiah(c.totalOpex)}</td>)}
+              </tr>
               <tr className="bg-[#f28c1f]/10 font-bold text-[#f28c1f] border-t-2 border-[#f28c1f]/30">
-                <td className="px-6 py-5">EBITDA</td>
+                <td className="px-6 py-5 pl-10">EBITDA</td>
                 {data.map((c) => <td key={c.year} className="px-6 py-5 text-right">{formatRupiah(c.ebitda)}</td>)}
               </tr>
               <tr className="hover:bg-muted/10 transition-colors text-[#f28c1f] font-medium border-b border-[#f28c1f]/20">
@@ -261,9 +290,9 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 <td className="px-6 py-4">Ending Cash</td>
                 {data.map((c) => <td key={c.year} className="px-6 py-4 text-right font-black">{formatRupiah(c.endingCash)}</td>)}
               </tr>
-              <tr className="bg-muted/30 text-muted-foreground">
+               <tr className="bg-muted/30 text-muted-foreground">
                 <td className="px-6 py-3 font-semibold pl-10 text-xs">Average Monthly Burn / Profit</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right text-xs">{formatRupiah(Math.abs(c.ebitda / 12))}</td>)}
+                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right text-xs font-semibold">{c.ebitda < 0 ? formatRupiah(Math.abs(c.ebitda / 12)) : "Rp 0"}</td>)}
               </tr>
               <tr className="bg-muted/30 text-muted-foreground border-b-2 border-border">
                 <td className="px-6 py-3 font-semibold pl-10 text-xs">Runway (Months)</td>
@@ -274,8 +303,8 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                         Profitable
                       </span>
                     ) : (
-                      <span className="font-semibold text-slate-700">
-                        {c.runwayMonths ? `${c.runwayMonths.toFixed(1)} Bulan` : '0 Bulan'}
+                      <span className="font-bold text-slate-700">
+                        {c.runwayMonths ? (c.runwayMonths % 1 === 0 ? c.runwayMonths.toFixed(0) : c.runwayMonths.toFixed(1)) : '0'} Bulan
                       </span>
                     )}
                   </td>
