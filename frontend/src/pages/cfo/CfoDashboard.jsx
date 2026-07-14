@@ -204,10 +204,10 @@ export default function CfoDashboard({ userData, handleLogout }) {
   const activeAssumptions = assumptionsByYear[selectedEditYear] || {};
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-foreground flex font-sans selection:bg-primary/20">
+    <div className="h-screen overflow-hidden bg-[#f8fafc] text-foreground flex font-sans selection:bg-primary/20">
       
       {/* Sidebar - Identical to previous */}
-      <aside className="w-64 bg-card border-r border-border hidden md:flex flex-col sticky top-0 h-screen shadow-sm z-10">
+      <aside className="w-64 bg-card border-r border-border hidden md:flex flex-col flex-shrink-0 shadow-sm z-10">
         <div className="h-16 flex items-center px-6 border-b border-border bg-background">
           <a href="/" className="flex flex-col items-start leading-none group">
             <span className="text-[22px] font-bold text-[#005fa4] tracking-tight">
@@ -248,19 +248,6 @@ export default function CfoDashboard({ userData, handleLogout }) {
             </button>
 
           </div>
-          
-          <div className="space-y-1">
-            <p className="px-3 text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Perusahaan</p>
-            <a href="/settings" className="flex items-center gap-3 px-3 py-2 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-all font-semibold">
-              <Settings className="h-4 w-4" /> Pengaturan Data
-            </a>
-            <button 
-              onClick={handleResetData}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 transition-all font-semibold text-left"
-            >
-              <RefreshCw className="h-4 w-4 text-red-500" /> Reset Data (Mulai Nol)
-            </button>
-          </div>
         </div>
         
         <div className="p-4 border-t border-border">
@@ -286,7 +273,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header */}
         <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 sticky top-0 z-10 shadow-sm">
-          <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
+          <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground shrink-0 whitespace-nowrap">
             <span className="hidden sm:inline">Finance</span>
             <ChevronRight className="h-4 w-4 hidden sm:inline" />
              <span className="text-foreground font-bold">
@@ -295,21 +282,9 @@ export default function CfoDashboard({ userData, handleLogout }) {
                "Laporan Detail Proforma"}
             </span>
           </div>
+
+          <div id="header-portal-target" className="flex-1 flex justify-end overflow-hidden mx-4 min-w-0"></div>
           
-          <div className="flex items-center gap-4">
-            <div className="relative hidden md:block">
-              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <input 
-                type="text" 
-                placeholder="Cari metrik..." 
-                className="pl-9 pr-4 py-1.5 bg-muted/50 border border-border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-48 transition-all"
-              />
-            </div>
-            <button className="relative p-2 text-muted-foreground hover:bg-muted rounded-full transition-colors">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 border-2 border-card"></span>
-            </button>
-          </div>
         </header>
 
         {/* Dynamic Content Area */}
