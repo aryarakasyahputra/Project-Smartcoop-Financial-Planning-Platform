@@ -121,6 +121,7 @@ export const simulateProjections = (assumptionsByYear) => {
     
     // SaaS Metrics
     const mrr = arr / 12;
+    const annualChurn = (1 - Math.pow(1 - churnRate / 100, 12)) * 100;
     const estimatedCac = newCoops > 0 ? (salesMarketingOpex + payrollOpex * 0.35) / newCoops : 0;
     const estimatedLtv = (churnRate / 100) > 0 ? (mrr * (grossMargin / 100)) / (churnRate / 100) : 0;
     const ltvCacRatio = estimatedCac > 0 ? estimatedLtv / estimatedCac : 0;
@@ -157,6 +158,7 @@ export const simulateProjections = (assumptionsByYear) => {
       endingCash,
       runwayMonths,
       mrr,
+      annualChurn,
       estimatedCac,
       estimatedLtv,
       ltvCacRatio,
