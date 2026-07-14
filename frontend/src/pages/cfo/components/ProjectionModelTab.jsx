@@ -1,5 +1,6 @@
 import React from "react";
-import { TrendingUp, Wallet, Users, Award, ShieldAlert, ChevronRight, ChevronDown, Coins, Activity, Calculator, BarChart3, Layers } from "lucide-react";
+import { createPortal } from "react-dom";
+import { TrendingUp, TrendingDown, Printer, Wallet, Users, Award, ShieldAlert, ChevronRight, ChevronDown, Coins, Activity, Calculator, BarChart3, Layers } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -18,6 +19,8 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
   // UI Interactive States
   const [activeChartMetric, setActiveChartMetric] = React.useState("all");
   const [hoveredYear, setHoveredYear] = React.useState(null);
+  const [activeSection, setActiveSection] = React.useState("section-chart");
+  const [portalTarget, setPortalTarget] = React.useState(null);
   const [collapsedSections, setCollapsedSections] = React.useState({
     growth: true,
     revenue: true,
@@ -26,6 +29,26 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
     ebitda: true,
     saas: true
   });
+
+  React.useEffect(() => {
+    const target = document.getElementById("header-portal-target");
+    if (target) setPortalTarget(target);
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    }, { rootMargin: "-20% 0px -70% 0px", threshold: 0 });
+
+    const sections = document.querySelectorAll("div[id^='section-']");
+    sections.forEach(section => observer.observe(section));
+
+    return () => {
+      sections.forEach(section => observer.unobserve(section));
+    };
+  }, []);
 
   const toggleSection = (section) => {
     setCollapsedSections(prev => ({
@@ -43,10 +66,69 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
     endingCashM: Math.round(item.endingCash / 1000000)
   }));
 
+  const renderTrend = (currentVal, prevVal, isNegativeGood = false) => {
+    if (prevVal === undefined || prevVal === 0 || prevVal === null) return null;
+    const change = (currentVal - prevVal) / Math.abs(prevVal);
+    if (Math.abs(change) < 0.001) return null; // Avoid showing 0.0% if it's very small
+    const isPositive = change > 0;
+    const isGood = isNegativeGood ? !isPositive : isPositive;
+    const color = isGood ? "text-emerald-500" : "text-rose-500";
+    const Icon = isPositive ? TrendingUp : TrendingDown;
+    return (
+      <span className={`text-[10px] ml-1.5 flex items-center gap-0.5 font-bold ${color}`}>
+        <Icon className="h-3 w-3" /> {Math.abs(change * 100).toFixed(1)}%
+      </span>
+    );
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const getNavClass = (sectionId) => {
+    const isActive = activeSection === sectionId;
+    return `text-xs px-3 py-1.5 rounded-full font-medium transition-colors whitespace-nowrap border ${
+      isActive 
+        ? "bg-primary text-primary-foreground border-primary shadow-sm" 
+        : "text-slate-600 bg-muted/50 border-transparent hover:text-primary hover:bg-primary/10 hover:border-primary/20"
+    }`;
+  };
+
+  const navContent = (
+    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide w-full max-w-full px-2" style={{ maskImage: "linear-gradient(to right, transparent, black 10px, black calc(100% - 10px), transparent)" }}>
+      <a href="#section-chart" className={getNavClass("section-chart")}>Chart</a>
+      <a href="#section-growth" className={getNavClass("section-growth")}>Growth</a>
+      <a href="#section-revenue" className={getNavClass("section-revenue")}>Revenue</a>
+      <a href="#section-cogs" className={getNavClass("section-cogs")}>COGS</a>
+      <a href="#section-opex" className={getNavClass("section-opex")}>OPEX</a>
+      <a href="#section-ebitda" className={getNavClass("section-ebitda")}>EBITDA</a>
+      <a href="#section-saas" className={getNavClass("section-saas")}>SaaS Metrics</a>
+      <a href="#section-cashflow" className={getNavClass("section-cashflow")}>Arus Kas</a>
+      <a href="#section-valuation" className={getNavClass("section-valuation")}>Valuasi</a>
+      <a href="#section-captable" className={getNavClass("section-captable")}>Cap Table</a>
+    </div>
+  );
+
   return (
-    <div className="space-y-8 animate-fadeIn">
-      {/* Chart Section */}
-      <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+    <div className="space-y-2">
+      {/* Top Nav Rendered in Portal */}
+      {portalTarget && createPortal(navContent, portalTarget)}
+
+      <div className="flex justify-end mb-4 print:hidden">
+        <button 
+          onClick={handlePrint}
+          className="flex items-center gap-2 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-1.5 rounded-md transition-colors shadow-sm"
+          title="Print Laporan"
+        >
+          <Printer className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Export PDF</span>
+        </button>
+      </div>
+      
+      {/* Main Content */}
+      <div className="space-y-8 print:m-0 print:p-0">
+        {/* Chart Section */}
+        <div id="section-chart" className="bg-card border border-border rounded-xl p-6 shadow-sm scroll-mt-24 print:break-inside-avoid">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <h3 className="text-lg font-bold flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-primary" /> Proyeksi Kinerja 5-Tahun (Jutaan Rupiah)
@@ -116,7 +198,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
       </div>
 
       {/* 1. Customer Growth Model */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+      <div id="section-growth" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid">
         <div className="p-4 border-b border-border bg-muted/10 flex items-center justify-between">
           <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
             <Users className="h-5 w-5 text-indigo-600" /> Customer Growth Model
@@ -133,11 +215,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
               <tr>
-                <th className="px-6 py-4 font-bold">Komponen / Tahun</th>
+                <th className="px-4 py-4 font-bold">Komponen / Tahun</th>
                 {data.map((col) => (
                   <th 
                     key={col.year} 
-                    className={`px-6 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    className={`px-4 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
                     onMouseEnter={() => setHoveredYear(col.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -150,11 +232,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               {!collapsedSections.growth && (
                 <>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Beginning Active Cooperatives</td>
+                    <td className="px-4 py-3 pl-6">Beginning Active Cooperatives</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -163,11 +245,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">New Cooperatives Acquired</td>
+                    <td className="px-4 py-3 pl-6">New Cooperatives Acquired</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -176,11 +258,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Churned Cooperatives</td>
+                    <td className="px-4 py-3 pl-6">Churned Cooperatives</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -189,11 +271,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Average Members / Cooperative</td>
+                    <td className="px-4 py-3 pl-6">Average Members / Cooperative</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -202,11 +284,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">YoY Active Coop Growth</td>
+                    <td className="px-4 py-3 pl-6">YoY Active Coop Growth</td>
                     {data.map((c, i) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -218,11 +300,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               )}
               {/* Output Utama (Always Visible) */}
               <tr className="hover:bg-muted/5 transition-colors font-bold text-indigo-700 bg-indigo-50/20">
-                <td className="px-6 py-3 pl-6">Ending Active Cooperatives</td>
+                <td className="px-4 py-3 pl-6">Ending Active Cooperatives</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -231,11 +313,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="hover:bg-muted/5 transition-colors font-bold text-indigo-700 bg-indigo-50/20">
-                <td className="px-6 py-3 pl-6">Total Cooperative Members</td>
+                <td className="px-4 py-3 pl-6">Total Cooperative Members</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -249,7 +331,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
       </div>
 
       {/* 2. Laporan Pendapatan (Revenue) */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+      <div id="section-revenue" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid">
         <div className="p-4 border-b border-border bg-muted/10 flex items-center justify-between">
           <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
             <Coins className="h-5 w-5 text-emerald-600" /> Laporan Pendapatan (Revenue)
@@ -266,11 +348,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
               <tr>
-                <th className="px-6 py-4 font-bold">Komponen / Tahun</th>
+                <th className="px-4 py-4 font-bold">Komponen / Tahun</th>
                 {data.map((col) => (
                   <th 
                     key={col.year} 
-                    className={`px-6 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    className={`px-4 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
                     onMouseEnter={() => setHoveredYear(col.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -283,11 +365,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               {!collapsedSections.revenue && (
                 <>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Setup & Implementasi</td>
+                    <td className="px-4 py-3 pl-6">Setup & Implementasi</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -296,11 +378,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">SaaS Subscription</td>
+                    <td className="px-4 py-3 pl-6">SaaS Subscription</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -309,11 +391,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">iOS Add-on</td>
+                    <td className="px-4 py-3 pl-6">iOS Add-on</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -322,11 +404,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Proyek White Label</td>
+                    <td className="px-4 py-3 pl-6">Proyek White Label</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -335,11 +417,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Transaksi PPOB</td>
+                    <td className="px-4 py-3 pl-6">Transaksi PPOB</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -348,11 +430,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Smartcoop Academy</td>
+                    <td className="px-4 py-3 pl-6">Smartcoop Academy</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -361,11 +443,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Pelatihan Offline</td>
+                    <td className="px-4 py-3 pl-6">Pelatihan Offline</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -374,11 +456,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Kontrak Enterprise API</td>
+                    <td className="px-4 py-3 pl-6">Kontrak Enterprise API</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -390,11 +472,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               )}
               {/* Output Utama (Always Visible) */}
               <tr className="hover:bg-muted/5 transition-colors text-emerald-600 font-medium bg-emerald-50/10">
-                <td className="px-6 py-3 pl-6 text-xs font-semibold">ARR / Recurring SaaS Run-Rate</td>
+                <td className="px-4 py-3 pl-6 text-xs font-semibold">ARR / Recurring SaaS Run-Rate</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono font-semibold transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono font-semibold transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -403,11 +485,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="hover:bg-muted/5 transition-colors text-emerald-600 font-medium bg-emerald-50/10">
-                <td className="px-6 py-3 pl-6 text-xs font-semibold">ARPU / Active Coop</td>
+                <td className="px-4 py-3 pl-6 text-xs font-semibold">ARPU / Active Coop</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono font-semibold transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono font-semibold transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -416,15 +498,18 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="bg-emerald-500/10 font-bold text-emerald-700">
-                <td className="px-6 py-4">Total Pendapatan</td>
-                {data.map((c) => (
+                <td className="px-4 py-4">Total Pendapatan</td>
+                {data.map((c, i) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-4 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-4 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
-                    {formatRupiah(c.totalRevenue)}
+                    <div className="flex justify-end items-center">
+                      {formatRupiah(c.totalRevenue)}
+                      {i > 0 && renderTrend(c.totalRevenue, data[i-1].totalRevenue)}
+                    </div>
                   </td>
                 ))}
               </tr>
@@ -434,7 +519,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
       </div>
 
       {/* 3. Harga Pokok Penjualan (HPP / COGS) */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+      <div id="section-cogs" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid">
         <div className="p-4 border-b border-border bg-muted/10 flex items-center justify-between">
           <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
             <Layers className="h-5 w-5 text-red-600" /> Harga Pokok Penjualan (HPP / COGS)
@@ -451,11 +536,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
               <tr>
-                <th className="px-6 py-4 font-bold">Komponen / Tahun</th>
+                <th className="px-4 py-4 font-bold">Komponen / Tahun</th>
                 {data.map((col) => (
                   <th 
                     key={col.year} 
-                    className={`px-6 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    className={`px-4 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
                     onMouseEnter={() => setHoveredYear(col.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -468,11 +553,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               {!collapsedSections.cogs && (
                 <>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Cloud Infrastructure</td>
+                    <td className="px-4 py-3 pl-6">Cloud Infrastructure</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -481,11 +566,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Implementation & Onboarding</td>
+                    <td className="px-4 py-3 pl-6">Implementation & Onboarding</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -494,11 +579,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Customer Support</td>
+                    <td className="px-4 py-3 pl-6">Customer Support</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -507,11 +592,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Payment API & Integrasi</td>
+                    <td className="px-4 py-3 pl-6">Payment API & Integrasi</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -520,11 +605,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Other Cost of Revenue</td>
+                    <td className="px-4 py-3 pl-6">Other Cost of Revenue</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -536,24 +621,27 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               )}
               {/* Output Utama (Always Visible) */}
               <tr className="bg-red-500/10 font-bold text-red-700">
-                <td className="px-6 py-4">Total Beban Pokok (COGS)</td>
-                {data.map((c) => (
+                <td className="px-4 py-4">Total Beban Pokok (COGS)</td>
+                {data.map((c, i) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-4 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-4 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
-                    {formatRupiah(c.totalCogs)}
+                    <div className="flex justify-end items-center">
+                      {formatRupiah(c.totalCogs)}
+                      {i > 0 && renderTrend(c.totalCogs, data[i-1].totalCogs, true)}
+                    </div>
                   </td>
                 ))}
               </tr>
               <tr className="bg-emerald-500/10 font-bold text-emerald-700 border-t border-b">
-                <td className="px-6 py-4">Laba Kotor (Gross Profit)</td>
+                <td className="px-4 py-4">Laba Kotor (Gross Profit)</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-4 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-4 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -562,11 +650,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="hover:bg-muted/5 transition-colors text-emerald-600 font-medium bg-emerald-50/20">
-                <td className="px-6 py-3 pl-6 text-xs">Gross Margin (%)</td>
+                <td className="px-4 py-3 pl-6 text-xs">Gross Margin (%)</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -580,7 +668,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
       </div>
 
       {/* 4. Beban Operasional (OPEX) */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+      <div id="section-opex" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid">
         <div className="p-4 border-b border-border bg-muted/10 flex items-center justify-between">
           <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
             <Activity className="h-5 w-5 text-orange-600" /> Beban Operasional (OPEX)
@@ -597,11 +685,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
               <tr>
-                <th className="px-6 py-4 font-bold">Komponen / Tahun</th>
+                <th className="px-4 py-4 font-bold">Komponen / Tahun</th>
                 {data.map((col) => (
                   <th 
                     key={col.year} 
-                    className={`px-6 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    className={`px-4 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
                     onMouseEnter={() => setHoveredYear(col.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -614,11 +702,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               {!collapsedSections.opex && (
                 <>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-505 font-medium italic">
-                    <td className="px-6 py-3 pl-6 text-xs">Total Headcount (FTE)</td>
+                    <td className="px-4 py-3 pl-6 text-xs">Total Headcount (FTE)</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -627,11 +715,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Beban Pegawai</td>
+                    <td className="px-4 py-3 pl-6">Beban Pegawai</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -640,11 +728,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Sales & Marketing</td>
+                    <td className="px-4 py-3 pl-6">Sales & Marketing</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -653,11 +741,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Utilitas & Sewa</td>
+                    <td className="px-4 py-3 pl-6">Utilitas & Sewa</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -669,15 +757,18 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               )}
               {/* Output Utama (Always Visible) */}
               <tr className="bg-red-500/10 font-bold text-red-700 border-t border-b">
-                <td className="px-6 py-4">Total OPEX</td>
-                {data.map((c) => (
+                <td className="px-4 py-4">Total OPEX</td>
+                {data.map((c, i) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-4 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-4 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
-                    {formatRupiah(c.totalOpex)}
+                    <div className="flex justify-end items-center">
+                      {formatRupiah(c.totalOpex)}
+                      {i > 0 && renderTrend(c.totalOpex, data[i-1].totalOpex, true)}
+                    </div>
                   </td>
                 ))}
               </tr>
@@ -687,7 +778,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
       </div>
 
       {/* 5. Ringkasan EBITDA */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+      <div id="section-ebitda" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid">
         <div className="p-4 border-b border-border bg-muted/10 flex items-center justify-between">
           <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
             <Calculator className="h-5 w-5 text-amber-600" /> Ringkasan EBITDA (EBITDA Summary)
@@ -704,11 +795,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
               <tr>
-                <th className="px-6 py-4 font-bold">Komponen / Tahun</th>
+                <th className="px-4 py-4 font-bold">Komponen / Tahun</th>
                 {data.map((col) => (
                   <th 
                     key={col.year} 
-                    className={`px-6 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    className={`px-4 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
                     onMouseEnter={() => setHoveredYear(col.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -721,11 +812,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               {!collapsedSections.ebitda && (
                 <>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Total Pendapatan</td>
+                    <td className="px-4 py-3 pl-6">Total Pendapatan</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -734,11 +825,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Total Beban Pokok (COGS)</td>
+                    <td className="px-4 py-3 pl-6">Total Beban Pokok (COGS)</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -747,11 +838,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors font-semibold text-slate-800 bg-slate-50/40">
-                    <td className="px-6 py-3 pl-6">Laba Kotor (Gross Profit)</td>
+                    <td className="px-4 py-3 pl-6">Laba Kotor (Gross Profit)</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -760,11 +851,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Gross Margin (%)</td>
+                    <td className="px-4 py-3 pl-6">Gross Margin (%)</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -773,11 +864,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Beban Operasional (OPEX)</td>
+                    <td className="px-4 py-3 pl-6">Beban Operasional (OPEX)</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -789,24 +880,27 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               )}
               {/* Output Utama (Always Visible) */}
               <tr className="bg-[#f28c1f]/10 font-bold text-[#f28c1f] border-t-2 border-[#f28c1f]/30">
-                <td className="px-6 py-5 pl-6">EBITDA</td>
-                {data.map((c) => (
+                <td className="px-4 py-5 pl-6">EBITDA</td>
+                {data.map((c, i) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-5 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-5 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
-                    {formatRupiah(c.ebitda)}
+                    <div className="flex justify-end items-center">
+                      {formatRupiah(c.ebitda)}
+                      {i > 0 && renderTrend(c.ebitda, data[i-1].ebitda)}
+                    </div>
                   </td>
                 ))}
               </tr>
               <tr className="hover:bg-[#f28c1f]/5 transition-colors text-[#f28c1f] font-medium border-b border-[#f28c1f]/20 bg-[#f28c1f]/5">
-                <td className="px-6 py-3 pl-6 text-xs">EBITDA Margin (%)</td>
+                <td className="px-4 py-3 pl-6 text-xs">EBITDA Margin (%)</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -820,7 +914,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
       </div>
 
       {/* 6. Metrik SaaS */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+      <div id="section-saas" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid">
         <div className="p-4 border-b border-border bg-muted/10 flex items-center justify-between">
           <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
             <BarChart3 className="h-5 w-5 text-indigo-600" /> Metrik SaaS (SaaS Metrics)
@@ -837,11 +931,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
               <tr>
-                <th className="px-6 py-4 font-bold">Komponen / Tahun</th>
+                <th className="px-4 py-4 font-bold">Komponen / Tahun</th>
                 {data.map((col) => (
                   <th 
                     key={col.year} 
-                    className={`px-6 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    className={`px-4 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
                     onMouseEnter={() => setHoveredYear(col.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -854,11 +948,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               {!collapsedSections.saas && (
                 <>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">ARPU / Active Coop</td>
+                    <td className="px-4 py-3 pl-6">ARPU / Active Coop</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -867,11 +961,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Gross Margin</td>
+                    <td className="px-4 py-3 pl-6">Gross Margin</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -880,11 +974,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Monthly Churn</td>
+                    <td className="px-4 py-3 pl-6">Monthly Churn</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -893,11 +987,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Annual Churn</td>
+                    <td className="px-4 py-3 pl-6">Annual Churn</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -906,11 +1000,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Estimated CAC / New Coop</td>
+                    <td className="px-4 py-3 pl-6">Estimated CAC / New Coop</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -919,11 +1013,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">Estimated LTV</td>
+                    <td className="px-4 py-3 pl-6">Estimated LTV</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -932,11 +1026,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                     ))}
                   </tr>
                   <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                    <td className="px-6 py-3 pl-6">CAC Payback (Months)</td>
+                    <td className="px-4 py-3 pl-6">CAC Payback (Months)</td>
                     {data.map((c) => (
                       <td 
                         key={c.year} 
-                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                         onMouseEnter={() => setHoveredYear(c.year)}
                         onMouseLeave={() => setHoveredYear(null)}
                       >
@@ -948,11 +1042,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               )}
               {/* Output Utama (Always Visible) */}
               <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                <td className="px-6 py-3 pl-6">MRR</td>
+                <td className="px-4 py-3 pl-6">MRR</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -961,24 +1055,27 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="hover:bg-muted/5 transition-colors text-slate-600">
-                <td className="px-6 py-3 pl-6">ARR</td>
-                {data.map((c) => (
+                <td className="px-4 py-3 pl-6">ARR</td>
+                {data.map((c, i) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
-                    {formatRupiah(c.arr)}
+                    <div className="flex justify-end items-center">
+                      {formatRupiah(c.arr)}
+                      {i > 0 && renderTrend(c.arr, data[i-1].arr)}
+                    </div>
                   </td>
                 ))}
               </tr>
               <tr className="hover:bg-muted/5 transition-colors text-slate-600 font-bold bg-slate-50/10">
-                <td className="px-6 py-3 pl-6">LTV / CAC</td>
+                <td className="px-4 py-3 pl-6">LTV / CAC</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -987,11 +1084,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="hover:bg-muted/5 transition-colors text-slate-600 border-b-2 border-border font-bold">
-                <td className="px-6 py-3 pl-6 text-xs">Rule of 40</td>
+                <td className="px-4 py-3 pl-6 text-xs">Rule of 40</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono font-bold transition-colors duration-150 ${getColHighlightClass(c.year)} ${(c.ruleOf40 * 100) >= 40 ? 'text-green-600' : 'text-slate-700'}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono font-bold transition-colors duration-150 ${getColHighlightClass(c.year)} ${(c.ruleOf40 * 100) >= 40 ? 'text-green-600' : 'text-slate-700'}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1005,7 +1102,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
       </div>
 
       {/* Cash Flow & Runway Table */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+      <div id="section-cashflow" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid">
         <div className="p-4 border-b border-border bg-muted/10">
           <h3 className="text-lg font-bold flex items-center gap-2">
             <Wallet className="h-5 w-5 text-primary" /> Laporan Arus Kas & Runway (Rp)
@@ -1015,11 +1112,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
               <tr>
-                <th className="px-6 py-4 font-bold">Metrik / Tahun</th>
+                <th className="px-4 py-4 font-bold">Metrik / Tahun</th>
                 {data.map((col) => (
                   <th 
                     key={col.year} 
-                    className={`px-6 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    className={`px-4 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
                     onMouseEnter={() => setHoveredYear(col.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1030,11 +1127,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
             </thead>
             <tbody className="divide-y divide-border">
               <tr className="hover:bg-muted/10 transition-colors">
-                <td className="px-6 py-3 font-medium">Opening Cash</td>
+                <td className="px-4 py-3 font-medium">Opening Cash</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1043,11 +1140,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Seed Investment Inflow</td>
+                <td className="px-4 py-3">Seed Investment Inflow</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1056,11 +1153,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">EBITDA</td>
+                <td className="px-4 py-3">EBITDA</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)} ${c.ebitda >= 0 ? 'text-green-600' : 'text-red-500'}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)} ${c.ebitda >= 0 ? 'text-green-600' : 'text-red-500'}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1069,24 +1166,27 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="bg-primary/5 font-bold text-primary border-t border-b">
-                <td className="px-6 py-4">Ending Cash</td>
-                {data.map((c) => (
+                <td className="px-4 py-4">Ending Cash</td>
+                {data.map((c, i) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-4 text-right font-mono font-black transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-4 text-right font-mono font-black transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
-                    {formatRupiah(c.endingCash)}
+                    <div className="flex justify-end items-center">
+                      {formatRupiah(c.endingCash)}
+                      {i > 0 && renderTrend(c.endingCash, data[i-1].endingCash)}
+                    </div>
                   </td>
                 ))}
               </tr>
                <tr className="bg-muted/30 text-muted-foreground">
-                <td className="px-6 py-3 font-semibold pl-10 text-xs">Average Monthly Burn / Profit</td>
+                <td className="px-4 py-3 font-semibold text-xs">Average Monthly Burn / Profit</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono text-xs font-semibold transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono text-xs font-semibold transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1095,11 +1195,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="bg-muted/30 text-muted-foreground border-b-2 border-border">
-                <td className="px-6 py-3 font-semibold pl-10 text-xs">Runway (Months)</td>
+                <td className="px-4 py-3 font-semibold text-xs">Runway (Months)</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right text-xs transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right text-xs transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1120,7 +1220,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
         </div>
       </div>
       {/* 11. Simulasi Valuasi Perusahaan (Rp) */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+      <div id="section-valuation" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid">
         <div className="p-4 border-b border-border bg-muted/10">
           <h3 className="text-lg font-bold flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-primary" /> Simulasi Valuasi Perusahaan (Rp)
@@ -1130,11 +1230,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
               <tr>
-                <th className="px-6 py-4 font-bold">Metrik / Tahun</th>
+                <th className="px-4 py-4 font-bold">Metrik / Tahun</th>
                 {data.map((col) => (
                   <th 
                     key={col.year} 
-                    className={`px-6 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    className={`px-4 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
                     onMouseEnter={() => setHoveredYear(col.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1145,11 +1245,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
             </thead>
             <tbody className="divide-y divide-border">
               <tr className="hover:bg-muted/10 transition-colors">
-                <td className="px-6 py-3 font-medium">Revenue (Pendapatan)</td>
+                <td className="px-4 py-3 font-medium">Revenue (Pendapatan)</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1158,11 +1258,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">ARR</td>
+                <td className="px-4 py-3 pl-10">ARR</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1171,11 +1271,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Revenue Multiple - Conservative</td>
+                <td className="px-4 py-3 pl-10">Revenue Multiple - Conservative</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1184,11 +1284,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Revenue Multiple - Base</td>
+                <td className="px-4 py-3 pl-10">Revenue Multiple - Base</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1197,11 +1297,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Revenue Multiple - Optimistic</td>
+                <td className="px-4 py-3 pl-10">Revenue Multiple - Optimistic</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1210,11 +1310,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="bg-primary/5 font-semibold text-slate-700">
-                <td className="px-6 py-3 pl-10">Enterprise Value - Conservative</td>
+                <td className="px-4 py-3 pl-10">Enterprise Value - Conservative</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1223,11 +1323,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="bg-primary/5 font-bold text-primary border-t border-b">
-                <td className="px-6 py-3 pl-10">Enterprise Value - Base</td>
+                <td className="px-4 py-3 pl-10">Enterprise Value - Base</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1236,11 +1336,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="bg-primary/5 font-semibold text-slate-700">
-                <td className="px-6 py-3 pl-10">Enterprise Value - Optimistic</td>
+                <td className="px-4 py-3 pl-10">Enterprise Value - Optimistic</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1249,11 +1349,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3">Seed Pre-Money Valuation</td>
+                <td className="px-4 py-3">Seed Pre-Money Valuation</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1262,11 +1362,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3">Seed Post-Money Valuation</td>
+                <td className="px-4 py-3">Seed Post-Money Valuation</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1275,11 +1375,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 ))}
               </tr>
               <tr className="bg-muted/30 text-muted-foreground">
-                <td className="px-6 py-3 pl-10 text-xs">Implied Seed Equity %</td>
+                <td className="px-4 py-3 pl-10 text-xs">Implied Seed Equity %</td>
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3 text-right font-mono text-xs transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-3 whitespace-nowrap text-right font-mono text-xs transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1295,10 +1395,10 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
       </div>
 
       {/* 12. Cap Table & Potential Investor Return */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
         
         {/* Cap Table */}
-        <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm flex flex-col justify-between">
+        <div id="section-captable" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm flex flex-col justify-between scroll-mt-24 print:break-inside-avoid">
           <div>
             <div className="p-4 border-b border-border bg-muted/10">
               <h3 className="text-base font-bold flex items-center gap-2">
@@ -1318,7 +1418,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 <tbody className="divide-y divide-border">
                   <tr>
                     <td className="px-4 py-3 font-semibold text-slate-700">Founders / Existing Shareholders</td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-1">
                         <input
                           type="number"
@@ -1332,7 +1432,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                         <span className="font-mono text-xs">%</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-1">
                         <span className="text-[10px] text-slate-400">Rp</span>
                         <input
@@ -1345,13 +1445,13 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                         />
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right font-mono font-bold text-slate-700">
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-bold text-slate-700">
                       {(valuation.dynamicFoundersEquityFrac * 100).toFixed(1)}%
                     </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 text-slate-700 font-medium">Employee Option Pool (ESOP)</td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-1">
                         <input
                           type="number"
@@ -1365,7 +1465,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                         <span className="font-mono text-xs">%</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-1">
                         <span className="text-[10px] text-slate-400">Rp</span>
                         <input
@@ -1378,13 +1478,13 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                         />
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right font-mono text-slate-700">
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-slate-700">
                       {(valuation.dynamicEsopEquityFrac * 100).toFixed(1)}%
                     </td>
                   </tr>
                   <tr className="bg-primary/5 text-primary">
                     <td className="px-4 py-3 font-semibold">Seed Investor</td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-1">
                         <input
                           type="number"
@@ -1398,18 +1498,18 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                         <span className="font-mono text-xs">%</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right font-semibold">{formatRupiah(valuation.seedInv)}</td>
-                    <td className="px-4 py-3 text-right font-mono font-black">
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-semibold">{formatRupiah(valuation.seedInv)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-black">
                       {(valuation.dynamicInvestorEquityFrac * 100).toFixed(1)}%
                     </td>
                   </tr>
                   <tr className="bg-muted/40 font-bold border-t-2 border-border text-slate-800">
                     <td className="px-4 py-3">Total</td>
-                    <td className="px-4 py-3 text-right font-mono">
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono">
                       {(valuation.foundersPreSeed + valuation.esopPreSeed + valuation.investorPreSeed).toFixed(1)}%
                     </td>
-                    <td className="px-4 py-3 text-right">{formatRupiah(valuation.seedInv + valuation.esopSeedInv)}</td>
-                    <td className="px-4 py-3 text-right font-mono">
+                    <td className="px-4 py-3 whitespace-nowrap text-right">{formatRupiah(valuation.seedInv + valuation.esopSeedInv)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono">
                       {((valuation.dynamicFoundersEquityFrac + valuation.dynamicEsopEquityFrac + valuation.dynamicInvestorEquityFrac) * 100).toFixed(1)}%
                     </td>
                   </tr>
@@ -1431,7 +1531,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
         </div>
 
         {/* Potential Investor Return */}
-        <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm flex flex-col justify-between">
+        <div id="section-roi" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm flex flex-col justify-between scroll-mt-24 print:break-inside-avoid">
           <div>
             <div className="p-4 border-b border-border bg-muted/10">
               <h3 className="text-base font-bold flex items-center gap-2">
@@ -1451,51 +1551,51 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 <tbody className="divide-y divide-border">
                   <tr>
                     <td className="px-4 py-3 font-semibold text-slate-700">Projected Revenue (2029)</td>
-                    <td className="px-4 py-3 text-right font-mono">{formatRupiah(valuation.revCons)}</td>
-                    <td className="px-4 py-3 text-right font-mono font-bold text-slate-800">{formatRupiah(valuation.revBase)}</td>
-                    <td className="px-4 py-3 text-right font-mono">{formatRupiah(valuation.revOpt)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono">{formatRupiah(valuation.revCons)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-bold text-slate-800">{formatRupiah(valuation.revBase)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono">{formatRupiah(valuation.revOpt)}</td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 text-muted-foreground">Revenue Multiple</td>
-                    <td className="px-4 py-3 text-right font-mono font-semibold text-slate-700">{valuation.multCons}x</td>
-                    <td className="px-4 py-3 text-right font-mono font-bold text-primary">{valuation.multBase}x</td>
-                    <td className="px-4 py-3 text-right font-mono font-semibold text-slate-700">{valuation.multOpt}x</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-semibold text-slate-700">{valuation.multCons}x</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-bold text-primary">{valuation.multBase}x</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-semibold text-slate-700">{valuation.multOpt}x</td>
                   </tr>
                   <tr className="bg-muted/10">
                     <td className="px-4 py-3 font-semibold text-slate-700">Estimated Exit Valuation</td>
-                    <td className="px-4 py-3 text-right font-mono">{formatRupiah(valuation.exitValCons)}</td>
-                    <td className="px-4 py-3 text-right font-mono font-bold text-slate-800">{formatRupiah(valuation.exitValBase)}</td>
-                    <td className="px-4 py-3 text-right font-mono">{formatRupiah(valuation.exitValOpt)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono">{formatRupiah(valuation.exitValCons)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-bold text-slate-800">{formatRupiah(valuation.exitValBase)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono">{formatRupiah(valuation.exitValOpt)}</td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 text-muted-foreground">Investor Equity %</td>
-                    <td className="px-4 py-3 text-right font-mono">{(valuation.dynamicInvestorEquityFrac * 100).toFixed(1)}%</td>
-                    <td className="px-4 py-3 text-right font-mono">{(valuation.dynamicInvestorEquityFrac * 100).toFixed(1)}%</td>
-                    <td className="px-4 py-3 text-right font-mono">{(valuation.dynamicInvestorEquityFrac * 100).toFixed(1)}%</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono">{(valuation.dynamicInvestorEquityFrac * 100).toFixed(1)}%</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono">{(valuation.dynamicInvestorEquityFrac * 100).toFixed(1)}%</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono">{(valuation.dynamicInvestorEquityFrac * 100).toFixed(1)}%</td>
                   </tr>
                   <tr className="bg-primary/5">
                     <td className="px-4 py-3 font-bold text-primary">Investor Equity Value</td>
-                    <td className="px-4 py-3 text-right font-mono">{formatRupiah(valuation.invValCons)}</td>
-                    <td className="px-4 py-3 text-right font-mono font-bold text-primary">{formatRupiah(valuation.invValBase)}</td>
-                    <td className="px-4 py-3 text-right font-mono">{formatRupiah(valuation.invValOpt)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono">{formatRupiah(valuation.invValCons)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-bold text-primary">{formatRupiah(valuation.invValBase)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono">{formatRupiah(valuation.invValOpt)}</td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 text-muted-foreground">Initial Investment</td>
-                    <td className="px-4 py-3 text-right font-mono">{formatRupiah(valuation.seedInv)}</td>
-                    <td className="px-4 py-3 text-right font-mono text-slate-700">{formatRupiah(valuation.seedInv)}</td>
-                    <td className="px-4 py-3 text-right font-mono">{formatRupiah(valuation.seedInv)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono">{formatRupiah(valuation.seedInv)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-slate-700">{formatRupiah(valuation.seedInv)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono">{formatRupiah(valuation.seedInv)}</td>
                   </tr>
                   <tr className="font-bold border-t">
                     <td className="px-4 py-3 text-slate-700">MOIC</td>
-                    <td className="px-4 py-3 text-right font-mono text-amber-700">{valuation.moicCons.toFixed(2)}x</td>
-                    <td className="px-4 py-3 text-right font-mono text-green-700">{valuation.moicBase.toFixed(2)}x</td>
-                    <td className="px-4 py-3 text-right font-mono text-green-900">{valuation.moicOpt.toFixed(2)}x</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-amber-700">{valuation.moicCons.toFixed(2)}x</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-green-700">{valuation.moicBase.toFixed(2)}x</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-green-900">{valuation.moicOpt.toFixed(2)}x</td>
                   </tr>
                   <tr className="font-bold bg-muted/40">
                     <td className="px-4 py-3 text-slate-800">Estimated IRR (5 Years)</td>
-                    <td className="px-4 py-3 text-right font-mono text-amber-700">{(valuation.irrCons * 100).toFixed(1)}%</td>
-                    <td className="px-4 py-3 text-right font-mono text-green-700">{(valuation.irrBase * 100).toFixed(1)}%</td>
-                    <td className="px-4 py-3 text-right font-mono text-green-900">{(valuation.irrOpt * 100).toFixed(1)}%</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-amber-700">{(valuation.irrCons * 100).toFixed(1)}%</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-green-700">{(valuation.irrBase * 100).toFixed(1)}%</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-green-900">{(valuation.irrOpt * 100).toFixed(1)}%</td>
                   </tr>
                 </tbody>
               </table>
@@ -1507,6 +1607,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           </div>
         </div>
 
+        </div>
       </div>
     </div>
   );
