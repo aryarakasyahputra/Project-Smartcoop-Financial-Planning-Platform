@@ -1,5 +1,5 @@
 import React from "react";
-import { TrendingUp, Wallet, Users, Award, ShieldAlert } from "lucide-react";
+import { TrendingUp, Wallet, Users, Award, ShieldAlert, ChevronRight, ChevronDown, Coins, Activity, Calculator, BarChart3, Layers } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -15,16 +15,80 @@ import { useValuationModel } from "../utils/valuationHelper";
 export default function ProjectionModelTab({ data, formatRupiah }) {
   const valuation = useValuationModel(data);
 
+  // UI Interactive States
+  const [activeChartMetric, setActiveChartMetric] = React.useState("all");
+  const [hoveredYear, setHoveredYear] = React.useState(null);
+  const [collapsedSections, setCollapsedSections] = React.useState({
+    growth: true,
+    revenue: true,
+    cogs: true,
+    opex: true,
+    ebitda: true,
+    saas: true
+  });
+
+  const toggleSection = (section) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const getColHighlightClass = (year) => {
+    return hoveredYear === year ? "bg-primary/5 font-semibold text-primary" : "";
+  };
+
+  const chartData = data.map(item => ({
+    ...item,
+    endingCashM: Math.round(item.endingCash / 1000000)
+  }));
+
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Chart Section */}
       <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
-        <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-primary" /> Proyeksi Kinerja 5-Tahun (Jutaan Rupiah)
-        </h3>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <h3 className="text-lg font-bold flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-primary" /> Proyeksi Kinerja 5-Tahun (Jutaan Rupiah)
+          </h3>
+          <div className="flex flex-wrap gap-1 bg-muted/50 p-1 rounded-lg border border-border">
+            <button
+              onClick={() => setActiveChartMetric("all")}
+              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
+                activeChartMetric === "all" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Semua Metrik
+            </button>
+            <button
+              onClick={() => setActiveChartMetric("revenue")}
+              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
+                activeChartMetric === "revenue" ? "bg-emerald-600 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Pendapatan
+            </button>
+            <button
+              onClick={() => setActiveChartMetric("ebitda")}
+              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
+                activeChartMetric === "ebitda" ? "bg-amber-500 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              EBITDA
+            </button>
+            <button
+              onClick={() => setActiveChartMetric("cash")}
+              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
+                activeChartMetric === "cash" ? "bg-blue-600 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Ending Cash
+            </button>
+          </div>
+        </div>
         <div className="h-[400px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+            <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
               <XAxis dataKey="name" stroke="#9ca3af" fontSize={12} tickMargin={10} />
               <YAxis stroke="#9ca3af" fontSize={12} tickFormatter={(val) => `Rp${val}M`} />
@@ -34,18 +98,36 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
               />
               <Legend wrapperStyle={{ paddingTop: '20px' }} />
-              <Line type="monotone" dataKey="revenue" name="Pendapatan" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-              <Line type="monotone" dataKey="expenses" name="Beban (COGS+OPEX)" stroke="#ef4444" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-              <Line type="monotone" dataKey="ebitdaM" name="EBITDA" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+              {(activeChartMetric === "all" || activeChartMetric === "revenue") && (
+                <Line type="monotone" dataKey="revenue" name="Pendapatan" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+              )}
+              {activeChartMetric === "all" && (
+                <Line type="monotone" dataKey="expenses" name="Beban (COGS+OPEX)" stroke="#ef4444" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+              )}
+              {(activeChartMetric === "all" || activeChartMetric === "ebitda") && (
+                <Line type="monotone" dataKey="ebitdaM" name="EBITDA" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+              )}
+              {activeChartMetric === "cash" && (
+                <Line type="monotone" dataKey="endingCashM" name="Ending Cash" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+              )}
             </LineChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Income Statement Table */}
+      {/* 1. Customer Growth Model */}
       <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-border bg-muted/10">
-          <h3 className="text-lg font-bold">Laporan Laba Rugi Proforma (Rp)</h3>
+        <div className="p-4 border-b border-border bg-muted/10 flex items-center justify-between">
+          <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
+            <Users className="h-5 w-5 text-indigo-600" /> Customer Growth Model
+          </h3>
+          <button 
+            onClick={() => toggleSection("growth")}
+            className="text-xs text-indigo-600 flex items-center gap-1 font-semibold bg-indigo-50 hover:bg-indigo-100 transition-colors px-2.5 py-1 rounded-full"
+          >
+            {collapsedSections.growth ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            {collapsedSections.growth ? "Lihat Perhitungan Detail" : "Sembunyikan Detail"}
+          </button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
@@ -53,235 +135,870 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               <tr>
                 <th className="px-6 py-4 font-bold">Komponen / Tahun</th>
                 {data.map((col) => (
-                  <th key={col.year} className="px-6 py-4 font-bold text-right">{col.year}</th>
+                  <th 
+                    key={col.year} 
+                    className={`px-6 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    onMouseEnter={() => setHoveredYear(col.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {col.year}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {/* --- Koperasi & Anggota --- */}
-              <tr className="bg-muted/5 font-semibold text-muted-foreground"><td colSpan={6} className="px-6 py-2">Customer Growth Model</td></tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Beginning Active Cooperatives</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{new Intl.NumberFormat('id-ID').format(c.beginningCoops)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">New Cooperatives Acquired</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{new Intl.NumberFormat('id-ID').format(c.newCoops)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Churned Cooperatives</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{new Intl.NumberFormat('id-ID').format(c.churnedCoops)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors font-bold text-slate-800 bg-slate-50/50">
-                <td className="px-6 py-3 pl-10">Ending Active Cooperatives</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{new Intl.NumberFormat('id-ID').format(c.endingCoops)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Average Members / Cooperative</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{new Intl.NumberFormat('id-ID').format(c.avgMembers)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors font-bold text-slate-800 bg-slate-50/50">
-                <td className="px-6 py-3 pl-10">Total Cooperative Members</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{new Intl.NumberFormat('id-ID').format(c.totalMembers)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">YoY Active Coop Growth</td>
-                {data.map((c, i) => (
-                  <td key={c.year} className="px-6 py-3 text-right">
-                    {i === 0 ? "-" : `${(c.yoyCoopGrowth * 100).toFixed(1)}%`}
+              {!collapsedSections.growth && (
+                <>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Beginning Active Cooperatives</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {new Intl.NumberFormat('id-ID').format(c.beginningCoops)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">New Cooperatives Acquired</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {new Intl.NumberFormat('id-ID').format(c.newCoops)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Churned Cooperatives</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {new Intl.NumberFormat('id-ID').format(c.churnedCoops)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Average Members / Cooperative</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {new Intl.NumberFormat('id-ID').format(c.avgMembers)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">YoY Active Coop Growth</td>
+                    {data.map((c, i) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {i === 0 ? "-" : `${(c.yoyCoopGrowth * 100).toFixed(1)}%`}
+                      </td>
+                    ))}
+                  </tr>
+                </>
+              )}
+              {/* Output Utama (Always Visible) */}
+              <tr className="hover:bg-muted/5 transition-colors font-bold text-indigo-700 bg-indigo-50/20">
+                <td className="px-6 py-3 pl-6">Ending Active Cooperatives</td>
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {new Intl.NumberFormat('id-ID').format(c.endingCoops)}
                   </td>
                 ))}
               </tr>
+              <tr className="hover:bg-muted/5 transition-colors font-bold text-indigo-700 bg-indigo-50/20">
+                <td className="px-6 py-3 pl-6">Total Cooperative Members</td>
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {new Intl.NumberFormat('id-ID').format(c.totalMembers)}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-              {/* --- PENDAPATAN --- */}
-              <tr className="bg-muted/5 font-semibold text-muted-foreground"><td colSpan={6} className="px-6 py-2">Pendapatan</td></tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Setup & Implementasi</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.setupImplementationRevenue)}</td>)}
+      {/* 2. Laporan Pendapatan (Revenue) */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-border bg-muted/10 flex items-center justify-between">
+          <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
+            <Coins className="h-5 w-5 text-emerald-600" /> Laporan Pendapatan (Revenue)
+          </h3>
+          <button 
+            onClick={() => toggleSection("revenue")}
+            className="text-xs text-emerald-600 flex items-center gap-1 font-semibold bg-emerald-50 hover:bg-emerald-100 transition-colors px-2.5 py-1 rounded-full"
+          >
+            {collapsedSections.revenue ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            {collapsedSections.revenue ? "Lihat Perhitungan Detail" : "Sembunyikan Detail"}
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
+              <tr>
+                <th className="px-6 py-4 font-bold">Komponen / Tahun</th>
+                {data.map((col) => (
+                  <th 
+                    key={col.year} 
+                    className={`px-6 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    onMouseEnter={() => setHoveredYear(col.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {col.year}
+                  </th>
+                ))}
               </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">SaaS Subscription</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.saasSubscriptionRevenue)}</td>)}
+            </thead>
+            <tbody className="divide-y divide-border">
+              {!collapsedSections.revenue && (
+                <>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Setup & Implementasi</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.setupImplementationRevenue)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">SaaS Subscription</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.saasSubscriptionRevenue)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">iOS Add-on</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.iosAddonRevenue)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Proyek White Label</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.whiteLabelRevenue)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Transaksi PPOB</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.ppobTransactionRevenue)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Smartcoop Academy</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.academyRevenue)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Pelatihan Offline</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.offlineTrainingRevenue)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Kontrak Enterprise API</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.enterpriseAPI_revenue)}
+                      </td>
+                    ))}
+                  </tr>
+                </>
+              )}
+              {/* Output Utama (Always Visible) */}
+              <tr className="hover:bg-muted/5 transition-colors text-emerald-600 font-medium bg-emerald-50/10">
+                <td className="px-6 py-3 pl-6 text-xs font-semibold">ARR / Recurring SaaS Run-Rate</td>
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono font-semibold transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.arr)}
+                  </td>
+                ))}
               </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">iOS Add-on</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.iosAddonRevenue)}</td>)}
+              <tr className="hover:bg-muted/5 transition-colors text-emerald-600 font-medium bg-emerald-50/10">
+                <td className="px-6 py-3 pl-6 text-xs font-semibold">ARPU / Active Coop</td>
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono font-semibold transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.arpu)}
+                  </td>
+                ))}
               </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Proyek White Label</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.whiteLabelRevenue)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Transaksi PPOB</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.ppobTransactionRevenue)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Smartcoop Academy</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.academyRevenue)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Pelatihan Offline</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.offlineTrainingRevenue)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Kontrak Enterprise API</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.enterpriseAPI_revenue)}</td>)}
-              </tr>
-              <tr className="bg-green-500/10 font-bold text-green-700">
+              <tr className="bg-emerald-500/10 font-bold text-emerald-700">
                 <td className="px-6 py-4">Total Pendapatan</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-4 text-right">{formatRupiah(c.totalRevenue)}</td>)}
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-4 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.totalRevenue)}
+                  </td>
+                ))}
               </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-primary font-medium">
-                <td className="px-6 py-3 pl-10 text-xs">ARR / Recurring SaaS Run-Rate</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.arr)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-primary font-medium">
-                <td className="px-6 py-3 pl-10 text-xs">ARPU / Active Coop</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.arpu)}</td>)}
-              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-              {/* --- HPP (COGS) --- */}
-              <tr className="bg-muted/5 font-semibold text-muted-foreground"><td colSpan={6} className="px-6 py-2">Harga Pokok Penjualan (HPP)</td></tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Cloud Infrastructure</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.cloudInfrastructureCost)}</td>)}
+      {/* 3. Harga Pokok Penjualan (HPP / COGS) */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-border bg-muted/10 flex items-center justify-between">
+          <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
+            <Layers className="h-5 w-5 text-red-600" /> Harga Pokok Penjualan (HPP / COGS)
+          </h3>
+          <button 
+            onClick={() => toggleSection("cogs")}
+            className="text-xs text-red-600 flex items-center gap-1 font-semibold bg-red-50 hover:bg-red-100 transition-colors px-2.5 py-1 rounded-full"
+          >
+            {collapsedSections.cogs ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            {collapsedSections.cogs ? "Lihat Perhitungan Detail" : "Sembunyikan Detail"}
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
+              <tr>
+                <th className="px-6 py-4 font-bold">Komponen / Tahun</th>
+                {data.map((col) => (
+                  <th 
+                    key={col.year} 
+                    className={`px-6 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    onMouseEnter={() => setHoveredYear(col.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {col.year}
+                  </th>
+                ))}
               </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Implementation & Onboarding</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.implementationOnboardingCost)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Customer Support</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.customerSupportCost)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Payment API & Integrasi</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.paymentApiVariableCost)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Other Cost of Revenue</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.otherCostOfRevenue)}</td>)}
-              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {!collapsedSections.cogs && (
+                <>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Cloud Infrastructure</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.cloudInfrastructureCost)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Implementation & Onboarding</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.implementationOnboardingCost)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Customer Support</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.customerSupportCost)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Payment API & Integrasi</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.paymentApiVariableCost)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Other Cost of Revenue</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.otherCostOfRevenue)}
+                      </td>
+                    ))}
+                  </tr>
+                </>
+              )}
+              {/* Output Utama (Always Visible) */}
               <tr className="bg-red-500/10 font-bold text-red-700">
                 <td className="px-6 py-4">Total Beban Pokok (COGS)</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-4 text-right">{formatRupiah(c.totalCogs)}</td>)}
-              </tr>
-
-              {/* --- Laba Kotor --- */}
-              <tr className="bg-primary/10 font-bold text-primary">
-                <td className="px-6 py-4">Laba Kotor (Gross Profit)</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-4 text-right">{formatRupiah(c.grossProfit)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-primary font-medium">
-                <td className="px-6 py-3 pl-10 text-xs">Gross Margin (%)</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{c.grossMargin.toFixed(1)}%</td>)}
-              </tr>
-
-              {/* --- OPEX --- */}
-              <tr className="bg-muted/5 font-semibold text-muted-foreground"><td colSpan={6} className="px-6 py-2">Beban Operasional (OPEX)</td></tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10 text-xs text-slate-500 font-medium italic">Total Headcount (FTE)</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right text-slate-600 font-semibold">{c.totalFte} Orang</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Beban Pegawai</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.payrollOpex)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Sales & Marketing</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.salesMarketingOpex)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Utilitas & Sewa</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.officeUtilitiesOpex)}</td>)}
-              </tr>
-              <tr className="bg-red-500/10 font-bold text-red-700">
-                <td className="px-6 py-4">Total OPEX</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-4 text-right">{formatRupiah(c.totalOpex)}</td>)}
-              </tr>
-
-              {/* --- EBITDA Summary --- */}
-              <tr className="bg-muted/5 font-semibold text-muted-foreground"><td colSpan={6} className="px-6 py-2">Ringkasan EBITDA (EBITDA Summary)</td></tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10 text-xs">Total Pendapatan</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right text-green-600 font-semibold">{formatRupiah(c.totalRevenue)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10 text-xs">Total Beban Pokok (COGS)</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right text-red-500">{formatRupiah(c.totalCogs)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground font-semibold bg-slate-50/40">
-                <td className="px-6 py-3 pl-10 text-xs text-slate-800">Laba Kotor (Gross Profit)</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right text-slate-800">{formatRupiah(c.grossProfit)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10 text-xs">Gross Margin (%)</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{c.grossMargin.toFixed(1)}%</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10 text-xs">Beban Operasional (OPEX)</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right text-red-500">{formatRupiah(c.totalOpex)}</td>)}
-              </tr>
-              <tr className="bg-[#f28c1f]/10 font-bold text-[#f28c1f] border-t-2 border-[#f28c1f]/30">
-                <td className="px-6 py-5 pl-10">EBITDA</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-5 text-right">{formatRupiah(c.ebitda)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-[#f28c1f] font-medium border-b border-[#f28c1f]/20">
-                <td className="px-6 py-3 pl-10 text-xs">EBITDA Margin (%)</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{c.ebitdaMargin.toFixed(1)}%</td>)}
-              </tr>
-
-              {/* --- SaaS Metrics --- */}
-              <tr className="bg-muted/5 font-semibold text-muted-foreground"><td colSpan={6} className="px-6 py-2">Metrik SaaS (SaaS Metrics)</td></tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">MRR</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.mrr)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">ARR</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.arr)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">ARPU / Active Coop</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.arpu)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Gross Margin</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{c.grossMargin.toFixed(1)}%</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Monthly Churn</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{c.churnRate.toFixed(1)}%</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Annual Churn</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{c.annualChurn.toFixed(1)}%</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Estimated CAC / New Coop</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.estimatedCac)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">Estimated LTV</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.estimatedLtv)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">LTV / CAC</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right font-medium">{c.ltvCacRatio.toFixed(1)}x</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                <td className="px-6 py-3 pl-10">CAC Payback (Months)</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{c.cacPaybackMonths.toFixed(1)}</td>)}
-              </tr>
-              <tr className="hover:bg-muted/10 transition-colors text-muted-foreground border-b-2 border-border">
-                <td className="px-6 py-3 pl-10">Rule of 40</td>
                 {data.map((c) => (
-                  <td key={c.year} className={`px-6 py-3 text-right font-bold ${(c.ruleOf40 * 100) >= 40 ? 'text-green-600' : 'text-slate-700'}`}>
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-4 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.totalCogs)}
+                  </td>
+                ))}
+              </tr>
+              <tr className="bg-emerald-500/10 font-bold text-emerald-700 border-t border-b">
+                <td className="px-6 py-4">Laba Kotor (Gross Profit)</td>
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-4 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.grossProfit)}
+                  </td>
+                ))}
+              </tr>
+              <tr className="hover:bg-muted/5 transition-colors text-emerald-600 font-medium bg-emerald-50/20">
+                <td className="px-6 py-3 pl-6 text-xs">Gross Margin (%)</td>
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {c.grossMargin.toFixed(1)}%
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* 4. Beban Operasional (OPEX) */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-border bg-muted/10 flex items-center justify-between">
+          <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
+            <Activity className="h-5 w-5 text-orange-600" /> Beban Operasional (OPEX)
+          </h3>
+          <button 
+            onClick={() => toggleSection("opex")}
+            className="text-xs text-orange-600 flex items-center gap-1 font-semibold bg-orange-50 hover:bg-orange-100 transition-colors px-2.5 py-1 rounded-full"
+          >
+            {collapsedSections.opex ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            {collapsedSections.opex ? "Lihat Perhitungan Detail" : "Sembunyikan Detail"}
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
+              <tr>
+                <th className="px-6 py-4 font-bold">Komponen / Tahun</th>
+                {data.map((col) => (
+                  <th 
+                    key={col.year} 
+                    className={`px-6 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    onMouseEnter={() => setHoveredYear(col.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {col.year}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {!collapsedSections.opex && (
+                <>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-505 font-medium italic">
+                    <td className="px-6 py-3 pl-6 text-xs">Total Headcount (FTE)</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {c.totalFte} Orang
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Beban Pegawai</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.payrollOpex)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Sales & Marketing</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.salesMarketingOpex)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Utilitas & Sewa</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.officeUtilitiesOpex)}
+                      </td>
+                    ))}
+                  </tr>
+                </>
+              )}
+              {/* Output Utama (Always Visible) */}
+              <tr className="bg-red-500/10 font-bold text-red-700 border-t border-b">
+                <td className="px-6 py-4">Total OPEX</td>
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-4 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.totalOpex)}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* 5. Ringkasan EBITDA */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-border bg-muted/10 flex items-center justify-between">
+          <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
+            <Calculator className="h-5 w-5 text-amber-600" /> Ringkasan EBITDA (EBITDA Summary)
+          </h3>
+          <button 
+            onClick={() => toggleSection("ebitda")}
+            className="text-xs text-amber-600 flex items-center gap-1 font-semibold bg-amber-50 hover:bg-amber-100 transition-colors px-2.5 py-1 rounded-full"
+          >
+            {collapsedSections.ebitda ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            {collapsedSections.ebitda ? "Lihat Perhitungan Detail" : "Sembunyikan Detail"}
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
+              <tr>
+                <th className="px-6 py-4 font-bold">Komponen / Tahun</th>
+                {data.map((col) => (
+                  <th 
+                    key={col.year} 
+                    className={`px-6 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    onMouseEnter={() => setHoveredYear(col.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {col.year}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {!collapsedSections.ebitda && (
+                <>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Total Pendapatan</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.totalRevenue)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Total Beban Pokok (COGS)</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.totalCogs)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors font-semibold text-slate-800 bg-slate-50/40">
+                    <td className="px-6 py-3 pl-6">Laba Kotor (Gross Profit)</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.grossProfit)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Gross Margin (%)</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {c.grossMargin.toFixed(1)}%
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Beban Operasional (OPEX)</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.totalOpex)}
+                      </td>
+                    ))}
+                  </tr>
+                </>
+              )}
+              {/* Output Utama (Always Visible) */}
+              <tr className="bg-[#f28c1f]/10 font-bold text-[#f28c1f] border-t-2 border-[#f28c1f]/30">
+                <td className="px-6 py-5 pl-6">EBITDA</td>
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-5 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.ebitda)}
+                  </td>
+                ))}
+              </tr>
+              <tr className="hover:bg-[#f28c1f]/5 transition-colors text-[#f28c1f] font-medium border-b border-[#f28c1f]/20 bg-[#f28c1f]/5">
+                <td className="px-6 py-3 pl-6 text-xs">EBITDA Margin (%)</td>
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {c.ebitdaMargin.toFixed(1)}%
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* 6. Metrik SaaS */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-border bg-muted/10 flex items-center justify-between">
+          <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
+            <BarChart3 className="h-5 w-5 text-indigo-600" /> Metrik SaaS (SaaS Metrics)
+          </h3>
+          <button 
+            onClick={() => toggleSection("saas")}
+            className="text-xs text-indigo-600 flex items-center gap-1 font-semibold bg-indigo-50 hover:bg-indigo-100 transition-colors px-2.5 py-1 rounded-full"
+          >
+            {collapsedSections.saas ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            {collapsedSections.saas ? "Lihat Perhitungan Detail" : "Sembunyikan Detail"}
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
+              <tr>
+                <th className="px-6 py-4 font-bold">Komponen / Tahun</th>
+                {data.map((col) => (
+                  <th 
+                    key={col.year} 
+                    className={`px-6 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    onMouseEnter={() => setHoveredYear(col.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {col.year}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {!collapsedSections.saas && (
+                <>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">ARPU / Active Coop</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.arpu)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Gross Margin</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {c.grossMargin.toFixed(1)}%
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Monthly Churn</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {c.churnRate.toFixed(1)}%
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Annual Churn</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {c.annualChurn.toFixed(1)}%
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Estimated CAC / New Coop</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.estimatedCac)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">Estimated LTV</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {formatRupiah(c.estimatedLtv)}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                    <td className="px-6 py-3 pl-6">CAC Payback (Months)</td>
+                    {data.map((c) => (
+                      <td 
+                        key={c.year} 
+                        className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                        onMouseEnter={() => setHoveredYear(c.year)}
+                        onMouseLeave={() => setHoveredYear(null)}
+                      >
+                        {c.cacPaybackMonths.toFixed(1)}
+                      </td>
+                    ))}
+                  </tr>
+                </>
+              )}
+              {/* Output Utama (Always Visible) */}
+              <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                <td className="px-6 py-3 pl-6">MRR</td>
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.mrr)}
+                  </td>
+                ))}
+              </tr>
+              <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                <td className="px-6 py-3 pl-6">ARR</td>
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.arr)}
+                  </td>
+                ))}
+              </tr>
+              <tr className="hover:bg-muted/5 transition-colors text-slate-600 font-bold bg-slate-50/10">
+                <td className="px-6 py-3 pl-6">LTV / CAC</td>
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {c.ltvCacRatio.toFixed(1)}x
+                  </td>
+                ))}
+              </tr>
+              <tr className="hover:bg-muted/5 transition-colors text-slate-600 border-b-2 border-border font-bold">
+                <td className="px-6 py-3 pl-6 text-xs">Rule of 40</td>
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono font-bold transition-colors duration-150 ${getColHighlightClass(c.year)} ${(c.ruleOf40 * 100) >= 40 ? 'text-green-600' : 'text-slate-700'}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
                     {(c.ruleOf40 * 100).toFixed(1)}%
                   </td>
                 ))}
               </tr>
-
             </tbody>
           </table>
         </div>
@@ -300,45 +1017,98 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               <tr>
                 <th className="px-6 py-4 font-bold">Metrik / Tahun</th>
                 {data.map((col) => (
-                  <th key={col.year} className="px-6 py-4 font-bold text-right">{col.year}</th>
+                  <th 
+                    key={col.year} 
+                    className={`px-6 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    onMouseEnter={() => setHoveredYear(col.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {col.year}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               <tr className="hover:bg-muted/10 transition-colors">
                 <td className="px-6 py-3 font-medium">Opening Cash</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.openingCash)}</td>)}
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.openingCash)}
+                  </td>
+                ))}
               </tr>
               <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
                 <td className="px-6 py-3 pl-10">Seed Investment Inflow</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.seedInflow)}</td>)}
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.seedInflow)}
+                  </td>
+                ))}
               </tr>
               <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
                 <td className="px-6 py-3 pl-10">EBITDA</td>
                 {data.map((c) => (
-                  <td key={c.year} className={`px-6 py-3 text-right font-medium ${c.ebitda >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)} ${c.ebitda >= 0 ? 'text-green-600' : 'text-red-500'}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
                     {formatRupiah(c.ebitda)}
                   </td>
                 ))}
               </tr>
               <tr className="bg-primary/5 font-bold text-primary border-t border-b">
                 <td className="px-6 py-4">Ending Cash</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-4 text-right font-black">{formatRupiah(c.endingCash)}</td>)}
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-4 text-right font-mono font-black transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.endingCash)}
+                  </td>
+                ))}
               </tr>
                <tr className="bg-muted/30 text-muted-foreground">
                 <td className="px-6 py-3 font-semibold pl-10 text-xs">Average Monthly Burn / Profit</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right text-xs font-semibold">{c.ebitda < 0 ? formatRupiah(Math.abs(c.ebitda / 12)) : "Rp 0"}</td>)}
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono text-xs font-semibold transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {c.ebitda < 0 ? formatRupiah(Math.abs(c.ebitda / 12)) : "Rp 0"}
+                  </td>
+                ))}
               </tr>
               <tr className="bg-muted/30 text-muted-foreground border-b-2 border-border">
                 <td className="px-6 py-3 font-semibold pl-10 text-xs">Runway (Months)</td>
                 {data.map((c) => (
-                  <td key={c.year} className="px-6 py-3 text-right text-xs">
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right text-xs transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
                     {c.ebitda >= 0 ? (
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800">
                         Profitable
                       </span>
                     ) : (
-                      <span className="font-bold text-slate-700">
+                      <span className="font-bold text-slate-700 font-mono">
                         {c.runwayMonths ? (c.runwayMonths % 1 === 0 ? c.runwayMonths.toFixed(0) : c.runwayMonths.toFixed(1)) : '0'} Bulan
                       </span>
                     )}
@@ -353,7 +1123,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
       <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
         <div className="p-4 border-b border-border bg-muted/10">
           <h3 className="text-lg font-bold flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-primary" /> 11. Simulasi Valuasi Perusahaan (Rp)
+            <TrendingUp className="h-5 w-5 text-primary" /> Simulasi Valuasi Perusahaan (Rp)
           </h3>
         </div>
         <div className="overflow-x-auto">
@@ -362,55 +1132,157 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               <tr>
                 <th className="px-6 py-4 font-bold">Metrik / Tahun</th>
                 {data.map((col) => (
-                  <th key={col.year} className="px-6 py-4 font-bold text-right">{col.year}</th>
+                  <th 
+                    key={col.year} 
+                    className={`px-6 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    onMouseEnter={() => setHoveredYear(col.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {col.year}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               <tr className="hover:bg-muted/10 transition-colors">
                 <td className="px-6 py-3 font-medium">Revenue (Pendapatan)</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.totalRevenue)}</td>)}
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.totalRevenue)}
+                  </td>
+                ))}
               </tr>
               <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
                 <td className="px-6 py-3 pl-10">ARR</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.arr)}</td>)}
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.arr)}
+                  </td>
+                ))}
               </tr>
               <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
                 <td className="px-6 py-3 pl-10">Revenue Multiple - Conservative</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right font-mono">{c.exitMultipleConservative}x</td>)}
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {c.exitMultipleConservative}x
+                  </td>
+                ))}
               </tr>
               <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
                 <td className="px-6 py-3 pl-10">Revenue Multiple - Base</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right font-mono">{c.exitMultipleBase}x</td>)}
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {c.exitMultipleBase}x
+                  </td>
+                ))}
               </tr>
               <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
                 <td className="px-6 py-3 pl-10">Revenue Multiple - Optimistic</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right font-mono">{c.exitMultipleOptimistic}x</td>)}
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {c.exitMultipleOptimistic}x
+                  </td>
+                ))}
               </tr>
               <tr className="bg-primary/5 font-semibold text-slate-700">
                 <td className="px-6 py-3 pl-10">Enterprise Value - Conservative</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.totalRevenue * c.exitMultipleConservative)}</td>)}
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.totalRevenue * c.exitMultipleConservative)}
+                  </td>
+                ))}
               </tr>
               <tr className="bg-primary/5 font-bold text-primary border-t border-b">
                 <td className="px-6 py-3 pl-10">Enterprise Value - Base</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.totalRevenue * c.exitMultipleBase)}</td>)}
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.totalRevenue * c.exitMultipleBase)}
+                  </td>
+                ))}
               </tr>
               <tr className="bg-primary/5 font-semibold text-slate-700">
                 <td className="px-6 py-3 pl-10">Enterprise Value - Optimistic</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.totalRevenue * c.exitMultipleOptimistic)}</td>)}
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.totalRevenue * c.exitMultipleOptimistic)}
+                  </td>
+                ))}
               </tr>
               <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
                 <td className="px-6 py-3">Seed Pre-Money Valuation</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.preMoneyValuation)}</td>)}
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.preMoneyValuation)}
+                  </td>
+                ))}
               </tr>
               <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
                 <td className="px-6 py-3">Seed Post-Money Valuation</td>
-                {data.map((c) => <td key={c.year} className="px-6 py-3 text-right">{formatRupiah(c.preMoneyValuation + c.seedInvestment)}</td>)}
+                {data.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.preMoneyValuation + c.seedInvestment)}
+                  </td>
+                ))}
               </tr>
               <tr className="bg-muted/30 text-muted-foreground">
                 <td className="px-6 py-3 pl-10 text-xs">Implied Seed Equity %</td>
                 {data.map((c) => (
-                  <td key={c.year} className="px-6 py-3 text-right font-mono text-xs">
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3 text-right font-mono text-xs transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
                     {(c.preMoneyValuation + c.seedInvestment) > 0 
                       ? ((c.seedInvestment / (c.preMoneyValuation + c.seedInvestment)) * 100).toFixed(1) 
                       : "0.0"}%
@@ -430,7 +1302,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <div>
             <div className="p-4 border-b border-border bg-muted/10">
               <h3 className="text-base font-bold flex items-center gap-2">
-                <Users className="h-4 w-4 text-primary" /> 12. Cap Table Pasca-Pendanaan
+                <Users className="h-4 w-4 text-primary" /> Cap Table Pasca-Pendanaan
               </h3>
             </div>
             <div className="overflow-x-auto">
@@ -563,7 +1435,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <div>
             <div className="p-4 border-b border-border bg-muted/10">
               <h3 className="text-base font-bold flex items-center gap-2">
-                <Award className="h-4 w-4 text-primary" /> 13. Estimasi Imbal Hasil Investor (Exit ROI)
+                <Award className="h-4 w-4 text-primary" /> Estimasi Imbal Hasil Investor (Exit ROI)
               </h3>
             </div>
             <div className="overflow-x-auto">
