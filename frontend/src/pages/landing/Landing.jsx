@@ -97,6 +97,46 @@ const ScrollReveal = ({ children, delay = 0 }) => {
   );
 };
 
+const FlipText = ({ text, delayOffset = 0, isGradient = false }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+      } else {
+        setIsVisible(false);
+      }
+    }, { threshold: 0.1 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <span ref={ref} className="inline-block [perspective:1000px]">
+      {text.split("").map((char, i) => (
+        <span
+          key={i}
+          className={`inline-block ${isVisible ? 'animate-flip-letter' : 'opacity-0'} ${isGradient ? 'animate-gradient' : ''}`}
+          style={{ 
+            animationDelay: `${delayOffset + i * 0.04}s`,
+            ...(isGradient ? {
+              background: `linear-gradient(120deg, ${BRAND_BLUE}, ${BRAND_ORANGE}, ${BRAND_BLUE})`,
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              backgroundSize: "200% 200%",
+            } : {})
+          }}
+        >
+          {char === " " ? "\u00A0" : char}
+        </span>
+      ))}
+    </span>
+  );
+};
+
 const AnimatedStat = ({ statValue, label, color }) => {
   const [count, setCount] = useState(1);
   const [isDone, setIsDone] = useState(false);
@@ -383,12 +423,10 @@ export default function Landing() {
           <div className="mx-auto max-w-5xl px-6 py-24 text-center">
             <div className="text-sm text-[#2b6cb8] font-medium mb-3">Visi Produk</div>
             <h2 className="font-display text-4xl md:text-6xl font-bold leading-[1.1] text-[#131b2e]">
-              Platform Business Planning & <span className="animate-gradient" style={{
-                background: `linear-gradient(120deg, ${BRAND_BLUE}, ${BRAND_ORANGE}, ${BRAND_BLUE})`,
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}>Fundraising Intelligence</span> pertama di Indonesia
+              <FlipText text="Platform Business Planning & " delayOffset={0} />
+              <FlipText text="Fundraising Intelligence" delayOffset={1.16} isGradient={true} />
+              <br className="hidden md:block" />
+              <FlipText text=" pertama di Indonesia" delayOffset={2.12} />
             </h2>
             <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">
               Membantu startup, koperasi, UMKM, hingga perusahaan menengah menyusun strategi pertumbuhan dan mempersiapkan investasi secara profesional.
