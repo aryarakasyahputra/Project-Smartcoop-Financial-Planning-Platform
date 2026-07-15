@@ -18,6 +18,7 @@ import {
   Area
 } from "recharts";
 import ProjectionModelTab from "../cfo/components/ProjectionModelTab";
+import { toast } from "sonner";
 import { simulateProjections, formatRupiah } from "../cfo/utils/financialModel";
 import { useValuationModel } from "../cfo/utils/valuationHelper";
 
@@ -181,7 +182,7 @@ export default function FounderDashboard({ userData, handleLogout }) {
   const handleInviteSubmit = async (e) => {
     e.preventDefault();
     if (!inviteEmail || !inviteRole || !primaryCompany) {
-      alert("Harap isi semua kolom!");
+      toast.error("Harap isi semua kolom!");
       return;
     }
 
@@ -204,14 +205,14 @@ export default function FounderDashboard({ userData, handleLogout }) {
 
       const data = await res.json();
       if (res.ok) {
-        alert("Undangan kolaborasi berhasil dikirim!");
+        toast.success("Undangan kolaborasi berhasil dikirim!");
         setInviteEmail("");
         setInviteRole("");
       } else {
-        alert(data.message || "Gagal mengirim undangan.");
+        toast.error(data.message || "Gagal mengirim undangan.");
       }
     } catch (err) {
-      alert("Terjadi kesalahan sistem saat mengirim undangan.");
+      toast.error("Terjadi kesalahan sistem saat mengirim undangan.");
     } finally {
       setInviting(false);
     }

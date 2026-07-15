@@ -25,6 +25,7 @@ class FinancialModelService
         $defaultAssumptions = [];
         foreach ($years as $year) {
             $defaultAssumptions[$year] = [
+                'beginning_cooperatives' => 0,
                 'new_coops_acquired' => 0,
                 'monthly_churn_rate' => 0,
                 'avg_members_per_coop' => 0,
@@ -49,9 +50,17 @@ class FinancialModelService
                 'support_cost_per_coop_month' => 0,
                 'payment_api_var_cost_frac' => 0,
                 'other_cost_of_revenue_frac' => 0,
+                
+                'hr_engineering_fte' => 0,
+                'hr_sales_fte' => 0,
+                'hr_marketing_fte' => 0,
+                'hr_support_fte' => 0,
+                'hr_finance_admin_fte' => 0,
+                'hr_management_fte' => 0,
+                'hr_avg_salary_monthly' => 0,
+                
                 'payroll_cost' => 0,
                 'sales_marketing_spend' => 0,
-                'office_utilities_internet: 0' => 0,
                 'office_utilities_internet' => 0,
                 'software_tools_subscriptions' => 0,
                 'legal_accounting_compliance' => 0,
