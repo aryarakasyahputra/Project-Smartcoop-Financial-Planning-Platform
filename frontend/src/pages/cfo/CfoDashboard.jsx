@@ -22,6 +22,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
   // States
   const [selectedEditYear, setSelectedEditYear] = useState(2025);
   const [assumptionsByYear, setAssumptionsByYear] = useState({});
+  const [isDirty, setIsDirty] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     growth: true,
     revenue: false,
@@ -67,6 +68,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
           });
         }
         setAssumptionsByYear(mapped);
+        setIsDirty(false);
       }
     } catch (err) {
       console.error("Gagal memuat asumsi:", err);
@@ -93,6 +95,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
       
       return updated;
     });
+    setIsDirty(true);
   };
 
   const toggleSection = (section) => {
@@ -130,6 +133,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
       });
       if (!res.ok) throw new Error("Failed to save");
       toast.success("Asumsi berhasil disimpan dan sekarang dapat dilihat oleh Founder!");
+      setIsDirty(false);
     } catch (err) {
       console.error("Gagal menyimpan asumsi:", err);
       toast.error("Gagal menyimpan data ke server.");
@@ -171,6 +175,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
         });
       }
       setAssumptionsByYear(mapped);
+      setIsDirty(false);
       toast.success("Seluruh data asumsi berhasil direset ke nol!");
     } catch (err) {
       console.error("Gagal mereset asumsi:", err);
@@ -204,10 +209,10 @@ export default function CfoDashboard({ userData, handleLogout }) {
   const activeAssumptions = assumptionsByYear[selectedEditYear] || {};
 
   return (
-    <div className="h-screen overflow-hidden bg-[#f8fafc] text-foreground flex font-sans selection:bg-primary/20">
+    <div className="h-screen overflow-hidden print:h-auto print:overflow-visible bg-[#f8fafc] text-foreground flex font-sans selection:bg-primary/20">
       
       {/* Sidebar - Identical to previous */}
-      <aside className="w-64 bg-card border-r border-border hidden md:flex flex-col flex-shrink-0 shadow-sm z-10">
+      <aside className="w-64 bg-card border-r border-border hidden md:flex flex-col flex-shrink-0 shadow-sm z-10 print:hidden">
         <div className="h-16 flex items-center px-6 border-b border-border bg-background">
           <a href="/" className="flex flex-col items-start leading-none group">
             <span className="text-[22px] font-bold text-[#005fa4] tracking-tight">
@@ -270,9 +275,9 @@ export default function CfoDashboard({ userData, handleLogout }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden print:h-auto print:overflow-visible">
         {/* Header */}
-        <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 sticky top-0 z-10 shadow-sm">
+        <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 sticky top-0 z-10 shadow-sm print:hidden">
           <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground shrink-0 whitespace-nowrap">
             <span className="hidden sm:inline">Finance</span>
             <ChevronRight className="h-4 w-4 hidden sm:inline" />
@@ -288,7 +293,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
         </header>
 
         {/* Dynamic Content Area */}
-        <div className="p-6 md:p-8 overflow-y-auto flex-1">
+        <div className="p-6 md:p-8 overflow-y-auto flex-1 print:p-0 print:h-auto print:overflow-visible print:bg-white">
           <div className="max-w-7xl mx-auto space-y-6">
             
             {/* Header Title section */}
@@ -326,6 +331,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
                 handleSaveAssumptions={handleSaveAssumptions}
                 saving={saving}
                 data={data}
+                isDirty={isDirty}
               />
             )}
 

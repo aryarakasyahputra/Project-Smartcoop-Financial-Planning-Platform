@@ -55,7 +55,9 @@ export default function FinancialAnalystTab({ insights, data }) {
           <h3 className="text-lg font-bold flex items-center gap-2">
             <Wallet className="h-5 w-5 text-primary" /> Proyeksi Pengembalian Investor Seed
           </h3>
-          <p className="text-xs text-muted-foreground mt-0.5">Analisis ROI berdasarkan Pre-Money Rp 46,2 Miliar dan Investasi Seed Rp 8,25 Miliar (Equity Porsi: 15.15%)</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Analisis ROI berdasarkan Pre-Money {formatRupiah(data[4]?.preMoneyValuation || 0)} dan Investasi Seed {formatRupiah(data[4]?.seedInvestment || 0)} (Equity Porsi: {((data[4]?.impliedSeedEquityFrac || 0) * 100).toFixed(2)}%)
+          </p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">

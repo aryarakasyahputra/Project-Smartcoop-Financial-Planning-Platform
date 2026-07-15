@@ -111,7 +111,7 @@ function MetricLabel({ label }) {
       <span>{label}</span>
       <UITooltip>
         <TooltipTrigger asChild>
-          <span className="cursor-help inline-flex text-muted-foreground hover:text-foreground transition-colors p-0.5" aria-label={`Info ${label}`}>
+          <span className="cursor-help inline-flex text-muted-foreground hover:text-foreground transition-colors p-0.5 print:hidden" aria-label={`Info ${label}`}>
             <Info className="h-3.5 w-3.5" />
           </span>
         </TooltipTrigger>
@@ -326,11 +326,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
               <tr>
-                <th className="px-4 py-4 font-bold min-w-[180px] md:min-w-[240px]">Komponen / Tahun</th>
+                <th className="px-4 py-4 font-bold min-w-[160px] md:min-w-[200px]">Komponen / Tahun</th>
                 {data.map((col) => (
                   <th 
                     key={col.year} 
-                    className={`px-4 py-4 font-bold text-right w-[12%] min-w-[90px] md:min-w-[110px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    className={`px-4 py-4 font-bold text-right w-[12%] min-w-[80px] md:min-w-[95px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
                     onMouseEnter={() => setHoveredYear(col.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -459,11 +459,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
               <tr>
-                <th className="px-4 py-4 font-bold min-w-[180px] md:min-w-[240px]">Komponen / Tahun</th>
+                <th className="px-4 py-4 font-bold min-w-[160px] md:min-w-[200px]">Komponen / Tahun</th>
                 {data.map((col) => (
                   <th 
                     key={col.year} 
-                    className={`px-4 py-4 font-bold text-right w-[12%] min-w-[90px] md:min-w-[110px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    className={`px-4 py-4 font-bold text-right w-[12%] min-w-[80px] md:min-w-[95px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
                     onMouseEnter={() => setHoveredYear(col.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -647,11 +647,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
               <tr>
-                <th className="px-4 py-4 font-bold min-w-[180px] md:min-w-[240px]">Komponen / Tahun</th>
+                <th className="px-4 py-4 font-bold min-w-[160px] md:min-w-[200px]">Komponen / Tahun</th>
                 {data.map((col) => (
                   <th 
                     key={col.year} 
-                    className={`px-4 py-4 font-bold text-right w-[12%] min-w-[90px] md:min-w-[110px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    className={`px-4 py-4 font-bold text-right w-[12%] min-w-[80px] md:min-w-[95px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
                     onMouseEnter={() => setHoveredYear(col.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -736,7 +736,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 {data.map((c, i) => (
                   <td 
                     key={c.year} 
-                    className={`px-4 py-4 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-4 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -752,7 +752,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 {data.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-4 py-4 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-4 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -796,11 +796,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
               <tr>
-                <th className="px-4 py-4 font-bold min-w-[180px] md:min-w-[240px]">Komponen / Tahun</th>
+                <th className="px-4 py-4 font-bold min-w-[160px] md:min-w-[200px]">Komponen / Tahun</th>
                 {data.map((col) => (
                   <th 
                     key={col.year} 
-                    className={`px-4 py-4 font-bold text-right w-[12%] min-w-[90px] md:min-w-[110px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    className={`px-4 py-4 font-bold text-right w-[12%] min-w-[80px] md:min-w-[95px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
                     onMouseEnter={() => setHoveredYear(col.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -872,7 +872,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 {data.map((c, i) => (
                   <td 
                     key={c.year} 
-                    className={`px-4 py-4 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-4 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -906,11 +906,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
               <tr>
-                <th className="px-4 py-4 font-bold min-w-[180px] md:min-w-[240px]">Komponen / Tahun</th>
+                <th className="px-4 py-4 font-bold min-w-[160px] md:min-w-[200px]">Komponen / Tahun</th>
                 {data.map((col) => (
                   <th 
                     key={col.year} 
-                    className={`px-4 py-4 font-bold text-right w-[12%] min-w-[90px] md:min-w-[110px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    className={`px-4 py-4 font-bold text-right w-[12%] min-w-[80px] md:min-w-[95px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
                     onMouseEnter={() => setHoveredYear(col.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -995,7 +995,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 {data.map((c, i) => (
                   <td 
                     key={c.year} 
-                    className={`px-4 py-5 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-5 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1042,11 +1042,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
               <tr>
-                <th className="px-4 py-4 font-bold min-w-[180px] md:min-w-[240px]">Komponen / Tahun</th>
+                <th className="px-4 py-4 font-bold min-w-[160px] md:min-w-[200px]">Komponen / Tahun</th>
                 {data.map((col) => (
                   <th 
                     key={col.year} 
-                    className={`px-4 py-4 font-bold text-right w-[12%] min-w-[90px] md:min-w-[110px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    className={`px-4 py-4 font-bold text-right w-[12%] min-w-[80px] md:min-w-[95px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
                     onMouseEnter={() => setHoveredYear(col.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1223,11 +1223,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
               <tr>
-                <th className="px-4 py-4 font-bold min-w-[180px] md:min-w-[240px]">Metrik / Tahun</th>
+                <th className="px-4 py-4 font-bold min-w-[160px] md:min-w-[200px]">Metrik / Tahun</th>
                 {data.map((col) => (
                   <th 
                     key={col.year} 
-                    className={`px-4 py-4 font-bold text-right w-[12%] min-w-[90px] md:min-w-[110px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    className={`px-4 py-4 font-bold text-right w-[12%] min-w-[80px] md:min-w-[95px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
                     onMouseEnter={() => setHoveredYear(col.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1281,7 +1281,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
                 {data.map((c, i) => (
                   <td 
                     key={c.year} 
-                    className={`px-4 py-4 text-right font-mono font-black transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-4 py-4 whitespace-nowrap text-right font-mono font-black transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -1341,11 +1341,11 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
               <tr>
-                <th className="px-4 py-4 font-bold min-w-[180px] md:min-w-[240px]">Metrik / Tahun</th>
+                <th className="px-4 py-4 font-bold min-w-[160px] md:min-w-[200px]">Metrik / Tahun</th>
                 {data.map((col) => (
                   <th 
                     key={col.year} 
-                    className={`px-4 py-4 font-bold text-right w-[12%] min-w-[90px] md:min-w-[110px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                    className={`px-4 py-4 font-bold text-right w-[12%] min-w-[80px] md:min-w-[95px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
                     onMouseEnter={() => setHoveredYear(col.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
