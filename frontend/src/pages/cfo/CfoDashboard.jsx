@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { 
-  Building2, Users, LayoutDashboard, Settings, LogOut, 
+import {
+  Building2, Users, LayoutDashboard, Settings, LogOut,
   ChevronRight, Brain, PieChart, Activity, Calculator, Search, Bell, TrendingUp, RefreshCw
 } from "lucide-react";
 
@@ -19,7 +19,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
 
   const companyAccess = userData?.company_accesses?.[0];
   const projectId = companyAccess?.company?.projects?.[0]?.id;
-  
+
   // States
   const [selectedEditYear, setSelectedEditYear] = useState(2025);
   const [assumptionsByYear, setAssumptionsByYear] = useState({});
@@ -45,12 +45,12 @@ export default function CfoDashboard({ userData, handleLogout }) {
     }
     try {
       const response = await fetch(`http://localhost:8000/api/projects/${projectId}/assumptions`, {
-        headers: { 
+        headers: {
           "Authorization": `Bearer ${token}`,
           "Accept": "application/json"
         }
       });
-      
+
       if (response.ok) {
         const responseData = await response.json();
         // Convert array to object keyed by year
@@ -87,13 +87,13 @@ export default function CfoDashboard({ userData, handleLogout }) {
     setAssumptionsByYear(prev => {
       const updated = { ...prev };
       const parsedYear = Number(year);
-      
+
       // Update target year only
       updated[parsedYear] = {
         ...(updated[parsedYear] || { year: parsedYear }),
         [field]: value
       };
-      
+
       return updated;
     });
     setIsDirty(true);
@@ -125,7 +125,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
     try {
       const res = await fetch(`http://localhost:8000/api/projects/${projectId}/assumptions`, {
         method: "PUT",
-        headers: { 
+        headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
           "Accept": "application/json"
@@ -146,20 +146,20 @@ export default function CfoDashboard({ userData, handleLogout }) {
   const handleResetData = async () => {
     if (!projectId) return;
     if (!confirm("Apakah Anda yakin ingin menghapus semua data dan mereset ke nol? Tindakan ini tidak dapat dibatalkan.")) return;
-    
+
     const token = sessionStorage.getItem("token");
     setSaving(true);
     try {
       const res = await fetch(`http://localhost:8000/api/projects/${projectId}/reset`, {
         method: "POST",
-        headers: { 
+        headers: {
           "Authorization": `Bearer ${token}`,
           "Accept": "application/json"
         }
       });
       if (!res.ok) throw new Error("Failed to reset");
       const responseData = await res.json();
-      
+
       // Update local state with zeroes
       const mapped = {};
       if (responseData && responseData.data && responseData.data.assumptions && Array.isArray(responseData.data.assumptions)) {
@@ -212,7 +212,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
 
   return (
     <div className="h-screen overflow-hidden print:h-auto print:overflow-visible bg-[#f8fafc] text-foreground flex font-sans selection:bg-primary/20">
-      
+
       {/* Sidebar - Identical to previous */}
       <aside className="w-64 bg-card border-r border-border hidden md:flex flex-col flex-shrink-0 shadow-sm z-10 print:hidden">
         <div className="h-16 flex items-center px-6 border-b border-border bg-background">
@@ -225,38 +225,35 @@ export default function CfoDashboard({ userData, handleLogout }) {
             </span>
           </a>
         </div>
-        
+
         <div className="p-4 flex-1 overflow-y-auto space-y-6">
           <div className="space-y-1">
             <p className="px-3 text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Finance & Strategy</p>
-             <button
+            <button
               onClick={() => setActiveTab("analyst")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold ${
-                activeTab === "analyst" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold ${activeTab === "analyst" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
             >
               <TrendingUp className="h-4 w-4" /> Analisis & Ringkasan Model
             </button>
             <button
               onClick={() => setActiveTab("drivers")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold ${
-                activeTab === "drivers" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold ${activeTab === "drivers" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
             >
               <Activity className="h-4 w-4" /> Input Asumsi Keuangan
             </button>
-             <button
+            <button
               onClick={() => setActiveTab("projection")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold ${
-                activeTab === "projection" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold ${activeTab === "projection" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
             >
               <PieChart className="h-4 w-4" /> Laporan Detail Proforma
             </button>
 
           </div>
         </div>
-        
+
         <div className="p-4 border-t border-border">
           <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-muted/50 border border-border">
             <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -267,7 +264,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
               <p className="text-xs text-muted-foreground truncate">CFO Mode</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onLogout}
             className="w-full mt-3 flex items-center gap-2 justify-center px-4 py-2 text-sm text-red-500 font-semibold hover:bg-red-50 rounded-lg transition-colors"
           >
@@ -283,25 +280,25 @@ export default function CfoDashboard({ userData, handleLogout }) {
           <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground shrink-0 whitespace-nowrap">
             <span className="hidden sm:inline">Finance</span>
             <ChevronRight className="h-4 w-4 hidden sm:inline" />
-             <span className="text-foreground font-bold">
-              {activeTab === "analyst" ? "Rekomendasi & Analisis AI" : 
-               activeTab === "drivers" ? "Input Asumsi Keuangan" : 
-               "Laporan Detail Proforma"}
+            <span className="text-foreground font-bold">
+              {activeTab === "analyst" ? "Rekomendasi & Analisis AI" :
+                activeTab === "drivers" ? "Input Asumsi Keuangan" :
+                  "Laporan Detail Proforma"}
             </span>
           </div>
 
           <div id="header-portal-target" className="flex-1 flex justify-end overflow-hidden mx-4 min-w-0"></div>
-          
+
         </header>
 
         {/* Dynamic Content Area */}
         <div className="p-6 md:p-8 overflow-y-auto flex-1 print:p-0 print:h-auto print:overflow-visible print:bg-white">
           <div className="max-w-7xl mx-auto space-y-6">
-            
+
             {/* Header Title section */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
               <div>
-                 <h1 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">
                   {activeTab === "analyst" && "Analisis & Rekomendasi Finansial"}
                   {activeTab === "drivers" && "Input Asumsi Keuangan"}
                   {activeTab === "projection" && "Laporan Laba Rugi Proforma"}
@@ -316,9 +313,9 @@ export default function CfoDashboard({ userData, handleLogout }) {
 
             {/* Render Active Component */}
             {activeTab === "analyst" && (
-              <FinancialAnalystTab 
-                insights={insights} 
-                data={data} 
+              <FinancialAnalystTab
+                insights={insights}
+                data={data}
               />
             )}
 
@@ -337,10 +334,10 @@ export default function CfoDashboard({ userData, handleLogout }) {
               />
             )}
 
-             {activeTab === "projection" && (
-              <ProjectionModelTab 
-                data={data} 
-                formatRupiah={formatRupiah} 
+            {activeTab === "projection" && (
+              <ProjectionModelTab
+                data={data}
+                formatRupiah={formatRupiah}
                 valuation={valuation}
               />
             )}

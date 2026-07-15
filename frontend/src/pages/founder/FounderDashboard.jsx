@@ -309,7 +309,7 @@ export default function FounderDashboard({ userData, handleLogout }) {
               </div>
             ) : projectionData && projectionData.length > 0 ? (
               <div className="overflow-x-auto">
-                <ProjectionModelTab data={projectionData} formatRupiah={formatRupiah} />
+                <ProjectionModelTab data={projectionData} formatRupiah={formatRupiah} valuation={valuation} />
               </div>
             ) : (
               <div className="text-center p-12 text-muted-foreground bg-card border border-border rounded-2xl">
