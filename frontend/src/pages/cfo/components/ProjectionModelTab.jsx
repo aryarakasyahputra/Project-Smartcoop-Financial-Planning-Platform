@@ -123,8 +123,7 @@ function MetricLabel({ label }) {
   );
 }
 
-export default function ProjectionModelTab({ data, formatRupiah }) {
-  const valuation = useValuationModel(data);
+export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
 
   // UI Interactive States
   const [activeChartMetric, setActiveChartMetric] = React.useState("all");
