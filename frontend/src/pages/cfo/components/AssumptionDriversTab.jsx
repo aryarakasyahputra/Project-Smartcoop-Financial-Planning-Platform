@@ -150,6 +150,7 @@ export default function AssumptionDriversTab({
   expandedSections,
   toggleSection,
   handleSaveAssumptions,
+  handleResetData,
   saving,
   data,
   isDirty
@@ -402,6 +403,13 @@ export default function AssumptionDriversTab({
             Perubahan otomatis terhitung ke seluruh laporan.
           </div>
           <div className="flex gap-3">
+            <button
+              onClick={handleResetData}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 transition-all"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reset Semua Data
+            </button>
             <button
               onClick={handleSaveAssumptions}
               disabled={saving}
