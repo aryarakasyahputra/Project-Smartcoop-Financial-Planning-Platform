@@ -177,18 +177,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
   }));
 
   const renderTrend = (currentVal, prevVal, isNegativeGood = false) => {
-    if (prevVal === undefined || prevVal === 0 || prevVal === null) return null;
-    const change = (currentVal - prevVal) / Math.abs(prevVal);
-    if (Math.abs(change) < 0.001) return null; // Avoid showing 0.0% if it's very small
-    const isPositive = change > 0;
-    const isGood = isNegativeGood ? !isPositive : isPositive;
-    const color = isGood ? "text-emerald-500" : "text-rose-500";
-    const Icon = isPositive ? TrendingUp : TrendingDown;
-    return (
-      <span className={`text-[10px] ml-1.5 flex items-center gap-0.5 font-bold ${color}`}>
-        <Icon className="h-3 w-3" /> {Math.abs(change * 100).toFixed(1)}%
-      </span>
-    );
+    return null;
   };
 
   const handlePrint = () => {
@@ -261,13 +250,21 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
             >
               Pendapatan
             </button>
-            <button
+             <button
               onClick={() => setActiveChartMetric("ebitda")}
               className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
                 activeChartMetric === "ebitda" ? "bg-amber-500 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               EBITDA
+            </button>
+            <button
+              onClick={() => setActiveChartMetric("expenses")}
+              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
+                activeChartMetric === "expenses" ? "bg-red-600 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Beban
             </button>
             <button
               onClick={() => setActiveChartMetric("cash")}
@@ -294,7 +291,7 @@ export default function ProjectionModelTab({ data, formatRupiah }) {
               {(activeChartMetric === "all" || activeChartMetric === "revenue") && (
                 <Line type="monotone" dataKey="revenue" name="Pendapatan" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
               )}
-              {activeChartMetric === "all" && (
+              {(activeChartMetric === "all" || activeChartMetric === "expenses") && (
                 <Line type="monotone" dataKey="expenses" name="Beban (COGS+OPEX)" stroke="#ef4444" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
               )}
               {(activeChartMetric === "all" || activeChartMetric === "ebitda") && (
