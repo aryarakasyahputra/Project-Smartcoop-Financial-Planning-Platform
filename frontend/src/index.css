@@ -184,3 +184,80 @@
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined' !important;
 }
+
+@media print {
+  /* Hide unnecessary elements */
+  button, .btn, [role="button"], select, input[type="button"], input[type="submit"] {
+    display: none !important;
+  }
+  
+  /* Ensure backgrounds and colors are printed exactly as shown */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt !important;
+  }
+
+  /* Optimize layout for print sheets - Landscape is ideal for financial column tables */
+  @page {
+    size: A4 landscape;
+    margin: 10mm 12mm 10mm 12mm;
+  }
+
+  /* Make containers print fully and not scroll */
+  .overflow-x-auto, .overflow-y-auto, .flex-1 {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+
+  /* Prevent card panels from breaking in half across pages */
+  .print\:break-inside-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Clean up card border styles for print */
+  .bg-card {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    margin-bottom: 20px !important;
+    page-break-inside: avoid !important;
+    box-shadow: none !important;
+  }
+  
+  /* Tables styling inside PDF */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: auto !important;
+  }
+  
+  th, td {
+    padding: 6px 8px !important;
+    font-size: 8.5pt !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  thead {
+    background-color: #f1f5f9 !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+  }
+
+  /* Chart printing adjustments */
+  #section-chart {
+    page-break-after: always !important;
+    margin-bottom: 30px !important;
+  }
+}
