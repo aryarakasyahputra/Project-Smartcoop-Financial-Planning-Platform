@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { 
   Building2, Users, LayoutDashboard, Settings, LogOut, 
-  ChevronRight, Brain, PieChart, Activity, Calculator, Search, Bell, TrendingUp, RefreshCw
+  ChevronRight, Brain, PieChart, Activity, Calculator, Search, Bell, TrendingUp, RefreshCw,
+  AlertTriangle, X
 } from "lucide-react";
 
 import FinancialAnalystTab from "./components/FinancialAnalystTab";
@@ -23,6 +24,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
   const [selectedEditYear, setSelectedEditYear] = useState(2025);
   const [assumptionsByYear, setAssumptionsByYear] = useState({});
   const [isDirty, setIsDirty] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     growth: true,
     revenue: false,
@@ -142,10 +144,15 @@ export default function CfoDashboard({ userData, handleLogout }) {
     }
   };
 
-  const handleResetData = async () => {
+  // Open the reset confirmation modal
+  const handleResetData = () => {
     if (!projectId) return;
-    if (!confirm("Apakah Anda yakin ingin menghapus semua data dan mereset ke nol? Tindakan ini tidak dapat dibatalkan.")) return;
-    
+    setShowResetModal(true);
+  };
+
+  // Actually perform the reset after user confirms via modal
+  const executeReset = async () => {
+    setShowResetModal(false);
     const token = sessionStorage.getItem("token");
     setSaving(true);
     try {
@@ -329,6 +336,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
                 expandedSections={expandedSections}
                 toggleSection={toggleSection}
                 handleSaveAssumptions={handleSaveAssumptions}
+                handleResetData={handleResetData}
                 saving={saving}
                 data={data}
                 isDirty={isDirty}
@@ -345,6 +353,55 @@ export default function CfoDashboard({ userData, handleLogout }) {
           </div>
         </div>
       </main>
+      {/* Custom Reset Confirmation Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          {/* Transparent click-away layer */}
+          <div
+            className="absolute inset-0"
+            onClick={() => setShowResetModal(false)}
+          />
+          {/* Modal */}
+          <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md mx-4 p-0">
+            {/* Close button */}
+            <button
+              onClick={() => setShowResetModal(false)}
+              className="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Icon & Content */}
+            <div className="p-6 pb-0 text-center">
+              <div className="mx-auto w-14 h-14 rounded-full bg-red-50 border border-red-100 flex items-center justify-center mb-4">
+                <AlertTriangle className="h-7 w-7 text-red-500" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">
+                Reset Semua Data Asumsi?
+              </h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Seluruh data asumsi keuangan akan <span className="font-semibold text-red-600">direset ke nol</span> untuk semua tahun proyeksi. Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 p-6">
+              <button
+                onClick={() => setShowResetModal(false)}
+                className="flex-1 px-4 py-2.5 rounded-lg border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-all"
+              >
+                Batal
+              </button>
+              <button
+                onClick={executeReset}
+                className="flex-1 px-4 py-2.5 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-all shadow-sm"
+              >
+                Ya, Reset Semua
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

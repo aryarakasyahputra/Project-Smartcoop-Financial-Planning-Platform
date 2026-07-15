@@ -111,7 +111,7 @@ class FinancialModelService
      * @param array $newAssumptions
      * @return \Illuminate\Support\Collection
      */
-    public function recalculate($projectId, array $newAssumptions)
+    public function recalculate(mixed $projectId, array $newAssumptions)
     {
         $project = Project::findOrFail($projectId);
 
@@ -448,7 +448,7 @@ class FinancialModelService
         });
     }
 
-    public function resetToZero($projectId)
+    public function resetToZero(mixed $projectId)
     {
         $project = Project::findOrFail($projectId);
         $years = [2025, 2026, 2027, 2028, 2029];
