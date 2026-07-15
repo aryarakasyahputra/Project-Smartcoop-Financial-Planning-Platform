@@ -1,19 +1,18 @@
 import React from "react";
-import { Sparkles, Wallet } from "lucide-react";
+import { Activity, Wallet } from "lucide-react";
 import { formatRupiah } from "../utils/financialModel";
 
 export default function FinancialAnalystTab({ insights, data }) {
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* AI Advisor Assessment */}
+      {/* System Advisor Assessment */}
       <div className="bg-card border border-border rounded-xl p-6 md:p-8 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
         <div className="flex items-start gap-4">
           <div className="p-3 bg-primary/10 rounded-xl text-primary">
-            <Sparkles className="h-6 w-6" />
+            <Activity className="h-6 w-6" />
           </div>
           <div className="space-y-2 flex-1">
-            <span className="text-xs font-bold text-primary uppercase tracking-wider">AI Financial Analyst</span>
+            <span className="text-xs font-bold text-primary uppercase tracking-wider">Sistem Analisis Model</span>
             <h2 className="text-xl font-bold">Analisis Strategis & Rekomendasi</h2>
             <div className="p-4 bg-muted/65 border border-border rounded-xl text-sm text-foreground mt-4 space-y-2">
               <div className="flex items-center gap-2 font-semibold">

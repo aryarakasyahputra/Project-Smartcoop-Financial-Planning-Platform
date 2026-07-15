@@ -233,7 +233,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
                 activeTab === "analyst" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
-              <Brain className="h-4 w-4" /> Rekomendasi & Analisis AI
+              <TrendingUp className="h-4 w-4" /> Analisis & Ringkasan Model
             </button>
             <button
               onClick={() => setActiveTab("drivers")}
