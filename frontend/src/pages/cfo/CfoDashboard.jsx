@@ -8,7 +8,8 @@ import FinancialAnalystTab from "./components/FinancialAnalystTab";
 import AssumptionDriversTab from "./components/AssumptionDriversTab";
 import ProjectionModelTab from "./components/ProjectionModelTab";
 
-import { simulateProjections, getAnalystInsights, formatRupiah } from "./utils/financialModel";
+import { simulateProjections, formatRupiah, getAnalystInsights } from "./utils/financialModel";
+import { useValuationModel } from "./utils/valuationHelper";
 import { toast } from "sonner";
 
 export default function CfoDashboard({ userData, handleLogout }) {
@@ -194,6 +195,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
   // Run projections based on current assumptions
   const data = useMemo(() => simulateProjections(sanitizedAssumptions), [sanitizedAssumptions]);
   const insights = useMemo(() => getAnalystInsights(data, sanitizedAssumptions), [data, sanitizedAssumptions]);
+  const valuation = useValuationModel(data);
 
   if (loading) {
     return (
@@ -339,6 +341,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
               <ProjectionModelTab 
                 data={data} 
                 formatRupiah={formatRupiah} 
+                valuation={valuation}
               />
             )}
 
