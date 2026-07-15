@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import heroBg from "../../assets/hero.png";
 import {
   ArrowRight, BarChart3, Building2, Users, Calculator, TrendingUp,
@@ -35,6 +35,149 @@ function tintStyles(tint) {
     ? { bg: "rgba(242, 140, 31, 0.10)", color: BRAND_ORANGE, border: "rgba(242, 140, 31, 0.25)" }
     : { bg: "rgba(43, 108, 184, 0.10)", color: BRAND_BLUE, border: "rgba(43, 108, 184, 0.25)" };
 }
+
+const ScrollReveal = ({ children, delay = 0 }) => {
+  const [phase, setPhase] = useState("hidden-left"); // "hidden-left", "visible", "hidden-right"
+  const ref = useRef(null);
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          clearTimeout(timeoutRef.current);
+          setPhase("visible");
+        } else {
+          // Element leaving the viewport -> fade out to the right
+          setPhase("hidden-right");
+          // After the exit animation finishes, silently snap it back to the left
+          timeoutRef.current = setTimeout(() => {
+            setPhase("hidden-left");
+          }, 700 + delay * 1000);
+        }
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeoutRef.current);
+    };
+  }, [delay]);
+
+  let translateX = "-40px";
+  let opacity = 0;
+  let hasTransition = true;
+
+  if (phase === "visible") {
+    translateX = "0px";
+    opacity = 1;
+  } else if (phase === "hidden-right") {
+    translateX = "40px";
+    opacity = 0;
+  } else if (phase === "hidden-left") {
+    translateX = "-40px";
+    opacity = 0;
+    hasTransition = false; // Snap without animation while invisible
+  }
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        opacity,
+        transform: `translate(${translateX}, 0px)`,
+        transition: hasTransition ? 'opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
+        transitionDelay: hasTransition ? `${delay}s` : '0s',
+        height: '100%'
+      }}
+    >
+      {children}
+    </div>
+  );
+};
+
+const AnimatedStat = ({ statValue, label, color }) => {
+  const [count, setCount] = useState(1);
+  const [isDone, setIsDone] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef(null);
+
+  const match = statValue.match(/^(\d+)(.*)$/);
+  const targetNumber = match ? parseInt(match[1], 10) : null;
+  const suffix = match ? match[2] : "";
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        } else {
+          // Reset animation when leaving view
+          setIsVisible(false);
+          setCount(1);
+          setIsDone(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible) return;
+    
+    if (targetNumber !== null && targetNumber > 1) {
+      let startTimestamp = null;
+      const duration = 1500; // 1.5 seconds animation
+      
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        // Easing: easeOutExpo
+        const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+        
+        const currentCount = Math.floor(easeProgress * (targetNumber - 1)) + 1;
+        setCount(currentCount);
+        
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        } else {
+          setCount(targetNumber);
+          setIsDone(true);
+        }
+      };
+      window.requestAnimationFrame(step);
+    } else {
+      // For "Real-time" or "1" where we don't count up, just wait a bit then show label
+      setCount(targetNumber !== null ? targetNumber : 0);
+      const timer = setTimeout(() => {
+        setIsDone(true);
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, targetNumber]);
+
+  return (
+    <div ref={ref} className="transition-opacity duration-500" style={{ opacity: isVisible ? 1 : 0 }}>
+      <div className="font-display text-3xl md:text-4xl font-bold" style={{ color }}>
+        {targetNumber !== null ? (
+          <>
+            {count}{isDone && suffix}
+          </>
+        ) : (
+          <span>{statValue}</span>
+        )}
+      </div>
+      <div 
+        className={`text-sm text-muted-foreground mt-1 transition-all duration-700 ${isDone ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
+      >
+        {label}
+      </div>
+    </div>
+  );
+};
 
 const HeroMockup = () => {
   return (
@@ -168,10 +311,7 @@ export default function Landing() {
               { v: "Real-time", l: "Auto Recalculation", c: BRAND_BLUE },
               { v: "1", l: "Sumber Data Tunggal", c: BRAND_ORANGE },
             ].map((s, i) => (
-              <div key={s.l} className="animate-fade-up" style={{ animationDelay: `${i * 0.08}s` }}>
-                <div className="font-display text-3xl md:text-4xl font-bold" style={{ color: s.c }}>{s.v}</div>
-                <div className="text-sm text-muted-foreground mt-1">{s.l}</div>
-              </div>
+              <AnimatedStat key={s.l} statValue={s.v} label={s.l} color={s.c} />
             ))}
           </div>
         </section>
@@ -186,19 +326,22 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {modules.map((m, i) => {
               const s = tintStyles(m.tint);
+              const delay = (i % 3) * 0.15;
               return (
-                <div key={m.title} className="group p-6 rounded-2xl border bg-card card-lift hover:border-[#2b6cb8]/30 transition-all duration-300"
-                  style={{ boxShadow: "var(--shadow-card)", borderColor: "rgba(43, 108, 184, 0.08)" }}>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="h-11 w-11 rounded-xl flex items-center justify-center border transition-transform group-hover:scale-110"
-                      style={{ background: s.bg, color: s.color, borderColor: s.border }}>
-                      <m.icon className="h-5 w-5" />
+                <ScrollReveal key={m.title} delay={delay} direction="left">
+                  <div className="h-full group p-6 rounded-2xl border bg-card card-lift hover:border-[#2b6cb8]/30 transition-all duration-300"
+                    style={{ boxShadow: "var(--shadow-card)", borderColor: "rgba(43, 108, 184, 0.08)" }}>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="h-11 w-11 rounded-xl flex items-center justify-center border transition-transform group-hover:scale-110"
+                        style={{ background: s.bg, color: s.color, borderColor: s.border }}>
+                        <m.icon className="h-5 w-5" />
+                      </div>
+                      <div className="text-xs text-muted-foreground font-mono font-semibold bg-[#faf8ff] px-2.5 py-1 rounded-full border border-border">{i + 1 < 10 ? `0${i + 1}` : i + 1}</div>
                     </div>
-                    <div className="text-xs text-muted-foreground font-mono font-semibold bg-[#faf8ff] px-2.5 py-1 rounded-full border border-border">{i + 1 < 10 ? `0${i + 1}` : i + 1}</div>
+                    <h3 className="font-display font-semibold text-lg mb-2 text-[#131b2e] group-hover:text-[#005fa4] transition-colors duration-300">{m.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{m.desc}</p>
                   </div>
-                  <h3 className="font-display font-semibold text-lg mb-2 text-[#131b2e] group-hover:text-[#005fa4] transition-colors duration-300">{m.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{m.desc}</p>
-                </div>
+                </ScrollReveal>
               );
             })}
           </div>
@@ -250,6 +393,23 @@ export default function Landing() {
             <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">
               Membantu startup, koperasi, UMKM, hingga perusahaan menengah menyusun strategi pertumbuhan dan mempersiapkan investasi secara profesional.
             </p>
+
+            {/* Infinite Photo Marquee */}
+            <div className="w-[100vw] relative left-1/2 -translate-x-1/2 mt-16 mb-16 overflow-hidden flex group">
+              {/* First block */}
+              <div className="flex animate-marquee shrink-0 gap-6 pr-6 group-hover:[animation-play-state:paused]">
+                <img src="/assets/foto1.png" className="w-[300px] md:w-[450px] h-[200px] md:h-[300px] object-cover rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] border border-[#c1c7d3]/40" alt="Financial Planning" onError={(e) => e.target.src = "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&q=80"} />
+                <img src="/assets/foto2.png" className="w-[300px] md:w-[450px] h-[200px] md:h-[300px] object-cover rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] border border-[#c1c7d3]/40" alt="Business Success" onError={(e) => e.target.src = "https://images.unsplash.com/photo-1552581234-26160f608093?w=600&q=80"} />
+                <img src="/assets/foto3.png" className="w-[300px] md:w-[450px] h-[200px] md:h-[300px] object-cover rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] border border-[#c1c7d3]/40" alt="Team Meeting" onError={(e) => e.target.src = "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=600&q=80"} />
+              </div>
+              {/* Second block (duplicate for endless loop) */}
+              <div className="flex animate-marquee shrink-0 gap-6 pr-6 group-hover:[animation-play-state:paused]" aria-hidden="true">
+                <img src="/assets/foto1.png" className="w-[300px] md:w-[450px] h-[200px] md:h-[300px] object-cover rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] border border-[#c1c7d3]/40" alt="Financial Planning" onError={(e) => e.target.src = "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&q=80"} />
+                <img src="/assets/foto2.png" className="w-[300px] md:w-[450px] h-[200px] md:h-[300px] object-cover rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] border border-[#c1c7d3]/40" alt="Business Success" onError={(e) => e.target.src = "https://images.unsplash.com/photo-1552581234-26160f608093?w=600&q=80"} />
+                <img src="/assets/foto3.png" className="w-[300px] md:w-[450px] h-[200px] md:h-[300px] object-cover rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] border border-[#c1c7d3]/40" alt="Team Meeting" onError={(e) => e.target.src = "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=600&q=80"} />
+              </div>
+            </div>
+
             <div id="cta" className="mt-12 p-10 rounded-3xl border border-[#c1c7d3]/30 bg-white" style={{ boxShadow: "0 20px 50px -20px rgba(0, 0, 0, 0.05)" }}>
               <h3 className="font-display text-2xl md:text-3xl font-bold text-[#131b2e]">Siap membangun financial model Anda?</h3>
               <p className="mt-3 text-muted-foreground">Jadwalkan demo dan lihat bagaimana Smartcoop mengubah spreadsheet menjadi keputusan.</p>
@@ -292,9 +452,9 @@ export default function Landing() {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-[1.5rem]">
+              <div className="group grid grid-cols-1 md:grid-cols-3 gap-[1.5rem]">
                 {/* Starter */}
-                <div className="pricing-card p-8 bg-[#ffffff] border border-[#c1c7d3]/50 rounded-xl flex flex-col h-full shadow-sm">
+                <div className="pricing-card transition-all duration-500 group-hover:opacity-40 group-hover:blur-[2px] hover:!opacity-100 hover:!blur-none hover:-translate-y-3 hover:shadow-2xl hover:z-10 p-8 bg-[#ffffff] border border-[#c1c7d3]/50 rounded-xl flex flex-col h-full relative shadow-sm">
                   <div className="mb-8">
                     <h3 className="text-[32px] font-bold text-[#131b2e] mb-2">Starter</h3>
                     <p className="text-[#414751] text-[16px]">Untuk startup tahap awal (early-stage).</p>
@@ -334,7 +494,7 @@ export default function Landing() {
                 </div>
 
                 {/* Professional */}
-                <div className="pricing-card p-8 bg-white border-2 border-[#005fa4] rounded-xl flex flex-col h-full relative shadow-xl">
+                <div className="pricing-card transition-all duration-500 group-hover:opacity-40 group-hover:blur-[2px] hover:!opacity-100 hover:!blur-none hover:-translate-y-3 hover:shadow-2xl hover:z-10 p-8 bg-white border-2 border-[#005fa4] rounded-xl flex flex-col h-full relative shadow-xl">
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#005fa4] text-[#ffffff] px-4 py-1 rounded-full text-[12px] font-bold">
                     PALING POPULER
                   </div>
@@ -381,7 +541,7 @@ export default function Landing() {
                 </div>
 
                 {/* Enterprise */}
-                <div className="pricing-card p-8 bg-[#ffffff] border border-[#c1c7d3]/50 rounded-xl flex flex-col h-full shadow-sm">
+                <div className="pricing-card transition-all duration-500 group-hover:opacity-40 group-hover:blur-[2px] hover:!opacity-100 hover:!blur-none hover:-translate-y-3 hover:shadow-2xl hover:z-10 p-8 bg-[#ffffff] border border-[#c1c7d3]/50 rounded-xl flex flex-col h-full relative shadow-sm">
                   <div className="mb-8">
                     <h3 className="text-[32px] font-bold text-[#131b2e] mb-2">Enterprise</h3>
                     <p className="text-[#414751] text-[16px]">Untuk operasional skala besar.</p>
