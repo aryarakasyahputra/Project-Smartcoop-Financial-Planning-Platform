@@ -290,7 +290,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
             <span className="hidden sm:inline">Finance</span>
             <ChevronRight className="h-4 w-4 hidden sm:inline" />
             <span className="text-foreground font-bold">
-              {activeTab === "analyst" ? "Rekomendasi & Analisis AI" :
+              {activeTab === "analyst" ? "Ringkasan Model Finansial" :
                 activeTab === "drivers" ? "Input Asumsi Keuangan" :
                   "Laporan Detail Proforma"}
             </span>
@@ -325,6 +325,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
               <FinancialAnalystTab
                 insights={insights}
                 data={data}
+                onRecalculateClick={() => setActiveTab("drivers")}
               />
             )}
 
