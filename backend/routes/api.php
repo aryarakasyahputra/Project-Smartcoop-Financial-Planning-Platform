@@ -29,4 +29,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // Team Management (Founder Dashboard)
     Route::get('/companies/{companyId}/members', [\App\Http\Controllers\TeamController::class, 'index']);
     Route::delete('/companies/{companyId}/members/{userId}', [\App\Http\Controllers\TeamController::class, 'destroy']);
+    
+    // Admin Routes
+    Route::middleware([\App\Http\Middleware\CheckAdmin::class])->prefix('admin')->group(function () {
+        Route::get('/stats', [\App\Http\Controllers\AdminController::class, 'getDashboardStats']);
+        Route::get('/users', [\App\Http\Controllers\AdminController::class, 'getUsers']);
+        Route::put('/users/{id}/status', [\App\Http\Controllers\AdminController::class, 'updateUserStatus']);
+        Route::get('/companies', [\App\Http\Controllers\AdminController::class, 'getCompanies']);
+        Route::put('/companies/{id}/subscription', [\App\Http\Controllers\AdminController::class, 'updateCompanySubscription']);
+        Route::get('/activity-logs', [\App\Http\Controllers\AdminController::class, 'getActivityLogs']);
+    });
 });
