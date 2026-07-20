@@ -83,11 +83,13 @@ const parseThousand = (val) => {
 
 // Reusable input field with prefix/suffix and tooltip descriptions
 function DriverInput({ label, value, onChange, prefix, suffix, step, disabled, definition }) {
-  const displayValue = prefix === "Rp" ? formatThousand(value) : value;
+  // Format as thousand if it's Rp OR if it's an integer (no suffix and no step)
+  const isFormatted = prefix === "Rp" || (!suffix && !step);
+  const displayValue = isFormatted ? formatThousand(value) : value;
 
   const handleInputChangeInternal = (e) => {
     let rawVal;
-    if (prefix === "Rp") {
+    if (isFormatted) {
       rawVal = parseThousand(e.target.value);
     } else {
       rawVal = e.target.value;
@@ -98,42 +100,45 @@ function DriverInput({ label, value, onChange, prefix, suffix, step, disabled, d
   return (
     <div>
       <div className="flex items-center gap-1.5 mb-1.5">
-        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+        <label className={`text-xs font-bold uppercase tracking-wider ${disabled ? "text-slate-400" : "text-slate-600"}`}>
           {label}
         </label>
         {definition && (
-          <UITooltip>
+          <UITooltip delayDuration={300}>
             <TooltipTrigger asChild>
-              <span className="cursor-help inline-flex text-muted-foreground hover:text-foreground transition-colors p-0.5" aria-label={`Info ${label}`}>
+              <button type="button" className="text-slate-400 hover:text-blue-500 focus:outline-none transition-colors">
                 <Info className="h-3.5 w-3.5" />
-              </span>
+              </button>
             </TooltipTrigger>
-            <TooltipContent>
-              <p className="max-w-[220px] text-xs font-normal leading-relaxed text-slate-100">{definition}</p>
+            <TooltipContent side="top" className="max-w-xs text-xs">
+              {definition}
             </TooltipContent>
           </UITooltip>
         )}
+        {disabled && <Shield className="h-3.5 w-3.5 text-slate-400 ml-auto" />}
       </div>
-      <div className="relative">
+      <div className="relative flex items-center">
         {prefix && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold pointer-events-none">
+          <span className={`absolute left-3 text-sm font-bold pointer-events-none ${disabled ? "text-slate-400" : "text-slate-500"}`}>
             {prefix}
           </span>
         )}
         <input
-          type={prefix === "Rp" ? "text" : "number"}
-          step={prefix === "Rp" ? undefined : step || "any"}
+          type={isFormatted ? "text" : "number"}
+          step={isFormatted ? undefined : step || "any"}
           value={displayValue ?? ""}
           onChange={handleInputChangeInternal}
           disabled={disabled}
           min={0}
           max={suffix === "%" ? 100 : undefined}
-          className={`w-full h-11 rounded-lg bg-slate-50 border border-slate-200 text-sm font-semibold text-slate-850 focus:outline-none focus:border-blue-400 focus:bg-white transition-all shadow-sm ${
-            disabled ? "opacity-60 cursor-not-allowed bg-slate-100" : ""
+          className={`w-full h-11 rounded-lg text-sm font-semibold focus:outline-none transition-all shadow-sm ${
+            disabled 
+              ? "bg-slate-200/70 border-slate-300 text-slate-500 cursor-not-allowed" 
+              : "bg-slate-50 border-slate-200 text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
           } ${prefix ? "pl-10" : "pl-4"} ${suffix ? "pr-10" : "pr-4"}`}
         />
         {suffix && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold pointer-events-none">
+          <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold pointer-events-none ${disabled ? "text-slate-400" : "text-slate-500"}`}>
             {suffix}
           </span>
         )}
@@ -270,7 +275,7 @@ export default function AssumptionDriversTab({
 
   return (
     <TooltipProvider>
-      <div className="space-y-6 animate-fadeIn max-w-5xl">
+      <div className="space-y-6 animate-fadeIn">
         
         {/* Unsaved Changes Banner */}
         {isDirty && (
@@ -398,23 +403,23 @@ export default function AssumptionDriversTab({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-          <div className="text-sm text-slate-500">
-            Perubahan otomatis terhitung ke seluruh laporan.
+        <div className="sticky bottom-4 z-50 flex flex-col md:flex-row md:items-center justify-between bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200 p-5 shadow-xl mt-8">
+          <div className="text-sm text-slate-500 mb-4 md:mb-0">
+            Perubahan otomatis terhitung ke seluruh laporan setelah disimpan.
           </div>
           <div className="flex gap-3">
             <button
               onClick={handleResetData}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 transition-all"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 transition-all flex-1 md:flex-none"
             >
               <RotateCcw className="h-4 w-4" />
-              Reset Semua Data
+              Reset Semua
             </button>
             <button
               onClick={handleSaveAssumptions}
               disabled={saving}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-white text-sm font-semibold shadow-sm hover:opacity-95 transition-all disabled:opacity-50 ${
-                isDirty ? "animate-pulse ring-2 ring-blue-500/20" : ""
+              className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all disabled:opacity-50 flex-1 md:flex-none ${
+                isDirty ? "animate-pulse ring-2 ring-blue-500/50" : ""
               }`}
               style={{ background: BRAND_BLUE }}
             >
@@ -423,7 +428,7 @@ export default function AssumptionDriversTab({
               ) : (
                 <Save className="h-4 w-4" />
               )}
-              {saving ? "Menyimpan..." : "Simpan & Terapkan ke Laporan"}
+              {saving ? "Menyimpan..." : "Simpan & Terapkan"}
             </button>
           </div>
         </div>
