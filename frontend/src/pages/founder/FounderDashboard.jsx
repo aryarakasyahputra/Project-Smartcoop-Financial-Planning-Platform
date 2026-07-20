@@ -3,7 +3,7 @@ import {
   LogOut, Building, User, Settings, ShieldCheck, Sparkles, 
   Database, LayoutDashboard, BarChart3, LineChart as LineChartIcon, Users, 
   Mail, UserPlus, RefreshCw, Compass, Shield, ArrowUpRight,
-  TrendingUp, Wallet, Award, ShieldAlert, ChevronRight, ChevronDown, Coins, Activity, Calculator, Layers
+  TrendingUp, Wallet, Award, ShieldAlert, ChevronRight, ChevronDown, Coins, Activity, Calculator, Layers, Trash2
 } from "lucide-react";
 import {
   LineChart,
@@ -78,6 +78,8 @@ export default function FounderDashboard({ userData, handleLogout }) {
   const [inviteRole, setInviteRole] = useState("");
   const [loadingProjections, setLoadingProjections] = useState(true);
   const [assumptionsByYear, setAssumptionsByYear] = useState({});
+  const [members, setMembers] = useState([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
 
   const primaryCompany = userData?.company_accesses?.[0]?.company;
   const projectId = primaryCompany?.projects?.[0]?.id;
@@ -126,6 +128,31 @@ export default function FounderDashboard({ userData, handleLogout }) {
 
     fetchData();
   }, [projectId]);
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      if (!primaryCompany) return;
+      setLoadingMembers(true);
+      try {
+        const token = sessionStorage.getItem("token");
+        const res = await fetch(`http://localhost:8000/api/companies/${primaryCompany.id}/members`, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Accept": "application/json"
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setMembers(data.members || []);
+        }
+      } catch (err) {
+        console.error("Gagal memuat anggota tim:", err);
+      } finally {
+        setLoadingMembers(false);
+      }
+    };
+    fetchMembers();
+  }, [primaryCompany]);
 
   // Dynamic scenario assumptions
   const activeScenarioAssumptions = useMemo(() => {
@@ -218,6 +245,29 @@ export default function FounderDashboard({ userData, handleLogout }) {
     }
   };
 
+  const handleRemoveMember = async (userId) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus akses pengguna ini dari perusahaan?")) return;
+    try {
+      const token = sessionStorage.getItem("token");
+      const res = await fetch(`http://localhost:8000/api/companies/${primaryCompany.id}/members/${userId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/json"
+        }
+      });
+      if (res.ok) {
+        toast.success("Anggota berhasil dihapus.");
+        setMembers(members.filter(m => m.id !== userId));
+      } else {
+        const data = await res.json();
+        toast.error(data.message || "Gagal menghapus anggota.");
+      }
+    } catch (err) {
+      toast.error("Terjadi kesalahan sistem saat menghapus anggota.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row md:h-screen md:overflow-hidden">
       {/* Sidebar */}
@@ -254,8 +304,8 @@ export default function FounderDashboard({ userData, handleLogout }) {
               <Sparkles className="h-4 w-4" /> Skenario Bisnis
             </button>
             <button 
-              onClick={() => { setActiveTab("overview"); setTimeout(() => window.location.hash = "team", 100); }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors text-muted-foreground hover:bg-muted/50 hover:text-foreground`}
+              onClick={() => setActiveTab("team")}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${activeTab === "team" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"}`}
             >
               <Users className="h-4 w-4" /> Manajemen Tim
             </button>
@@ -288,10 +338,10 @@ export default function FounderDashboard({ userData, handleLogout }) {
         <header id="overview" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              {activeTab === "overview" ? "Founder Workspace" : "Model Proyeksi Keuangan"}
+              {activeTab === "overview" ? "Founder Workspace" : activeTab === "projections" ? "Model Proyeksi Keuangan" : "Manajemen Tim"}
             </h1>
             <p className="text-muted-foreground mt-1">
-              {activeTab === "overview" ? "Kelola perusahaan, skenario pertumbuhan, dan undang tim finansial Anda." : "Proyeksi laba rugi komprehensif berdasarkan asumsi yang telah diatur oleh tim CFO."}
+              {activeTab === "overview" ? "Kelola perusahaan, skenario pertumbuhan, dan operasional Anda." : activeTab === "projections" ? "Proyeksi laba rugi komprehensif berdasarkan asumsi yang telah diatur oleh tim CFO." : "Kelola anggota tim dan hak akses mereka pada workspace Anda."}
             </p>
           </div>
           {primaryCompany && (
@@ -714,10 +764,13 @@ export default function FounderDashboard({ userData, handleLogout }) {
                 </table>
               </div>
             </div>
+          </>
+        )}
 
-
-        {/* Lower Grid (Invite widget + Team listing) */}
-        <div id="team" className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {activeTab === "team" && (
+          <div className="space-y-8">
+            {/* Team Grid (Invite widget + Company Status) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Invite Widget */}
           <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6" style={{ boxShadow: "var(--shadow-card)" }}>
             <div className="flex items-center gap-3">
@@ -809,7 +862,63 @@ export default function FounderDashboard({ userData, handleLogout }) {
             </div>
           </section>
         </div>
-          </>
+
+        {/* Team Members List */}
+        <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6" style={{ boxShadow: "var(--shadow-card)" }}>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+              <Users className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold">Daftar Anggota Tim</h2>
+              <p className="text-xs text-muted-foreground">Kelola pengguna yang memiliki akses ke workspace perusahaan Anda.</p>
+            </div>
+          </div>
+          
+          {loadingMembers ? (
+             <div className="flex justify-center p-8">
+               <div className="h-6 w-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+             </div>
+          ) : members.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold">Nama</th>
+                    <th className="px-4 py-3 font-semibold">Email</th>
+                    <th className="px-4 py-3 font-semibold">Role</th>
+                    <th className="px-4 py-3 font-semibold text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {members.map(member => (
+                    <tr key={member.id} className="hover:bg-muted/10 transition-colors">
+                      <td className="px-4 py-3 font-medium">{member.name}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{member.email}</td>
+                      <td className="px-4 py-3 capitalize">{member.role?.name || "N/A"}</td>
+                      <td className="px-4 py-3 text-right">
+                        {member.id !== userData?.id && member.role?.name !== 'founder' ? (
+                          <button 
+                            onClick={() => handleRemoveMember(member.id)}
+                            className="p-1.5 text-destructive hover:bg-destructive/10 rounded transition-colors"
+                            title="Hapus Akses"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground italic">Owner</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center p-4 border border-dashed rounded-lg">Belum ada anggota tim lain di perusahaan ini.</p>
+          )}
+        </section>
+          </div>
         )}
       </main>
     </div>

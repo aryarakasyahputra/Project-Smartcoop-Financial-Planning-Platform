@@ -25,4 +25,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/projects/{projectId}/assumptions', [AssumptionController::class, 'get']);
     Route::put('/projects/{projectId}/assumptions', [AssumptionController::class, 'update']);
     Route::post('/projects/{projectId}/reset', [AssumptionController::class, 'reset']);
+
+    // Team Management (Founder Dashboard)
+    Route::get('/companies/{companyId}/members', [\App\Http\Controllers\TeamController::class, 'index']);
+    Route::delete('/companies/{companyId}/members/{userId}', [\App\Http\Controllers\TeamController::class, 'destroy']);
 });
