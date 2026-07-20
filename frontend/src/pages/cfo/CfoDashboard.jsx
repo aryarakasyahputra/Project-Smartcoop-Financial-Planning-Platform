@@ -314,7 +314,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
                 </h1>
                 <p className="text-muted-foreground mt-1 text-sm font-medium">
                   {activeTab === "analyst" && "Analisis otomatis kelayakan keuangan koperasi, status profitabilitas, dan rekomendasi strategis."}
-                  {activeTab === "drivers" && "Masukkan target pertumbuhan dan struktur biaya di bawah ini untuk memperbarui kalkulasi proyeksi."}
+                  {activeTab === "drivers" && "Atur asumsi bisnis dan operasional di bawah ini untuk melihat dampaknya secara langsung pada proyeksi keuangan Anda."}
                   {activeTab === "projection" && "Laporan laba rugi berdasarkan input asumsi yang diatur di tab sebelumnya."}
                 </p>
               </div>
