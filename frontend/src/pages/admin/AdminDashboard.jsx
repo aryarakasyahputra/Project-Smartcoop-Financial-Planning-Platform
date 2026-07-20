@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { LogOut, Building, User, Settings, ShieldCheck, Sparkles, Database, LayoutDashboard, BarChart3, LineChart } from "lucide-react";
+import { LogOut, LayoutDashboard, Users, CreditCard, Activity } from "lucide-react";
+import { toast, Toaster } from "sonner";
+import AdminOverviewTab from "./components/AdminOverviewTab";
+import AdminUsersTab from "./components/AdminUsersTab";
+import AdminBillingTab from "./components/AdminBillingTab";
+import AdminAuditTab from "./components/AdminAuditTab";
 
 export default function AdminDashboard() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -15,7 +21,7 @@ export default function AdminDashboard() {
       }
 
       try {
-        const res = await fetch("/api/me", {
+        const res = await fetch("http://localhost:8000/api/me", {
           headers: {
             "Accept": "application/json",
             "Authorization": `Bearer ${token}`
@@ -51,7 +57,7 @@ export default function AdminDashboard() {
     const token = sessionStorage.getItem("token");
     if (token) {
       try {
-        await fetch("/api/logout", {
+        await fetch("http://localhost:8000/api/logout", {
           method: "POST",
           headers: {
             "Accept": "application/json",
@@ -91,10 +97,12 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row">
+    <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row font-sans selection:bg-primary/20">
+      <Toaster position="top-right" richColors />
+      
       {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-card border-b md:border-b-0 md:border-r border-border flex flex-col justify-between p-6">
-        <div className="space-y-8">
+      <aside className="w-full md:w-64 bg-card border-b md:border-b-0 md:border-r border-border flex flex-col justify-between shadow-sm z-10 flex-shrink-0">
+        <div className="p-6 space-y-8">
           {/* Logo */}
           <div className="flex flex-col leading-none">
             <span className="text-2xl font-bold text-primary">smart<span className="text-[#f28c1f]">coop</span></span>
@@ -102,27 +110,53 @@ export default function AdminDashboard() {
           </div>
 
           {/* Nav links */}
-          <nav className="space-y-1">
-            <a href="#overview" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary text-sm font-semibold">
-              <LayoutDashboard className="h-4 w-4" /> System Overview
-            </a>
+          <nav className="space-y-2">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 px-2">Management</p>
+            <button
+              onClick={() => setActiveTab("overview")}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold text-left leading-tight ${activeTab === "overview" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+            >
+              <LayoutDashboard className="h-4 w-4 flex-shrink-0" /> 
+              <span>System Overview</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("users")}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold text-left leading-tight ${activeTab === "users" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+            >
+              <Users className="h-4 w-4 flex-shrink-0" /> 
+              <span>Users & Roles</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("billing")}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold text-left leading-tight ${activeTab === "billing" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+            >
+              <CreditCard className="h-4 w-4 flex-shrink-0" /> 
+              <span>Billing & Plans</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("audit")}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold text-left leading-tight ${activeTab === "audit" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+            >
+              <Activity className="h-4 w-4 flex-shrink-0" /> 
+              <span>Audit Log</span>
+            </button>
           </nav>
         </div>
 
         {/* User Info & Logout */}
-        <div className="mt-8 pt-6 border-t border-border space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 font-bold">
-              A
+        <div className="p-6 border-t border-border space-y-4">
+          <div className="flex items-center gap-3 bg-muted/50 p-3 rounded-xl border border-border">
+            <div className="h-9 w-9 rounded-full bg-red-500/10 flex flex-shrink-0 items-center justify-center text-red-500 font-bold uppercase">
+              {userData?.name?.charAt(0)}
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold truncate">{userData?.name}</p>
-              <p className="text-xs text-muted-foreground capitalize">Platform Admin</p>
+            <div className="overflow-hidden">
+              <p className="text-sm font-bold truncate">{userData?.name}</p>
+              <p className="text-xs text-muted-foreground truncate">Platform Admin</p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-destructive/20 text-destructive hover:bg-destructive/5 rounded-lg text-sm font-semibold transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-500 hover:bg-red-100 rounded-lg text-sm font-semibold transition-colors"
           >
             <LogOut className="h-4 w-4" /> Keluar
           </button>
@@ -130,47 +164,13 @@ export default function AdminDashboard() {
       </aside>
 
       {/* Main Panel */}
-      <main className="flex-1 p-6 md:p-10 space-y-8 overflow-y-auto">
-        <header>
-          <h1 className="text-3xl font-bold tracking-tight">Platform Admin Console</h1>
-          <p className="text-muted-foreground mt-1">Kelola lisensi, pengguna, dan data global platform Smartcoop.</p>
-        </header>
-
-        {/* Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-card p-6 rounded-2xl border border-border">
-            <span className="text-xs text-primary font-semibold uppercase">Total Users</span>
-            <h3 className="text-3xl font-bold mt-2">142</h3>
-          </div>
-          <div className="bg-card p-6 rounded-2xl border border-border">
-            <span className="text-xs text-primary font-semibold uppercase">Active Companies</span>
-            <h3 className="text-3xl font-bold mt-2">48</h3>
-          </div>
-          <div className="bg-card p-6 rounded-2xl border border-border">
-            <span className="text-xs text-primary font-semibold uppercase">Active Models</span>
-            <h3 className="text-3xl font-bold mt-2">32</h3>
-          </div>
-          <div className="bg-card p-6 rounded-2xl border border-border">
-            <span className="text-xs text-green-500 font-semibold uppercase">System Status</span>
-            <h3 className="text-3xl font-bold mt-2 text-green-500">100% OK</h3>
-          </div>
+      <main className="flex-1 p-6 md:p-10 overflow-y-auto bg-[#f8fafc]">
+        <div className="max-w-6xl mx-auto">
+          {activeTab === "overview" && <AdminOverviewTab />}
+          {activeTab === "users" && <AdminUsersTab />}
+          {activeTab === "billing" && <AdminBillingTab />}
+          {activeTab === "audit" && <AdminAuditTab />}
         </div>
-
-        {/* Admin Tools Placeholder */}
-        <section className="bg-card rounded-2xl border border-border p-6 md:p-8 space-y-4">
-          <h2 className="text-lg font-bold">Menu Administrasi Global</h2>
-          <p className="text-sm text-muted-foreground">Sebagai Admin Platform, Anda dapat memantau performa SaaS global dan memberikan bantuan integrasi ERP kepada perusahaan terdaftar.</p>
-          <div className="grid md:grid-cols-2 gap-4 pt-4">
-            <div className="p-4 border border-border rounded-xl hover:bg-muted/30 transition-colors">
-              <h4 className="font-semibold mb-1">Manajemen Pengguna</h4>
-              <p className="text-xs text-muted-foreground">Atur role dan hak akses pengguna platform.</p>
-            </div>
-            <div className="p-4 border border-border rounded-xl hover:bg-muted/30 transition-colors">
-              <h4 className="font-semibold mb-1">Konfigurasi ERP & API</h4>
-              <p className="text-xs text-muted-foreground">Atur integrasi ERP pihak ketiga untuk paket Enterprise.</p>
-            </div>
-          </div>
-        </section>
       </main>
     </div>
   );
