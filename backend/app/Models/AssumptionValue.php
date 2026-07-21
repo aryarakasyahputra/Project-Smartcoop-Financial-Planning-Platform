@@ -57,6 +57,7 @@ class AssumptionValue extends Model
         'exit_revenue_multiple_conservative',
         'exit_revenue_multiple_base',
         'exit_revenue_multiple_optimistic',
+        'custom_assumptions',
     ];
 
     protected $casts = [
@@ -106,6 +107,7 @@ class AssumptionValue extends Model
         'exit_revenue_multiple_conservative' => 'float',
         'exit_revenue_multiple_base' => 'float',
         'exit_revenue_multiple_optimistic' => 'float',
+        'custom_assumptions' => 'array',
     ];
 
     public function project()

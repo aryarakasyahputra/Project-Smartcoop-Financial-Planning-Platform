@@ -139,6 +139,32 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
     saas: true
   });
 
+  // Get unique custom assumptions by category
+  const customAssumptionsByCategory = React.useMemo(() => {
+    const categories = {
+      add_to_new_coops: [],
+      add_to_revenue: [],
+      add_to_cogs: [],
+      add_to_opex: []
+    };
+    if (!data || data.length === 0) return categories;
+    
+    const seenNames = new Set();
+    data.forEach(yearData => {
+      if (yearData.customAssumptionsMap) {
+        Object.entries(yearData.customAssumptionsMap).forEach(([name, details]) => {
+          if (!seenNames.has(name)) {
+            seenNames.add(name);
+            if (categories[details.category]) {
+              categories[details.category].push(name);
+            }
+          }
+        });
+      }
+    });
+    return categories;
+  }, [data]);
+
   React.useEffect(() => {
     const target = document.getElementById("header-portal-target");
     if (target) setPortalTarget(target);
@@ -403,6 +429,24 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                       </td>
                     ))}
                   </tr>
+                  {customAssumptionsByCategory.add_to_new_coops.map((name, idx) => (
+                    <tr key={`custom-growth-${idx}`} className="hover:bg-muted/5 transition-colors text-slate-600 bg-amber-50/10">
+                      <td className="px-4 py-3 pl-6 italic"><MetricLabel label={`${name} *`} /></td>
+                      {data.map((c) => {
+                        const val = c.customAssumptionsMap?.[name]?.value || 0;
+                        return (
+                          <td 
+                            key={c.year} 
+                            className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                            onMouseEnter={() => setHoveredYear(c.year)}
+                            onMouseLeave={() => setHoveredYear(null)}
+                          >
+                            {new Intl.NumberFormat('id-ID').format(val)}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
                 </>
               )}
               {/* Output Utama (Always Visible) */}
@@ -575,6 +619,24 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                       </td>
                     ))}
                   </tr>
+                  {customAssumptionsByCategory.add_to_revenue.map((name, idx) => (
+                    <tr key={`custom-rev-${idx}`} className="hover:bg-muted/5 transition-colors text-slate-600 bg-amber-50/10">
+                      <td className="px-4 py-3 pl-6 italic"><MetricLabel label={`${name} *`} /></td>
+                      {data.map((c) => {
+                        const val = c.customAssumptionsMap?.[name]?.value || 0;
+                        return (
+                          <td 
+                            key={c.year} 
+                            className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                            onMouseEnter={() => setHoveredYear(c.year)}
+                            onMouseLeave={() => setHoveredYear(null)}
+                          >
+                            {formatRupiah(val)}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
                 </>
               )}
               {/* Output Utama (Always Visible) */}
@@ -724,6 +786,24 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                       </td>
                     ))}
                   </tr>
+                  {customAssumptionsByCategory.add_to_cogs.map((name, idx) => (
+                    <tr key={`custom-cogs-${idx}`} className="hover:bg-muted/5 transition-colors text-slate-600 bg-amber-50/10">
+                      <td className="px-4 py-3 pl-6 italic"><MetricLabel label={`${name} *`} /></td>
+                      {data.map((c) => {
+                        const val = c.customAssumptionsMap?.[name]?.value || 0;
+                        return (
+                          <td 
+                            key={c.year} 
+                            className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                            onMouseEnter={() => setHoveredYear(c.year)}
+                            onMouseLeave={() => setHoveredYear(null)}
+                          >
+                            {formatRupiah(val)}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
                 </>
               )}
               {/* Output Utama (Always Visible) */}
@@ -860,6 +940,24 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                       </td>
                     ))}
                   </tr>
+                  {customAssumptionsByCategory.add_to_opex.map((name, idx) => (
+                    <tr key={`custom-opex-${idx}`} className="hover:bg-muted/5 transition-colors text-slate-600 bg-amber-50/10">
+                      <td className="px-4 py-3 pl-6 italic"><MetricLabel label={`${name} *`} /></td>
+                      {data.map((c) => {
+                        const val = c.customAssumptionsMap?.[name]?.value || 0;
+                        return (
+                          <td 
+                            key={c.year} 
+                            className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                            onMouseEnter={() => setHoveredYear(c.year)}
+                            onMouseLeave={() => setHoveredYear(null)}
+                          >
+                            {formatRupiah(val)}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
                 </>
               )}
               {/* Output Utama (Always Visible) */}
