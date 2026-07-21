@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Building, CreditCard, Clock, CheckCircle } from "lucide-react";
+import { Building, CreditCard, Clock, CheckCircle, Search, Users, FileText, X } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminBillingTab() {

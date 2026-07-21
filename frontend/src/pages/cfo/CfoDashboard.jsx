@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { motion } from "framer-motion";
 import { 
   Building2, Users, LayoutDashboard, Settings, LogOut, 
   ChevronRight, Brain, PieChart, Activity, Calculator, Search, Bell, TrendingUp, RefreshCw,
@@ -12,6 +13,12 @@ import ProjectionModelTab from "./components/ProjectionModelTab";
 import { simulateProjections, formatRupiah, getAnalystInsights } from "./utils/financialModel";
 import { useValuationModel } from "./utils/valuationHelper";
 import { toast } from "sonner";
+
+const SIDEBAR_TABS = [
+  { id: "analyst", label: "Analisis & Ringkasan Model", icon: TrendingUp },
+  { id: "drivers", label: "Input Asumsi Keuangan", icon: Activity },
+  { id: "projection", label: "Laporan Detail Proforma", icon: PieChart }
+];
 
 export default function CfoDashboard({ userData, handleLogout }) {
   const [activeTab, setActiveTab] = useState("analyst");
@@ -236,30 +243,31 @@ export default function CfoDashboard({ userData, handleLogout }) {
         </div>
 
         <div className="p-4 flex-1 overflow-y-auto space-y-6">
-          <div className="space-y-1">
-            <p className="px-3 text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Finance & Strategy</p>
-            <button
-              onClick={() => setActiveTab("analyst")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold ${activeTab === "analyst" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
-            >
-              <TrendingUp className="h-4 w-4" /> Analisis & Ringkasan Model
-            </button>
-            <button
-              onClick={() => setActiveTab("drivers")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold ${activeTab === "drivers" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
-            >
-              <Activity className="h-4 w-4" /> Input Asumsi Keuangan
-            </button>
-            <button
-              onClick={() => setActiveTab("projection")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold ${activeTab === "projection" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
-            >
-              <PieChart className="h-4 w-4" /> Laporan Detail Proforma
-            </button>
-
+          <div className="space-y-1.5 relative">
+            <p className="px-3 text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Finance & Strategy</p>
+            {SIDEBAR_TABS.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-semibold text-left outline-none ${
+                    isActive ? "text-primary-foreground" : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                  }`}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="cfoSidebarIndicator"
+                      className="absolute inset-0 bg-primary shadow-md rounded-xl z-0"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  <tab.icon className="h-5 w-5 relative z-10 shrink-0" /> 
+                  <span className="relative z-10 leading-tight">{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 

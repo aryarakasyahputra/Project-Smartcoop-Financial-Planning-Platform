@@ -97,14 +97,14 @@ export default function AdminOverviewTab() {
       {/* Quick Tips */}
       <section className="bg-muted/30 rounded-2xl border border-border p-6 md:p-8 space-y-4">
         <h2 className="text-lg font-bold">Panduan Administrator</h2>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Gunakan menu navigasi di sebelah kiri untuk mengelola berbagai aspek sistem. 
-          <ul>
+        <div className="text-sm text-muted-foreground leading-relaxed">
+          <p>Gunakan menu navigasi di sebelah kiri untuk mengelola berbagai aspek sistem.</p>
+          <ul className="list-disc pl-5 mt-2">
             <li className="mt-2"><strong className="text-foreground">Users & Roles:</strong> Memblokir pengguna bermasalah atau mereset hak akses perusahaan.</li>
             <li className="mt-1"><strong className="text-foreground">Billing & Plans:</strong> Meningkatkan akun perusahaan dari Trial (Gratis) menjadi lisensi Pro/Enterprise.</li>
             <li className="mt-1"><strong className="text-foreground">Audit Log:</strong> Memantau jejak rekam perubahan yang terjadi di dalam platform oleh semua user.</li>
           </ul>
-        </p>
+        </div>
       </section>
     </div>
   );

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Project;
 use App\Services\FinancialModelService;
 
 class AssumptionController extends Controller
@@ -14,6 +16,23 @@ class AssumptionController extends Controller
         $this->service = $service;
     }
 
+    protected function checkProjectAccess($projectId)
+    {
+        $user = Auth::user();
+        if ($user->role->name === 'admin') {
+            return true;
+        }
+
+        $project = Project::findOrFail($projectId);
+        $hasAccess = $user->companyAccesses()->where('company_id', $project->company_id)->exists();
+
+        if (!$hasAccess) {
+            abort(403, 'Anda tidak memiliki akses ke project ini.');
+        }
+
+        return true;
+    }
+
     /**
      * GET /api/projects/:projectId/assumptions
      * Mengambil data asumsi aktif beserta hasil proyeksi keuangannya (Tahun 2025-2029).
@@ -23,6 +42,8 @@ class AssumptionController extends Controller
      */
     public function get($projectId)
     {
+        $this->checkProjectAccess($projectId);
+
         try {
             $data = $this->service->getProjectData($projectId);
             return response()->json($data);
@@ -43,6 +64,7 @@ class AssumptionController extends Controller
      */
     public function update(Request $request, $projectId)
     {
+        $this->checkProjectAccess($projectId);
         $data = $request->all();
         
         // Cek apakah payload merupakan data terstruktur per-tahun (2025-2029)
@@ -80,6 +102,7 @@ class AssumptionController extends Controller
 
     public function reset($projectId)
     {
+        $this->checkProjectAccess($projectId);
         try {
             $this->service->resetToZero($projectId);
             $data = $this->service->getProjectData($projectId);

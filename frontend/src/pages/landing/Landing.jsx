@@ -87,8 +87,7 @@ const ScrollReveal = ({ children, delay = 0 }) => {
       style={{
         opacity,
         transform: `translate(${translateX}, 0px)`,
-        transition: hasTransition ? 'opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
-        transitionDelay: hasTransition ? `${delay}s` : '0s',
+        transition: hasTransition ? `opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s` : 'none',
         height: '100%'
       }}
     >

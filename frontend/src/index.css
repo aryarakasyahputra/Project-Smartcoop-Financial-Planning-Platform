@@ -239,13 +239,41 @@
   }
 
   /* Clean up card border styles for print */
-  .bg-card {
-    background-color: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 8px !important;
-    margin-bottom: 20px !important;
-    page-break-inside: avoid !important;
+  .bg-card, .bg-muted, .bg-indigo-50, .bg-emerald-50, .bg-red-50, .bg-amber-50, .bg-blue-50 {
+    background-color: transparent !important;
+    background: transparent !important;
+    border-radius: 0 !important;
     box-shadow: none !important;
+  }
+  
+  .bg-indigo-50\/20, .bg-emerald-50\/20, .bg-red-50\/20, .bg-amber-50\/20, .bg-blue-50\/20 {
+      background-color: transparent !important;
+  }
+  
+  .border-indigo-200, .border-emerald-200, .border-red-200, .border-amber-200, .border-blue-200 {
+      border-color: #cbd5e1 !important;
+  }
+
+  /* Force text and icons to grayscale */
+  h1, h2, h3, h4, h5, h6, p, span, td, th, div, svg, button, input {
+      color: #334155 !important;
+  }
+  svg {
+      stroke: #334155 !important;
+  }
+
+  /* Make form inputs look like plain text in print */
+  input {
+      border: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      outline: none !important;
+      padding: 0 !important;
+  }
+
+  /* Specific border adjustments - thin and subtle */
+  .border-border, .border, .border-t, .border-b, .border-l, .border-r {
+      border-color: #cbd5e1 !important;
   }
   
   /* Tables styling inside PDF */

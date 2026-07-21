@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { 
   TrendingUp, DollarSign, Activity, Calculator, Shield,
   ChevronDown, Save, RotateCcw, Users, Info, ShieldAlert
@@ -534,7 +535,7 @@ export default function AssumptionDriversTab({
         </div>
 
         {/* Custom Assumption Modal */}
-        {showCustomModal && (
+        {showCustomModal && createPortal(
           <div className="fixed inset-0 z-[100] flex items-center justify-center">
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setShowCustomModal(false)} />
             <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg mx-4 p-6 animate-in zoom-in-95">
@@ -615,7 +616,8 @@ export default function AssumptionDriversTab({
                 </button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </TooltipProvider>
