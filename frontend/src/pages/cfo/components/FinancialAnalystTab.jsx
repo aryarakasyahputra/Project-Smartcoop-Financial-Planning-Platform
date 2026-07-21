@@ -83,9 +83,11 @@ export default function FinancialAnalystTab({ insights, data, onRecalculateClick
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Scenario 1: Conservative */}
-          <div className="bg-slate-50 border border-border/50 rounded-2xl p-6 relative overflow-hidden group">
+          <div 
+            className="transform transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-md bg-gradient-to-br from-slate-50 to-slate-100/50 border border-border/50 rounded-2xl p-6 relative overflow-hidden shadow-sm cursor-default"
+          >
             <div className="flex justify-between items-center mb-6">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Konservatif (3x Multiple)</span>
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Konservatif (3x)</span>
               <span className="text-[10px] bg-slate-200 text-slate-700 px-2 py-1 rounded font-bold uppercase">Exit 2029</span>
             </div>
             <div className="space-y-6">
@@ -93,26 +95,25 @@ export default function FinancialAnalystTab({ insights, data, onRecalculateClick
                 <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Exit Valuation</p>
                 <p className="text-2xl font-bold text-foreground font-mono">{formatRupiah((data[4]?.totalRevenue * 0.875 * 3) || 0)}</p>
               </div>
-              <div className="grid grid-cols-2 border-t border-border/50 pt-4">
+              <div className="grid grid-cols-2 border-t border-border/50 pt-4 gap-4">
                 <div>
                   <p className="text-[10px] text-muted-foreground uppercase font-bold">MOIC</p>
-                  <p className="text-primary font-bold">{data[0]?.moicCons ? data[0].moicCons.toFixed(2) : "0.0"}x</p>
+                  <p className="text-primary font-bold text-lg">{data[0]?.moicCons ? data[0].moicCons.toFixed(2) : "0.0"}x</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-muted-foreground uppercase font-bold">IRR (5-Thn)</p>
-                  <p className="text-primary font-bold">{data[0]?.irrCons ? data[0].irrCons.toFixed(1) : "0.0"}%</p>
+                  <p className="text-primary font-bold text-lg">{data[0]?.irrCons ? data[0].irrCons.toFixed(1) : "0.0"}%</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Scenario 2: Base Case */}
-          <div className="bg-primary/5 border-2 border-primary/30 rounded-2xl p-6 relative overflow-hidden ring-4 ring-primary/5">
-            <div className="absolute top-0 right-0">
-              <div className="bg-primary text-white text-[10px] px-3 py-1 font-bold uppercase">Most Likely</div>
-            </div>
+          <div 
+            className="transform transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-lg hover:ring-primary/20 bg-gradient-to-br from-primary/5 to-white border-2 border-primary/30 rounded-2xl p-6 relative overflow-hidden ring-4 ring-primary/5 shadow-sm cursor-default"
+          >
             <div className="flex justify-between items-center mb-6">
-              <span className="text-xs font-bold text-primary uppercase tracking-widest">Base Case (5x Multiple)</span>
+              <span className="text-xs font-bold text-primary uppercase tracking-widest">Base Case (5x)</span>
               <span className="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded font-bold uppercase">Exit 2029</span>
             </div>
             <div className="space-y-6">
@@ -120,38 +121,40 @@ export default function FinancialAnalystTab({ insights, data, onRecalculateClick
                 <p className="text-[10px] text-primary/60 uppercase font-bold mb-1">Exit Valuation</p>
                 <p className="text-2xl font-bold text-foreground font-mono">{formatRupiah((data[4]?.totalRevenue * 5) || 0)}</p>
               </div>
-              <div className="grid grid-cols-2 border-t border-primary/20 pt-4">
+              <div className="grid grid-cols-2 border-t border-primary/20 pt-4 gap-4">
                 <div>
                   <p className="text-[10px] text-primary/60 uppercase font-bold">MOIC</p>
-                  <p className="text-primary font-bold">{data[0]?.moicBase ? data[0].moicBase.toFixed(2) : "0.0"}x</p>
+                  <p className="text-primary font-bold text-lg">{data[0]?.moicBase ? data[0].moicBase.toFixed(2) : "0.0"}x</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-primary/60 uppercase font-bold">IRR (5-Thn)</p>
-                  <p className="text-primary font-bold">{data[0]?.irrBase ? data[0].irrBase.toFixed(1) : "0.0"}%</p>
+                  <p className="text-primary font-bold text-lg">{data[0]?.irrBase ? data[0].irrBase.toFixed(1) : "0.0"}%</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Scenario 3: Optimistic */}
-          <div className="bg-[#f28c1f]/5 border border-[#f28c1f]/20 rounded-2xl p-6 relative overflow-hidden group">
+          <div 
+            className="transform transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-md hover:border-[#f28c1f]/50 bg-gradient-to-br from-[#f28c1f]/5 to-white border border-[#f28c1f]/30 rounded-2xl p-6 relative overflow-hidden shadow-sm cursor-default"
+          >
             <div className="flex justify-between items-center mb-6">
-              <span className="text-xs font-bold text-[#f28c1f] uppercase tracking-widest">Optimistik (7x Multiple)</span>
+              <span className="text-xs font-bold text-[#f28c1f] uppercase tracking-widest">Optimistik (7x)</span>
               <span className="text-[10px] bg-[#f28c1f]/10 text-[#f28c1f] px-2 py-1 rounded font-bold uppercase">Exit 2029</span>
             </div>
             <div className="space-y-6">
               <div>
                 <p className="text-[10px] text-[#f28c1f]/60 uppercase font-bold mb-1">Exit Valuation</p>
-                <p className="text-2xl font-bold text-foreground font-mono">{formatRupiah((data[4]?.totalRevenue * 1.1875 * 7) || 0)}</p>
+                <p className="text-2xl font-bold text-foreground font-mono">{formatRupiah((data[4]?.totalRevenue * 1.2 * 7) || 0)}</p>
               </div>
-              <div className="grid grid-cols-2 border-t border-[#f28c1f]/20 pt-4">
+              <div className="grid grid-cols-2 border-t border-[#f28c1f]/20 pt-4 gap-4">
                 <div>
                   <p className="text-[10px] text-[#f28c1f]/60 uppercase font-bold">MOIC</p>
-                  <p className="text-[#f28c1f] font-bold">{data[0]?.moicOpt ? data[0].moicOpt.toFixed(2) : "0.0"}x</p>
+                  <p className="text-primary font-bold text-lg">{data[0]?.moicOpt ? data[0].moicOpt.toFixed(2) : "0.0"}x</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-[#f28c1f]/60 uppercase font-bold">IRR (5-Thn)</p>
-                  <p className="text-[#f28c1f] font-bold">{data[0]?.irrOpt ? data[0].irrOpt.toFixed(1) : "0.0"}%</p>
+                  <p className="text-primary font-bold text-lg">{data[0]?.irrOpt ? data[0].irrOpt.toFixed(1) : "0.0"}%</p>
                 </div>
               </div>
             </div>

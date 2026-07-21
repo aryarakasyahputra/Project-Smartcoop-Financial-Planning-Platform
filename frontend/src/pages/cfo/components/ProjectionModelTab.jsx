@@ -206,7 +206,23 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
   };
 
   const handlePrint = () => {
-    window.print();
+    // Force expand all sections for the PDF export
+    setCollapsedSections({
+      growth: false,
+      revenue: false,
+      cogs: false,
+      opex: false,
+      ebitda: false,
+      saas: false,
+      cashflow: false,
+      valuation: false,
+      captable: false
+    });
+    
+    // Wait for DOM to update with expanded sections before triggering print dialog
+    setTimeout(() => {
+      window.print();
+    }, 150);
   };
 
   const getNavClass = (sectionId) => {
@@ -251,14 +267,14 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
       </div>
       
       {/* Main Content */}
-      <div className="space-y-8 print:m-0 print:p-0">
+      <div className="space-y-8 print:m-0 print:p-0 print:space-y-6">
         {/* Chart Section */}
-        <div id="section-chart" className="bg-card border border-border rounded-xl p-6 shadow-sm scroll-mt-24 print:break-inside-avoid">
+        <div id="section-chart" className="bg-card border border-border rounded-xl p-6 shadow-sm scroll-mt-24 print:break-inside-avoid print:shadow-none print:border-none print:p-0 print:mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <h3 className="text-lg font-bold flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-primary" /> Proyeksi Kinerja 5-Tahun (Jutaan Rupiah)
+          <h3 className="text-lg font-bold flex items-center gap-2 print:text-xl print:text-black">
+            <TrendingUp className="h-5 w-5 text-primary print:text-black" /> Proyeksi Kinerja 5-Tahun (Jutaan Rupiah)
           </h3>
-          <div className="flex flex-wrap gap-1 bg-muted/50 p-1 rounded-lg border border-border">
+          <div className="flex flex-wrap gap-1 bg-muted/50 p-1 rounded-lg border border-border print:hidden">
             <button
               onClick={() => setActiveChartMetric("all")}
               className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${

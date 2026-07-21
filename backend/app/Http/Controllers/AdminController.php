@@ -46,6 +46,16 @@ class AdminController extends Controller
         return response()->json($companies);
     }
 
+    public function getCompanyDetails($id)
+    {
+        $company = Company::with([
+            'projects',
+            'userAccesses.user'
+        ])->findOrFail($id);
+        
+        return response()->json($company);
+    }
+
     public function updateCompanySubscription(Request $request, int $id)
     {
         $request->validate([

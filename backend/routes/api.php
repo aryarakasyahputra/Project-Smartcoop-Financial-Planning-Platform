@@ -36,6 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users', [\App\Http\Controllers\AdminController::class, 'getUsers']);
         Route::put('/users/{id}/status', [\App\Http\Controllers\AdminController::class, 'updateUserStatus']);
         Route::get('/companies', [\App\Http\Controllers\AdminController::class, 'getCompanies']);
+        Route::get('/companies/{id}', [\App\Http\Controllers\AdminController::class, 'getCompanyDetails']);
         Route::put('/companies/{id}/subscription', [\App\Http\Controllers\AdminController::class, 'updateCompanySubscription']);
         Route::get('/activity-logs', [\App\Http\Controllers\AdminController::class, 'getActivityLogs']);
     });
