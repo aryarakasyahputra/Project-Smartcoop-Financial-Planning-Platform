@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { formatRupiah } from "../utils/financialModel";
 import { Tooltip as UITooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "../../../components/ui/tooltip";
+import { Plus, X, Trash2 } from "lucide-react";
 
 const BRAND_BLUE = "#2b6cb8";
 const BRAND_ORANGE = "#f28c1f";
@@ -82,7 +83,7 @@ const parseThousand = (val) => {
 };
 
 // Reusable input field with prefix/suffix and tooltip descriptions
-function DriverInput({ label, value, onChange, prefix, suffix, step, disabled, definition }) {
+function DriverInput({ label, value, onChange, prefix, suffix, step, disabled, definition, onDelete }) {
   // Format as thousand if it's Rp OR if it's an integer (no suffix and no step)
   const isFormatted = prefix === "Rp" || (!suffix && !step);
   const displayValue = isFormatted ? formatThousand(value) : value;
@@ -115,7 +116,17 @@ function DriverInput({ label, value, onChange, prefix, suffix, step, disabled, d
             </TooltipContent>
           </UITooltip>
         )}
-        {disabled && <Shield className="h-3.5 w-3.5 text-slate-400 ml-auto" />}
+        {onDelete && (
+          <button 
+            type="button" 
+            onClick={onDelete} 
+            className="text-red-400 hover:text-red-600 hover:bg-red-50 p-1 rounded transition-colors ml-auto focus:outline-none"
+            title="Hapus Asumsi"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        )}
+        {disabled && !onDelete && <Shield className="h-3.5 w-3.5 text-slate-400 ml-auto" />}
       </div>
       <div className="relative flex items-center">
         {prefix && (
@@ -160,6 +171,52 @@ export default function AssumptionDriversTab({
   data,
   isDirty
 }) {
+  const [showCustomModal, setShowCustomModal] = useState(false);
+  const [customModalSection, setCustomModalSection] = useState(null);
+  
+  // Custom form states
+  const [customName, setCustomName] = useState("");
+  const [customType, setCustomType] = useState("fixed_value");
+  const [customValue, setCustomValue] = useState("");
+  const [customRefVar, setCustomRefVar] = useState("");
+
+  const sectionToImpactCategory = {
+    "growth": "add_to_new_coops",
+    "revenue": "add_to_revenue",
+    "cogs": "add_to_cogs",
+    "opex": "add_to_opex"
+  };
+
+  const handleOpenCustomModal = (sectionId) => {
+    setCustomModalSection(sectionId);
+    setCustomName("");
+    setCustomType("fixed_value");
+    setCustomValue("");
+    setCustomRefVar("");
+    setShowCustomModal(true);
+  };
+
+  const handleAddCustomAssumption = () => {
+    if (!customName || !customValue) return;
+
+    const newCustom = {
+      name: customName,
+      type: customType,
+      value: parseFloat(customValue),
+      reference_variable: customType === "percentage_of" ? customRefVar : null,
+      impact_category: sectionToImpactCategory[customModalSection]
+    };
+
+    const existingCustoms = activeAssumptions.custom_assumptions || [];
+    handleInputChange(selectedEditYear, "custom_assumptions", [...existingCustoms, newCustom]);
+    setShowCustomModal(false);
+  };
+
+  const handleDeleteCustomAssumption = (indexToDelete) => {
+    const existingCustoms = activeAssumptions.custom_assumptions || [];
+    const updated = existingCustoms.filter((_, idx) => idx !== indexToDelete);
+    handleInputChange(selectedEditYear, "custom_assumptions", updated);
+  };
   // Compute summary metrics from projection data for current year
   const currentYearData = data?.find(d => d.year === selectedEditYear) || {};
 
@@ -394,7 +451,50 @@ export default function AssumptionDriversTab({
                           />
                         );
                       })}
+                      
+                      {/* Custom Assumptions Fields injected directly into the grid */}
+                      {(activeAssumptions.custom_assumptions || [])
+                        .map((c, idx) => ({ ...c, originalIndex: idx }))
+                        .filter(c => c.impact_category === sectionToImpactCategory[s.id])
+                        .map(c => {
+                          const isPercentage = c.type === 'percentage_of';
+                          let labelText = c.name;
+                          if (isPercentage) {
+                            const refLabel = sections.flatMap(sec => sec.fields).find(f => f.key === c.reference_variable)?.label || c.reference_variable;
+                            labelText += ` (% dari ${refLabel})`;
+                          }
+                          return (
+                            <DriverInput
+                              key={`custom-${c.originalIndex}`}
+                              label={labelText}
+                              value={c.value}
+                              onChange={(e) => {
+                                const val = e.target.value === "" ? "" : (parseFloat(e.target.value) || 0);
+                                const existingCustoms = [...(activeAssumptions.custom_assumptions || [])];
+                                existingCustoms[c.originalIndex] = { ...existingCustoms[c.originalIndex], value: val };
+                                handleInputChange(selectedEditYear, "custom_assumptions", existingCustoms);
+                              }}
+                              prefix={isPercentage ? null : "Rp"}
+                              suffix={isPercentage ? "%" : null}
+                              step={isPercentage ? "0.1" : undefined}
+                              onDelete={() => handleDeleteCustomAssumption(c.originalIndex)}
+                            />
+                          );
+                        })
+                      }
                     </div>
+                    
+                    {/* Add Custom Assumption Button */}
+                    {["growth", "revenue", "cogs", "opex"].includes(s.id) && (
+                      <div className="mt-5 pt-4 border-t border-slate-100 flex justify-end">
+                        <button
+                          onClick={() => handleOpenCustomModal(s.id)}
+                          className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50/80 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors border border-blue-100"
+                        >
+                          <Plus className="h-3.5 w-3.5" /> TAMBAH ASUMSI BARU
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -432,6 +532,91 @@ export default function AssumptionDriversTab({
             </button>
           </div>
         </div>
+
+        {/* Custom Assumption Modal */}
+        {showCustomModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center">
+            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setShowCustomModal(false)} />
+            <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg mx-4 p-6 animate-in zoom-in-95">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-lg font-bold text-slate-900">Tambah Asumsi Custom</h3>
+                <button onClick={() => setShowCustomModal(false)} className="text-slate-400 hover:text-slate-600">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Nama Asumsi</label>
+                  <input
+                    type="text"
+                    value={customName}
+                    onChange={(e) => setCustomName(e.target.value)}
+                    placeholder="Contoh: Pendapatan Iklan, Biaya Server Tambahan..."
+                    className="w-full h-11 px-4 rounded-lg text-sm font-semibold bg-slate-50 border border-slate-200 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Tipe Perhitungan</label>
+                  <select
+                    value={customType}
+                    onChange={(e) => setCustomType(e.target.value)}
+                    className="w-full h-11 px-4 rounded-lg text-sm font-semibold bg-slate-50 border border-slate-200 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 appearance-none"
+                  >
+                    <option value="fixed_value">Nominal Tetap (Fixed Value)</option>
+                    <option value="percentage_of">Persentase dari Variabel Lain</option>
+                  </select>
+                </div>
+
+                {customType === "percentage_of" && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Referensi Variabel</label>
+                    <select
+                      value={customRefVar}
+                      onChange={(e) => setCustomRefVar(e.target.value)}
+                      className="w-full h-11 px-4 rounded-lg text-sm font-semibold bg-slate-50 border border-slate-200 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 appearance-none"
+                    >
+                      <option value="">-- Pilih Variabel Bawaan --</option>
+                      {sections.flatMap(s => s.fields).map(f => (
+                        <option key={f.key} value={f.key}>{f.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                    {customType === "percentage_of" ? "Besaran Persentase (%)" : "Nilai Angka"}
+                  </label>
+                  <input
+                    type="number"
+                    value={customValue}
+                    onChange={(e) => setCustomValue(e.target.value)}
+                    placeholder={customType === "percentage_of" ? "Contoh: 10" : "Contoh: 5000000"}
+                    className="w-full h-11 px-4 rounded-lg text-sm font-semibold bg-slate-50 border border-slate-200 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-8">
+                <button
+                  onClick={() => setShowCustomModal(false)}
+                  className="flex-1 px-4 py-2.5 rounded-lg border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-all"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleAddCustomAssumption}
+                  disabled={!customName || !customValue || (customType === 'percentage_of' && !customRefVar)}
+                  className="flex-1 px-4 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-all shadow-sm disabled:opacity-50"
+                >
+                  Tambah Asumsi
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </TooltipProvider>
   );

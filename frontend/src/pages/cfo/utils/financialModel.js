@@ -7,7 +7,46 @@ export const simulateProjections = (assumptionsByYear) => {
     const year = years[idx];
     const a = assumptionsByYear[year] || {};
     
-    const newCoops = a.new_coops_acquired ?? 0;
+    // Process Custom Assumptions
+    let customNewCoops = 0;
+    let customRevenue = 0;
+    let customCogs = 0;
+    let customOpex = 0;
+    
+    const customAssumptionsMap = {};
+    const customList = a.custom_assumptions || [];
+    customList.forEach(custom => {
+      let calculatedValue = 0;
+      if (custom.type === 'fixed_value') {
+        calculatedValue = Number(custom.value) || 0;
+      } else if (custom.type === 'percentage_of') {
+        const refKey = custom.reference_variable;
+        const refValue = a[refKey] || 0;
+        calculatedValue = ((Number(custom.value) || 0) / 100) * refValue;
+      }
+      
+      customAssumptionsMap[custom.name] = {
+         value: calculatedValue,
+         category: custom.impact_category
+      };
+      
+      switch (custom.impact_category) {
+        case 'add_to_new_coops':
+          customNewCoops += calculatedValue;
+          break;
+        case 'add_to_revenue':
+          customRevenue += calculatedValue;
+          break;
+        case 'add_to_cogs':
+          customCogs += calculatedValue;
+          break;
+        case 'add_to_opex':
+          customOpex += calculatedValue;
+          break;
+      }
+    });
+    
+    const newCoops = (a.new_coops_acquired ?? 0) + customNewCoops;
     const churnRate = a.monthly_churn_rate ?? 0;
     const avgMembers = a.avg_members_per_coop ?? 0;
     const subFraction = (a.subscription_paying_frac ?? 0) / 100;
@@ -49,7 +88,8 @@ export const simulateProjections = (assumptionsByYear) => {
                         ppobTransactionRevenue +
                         academyRevenue +
                         offlineTrainingRevenue +
-                        enterpriseAPI_revenue;
+                        enterpriseAPI_revenue +
+                        customRevenue;
                         
     const arr = saasSubscriptionRevenue + iosAddonRevenue;
     const arpu = endingActiveCoops > 0 ? totalRevenue / endingActiveCoops : 0;
@@ -71,7 +111,8 @@ export const simulateProjections = (assumptionsByYear) => {
                  implementationOnboardingCost +
                  customerSupportCost +
                  paymentApiVariableCost +
-                 otherCostOfRevenue;
+                 otherCostOfRevenue +
+                 customCogs;
                  
     const grossProfit = totalRevenue - totalCogs;
     const grossMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
@@ -106,7 +147,7 @@ export const simulateProjections = (assumptionsByYear) => {
     const otherGaOpex = a.other_ga ?? 0;
     
     const totalOpex = payrollOpex + salesMarketingOpex + officeUtilitiesOpex + softwareToolsOpex +
-                      legalAccountingOpex + travelEventsOpex + recruitmentTrainingOpex + otherGaOpex;
+                      legalAccountingOpex + travelEventsOpex + recruitmentTrainingOpex + otherGaOpex + customOpex;
                       
     const ebitda = grossProfit - totalOpex;
     const ebitdaMargin = totalRevenue > 0 ? (ebitda / totalRevenue) * 100 : 0;
@@ -202,6 +243,7 @@ export const simulateProjections = (assumptionsByYear) => {
       travelEventsOpex,
       recruitmentTrainingOpex,
       otherGaOpex,
+      customAssumptionsMap,
     };
   }
   

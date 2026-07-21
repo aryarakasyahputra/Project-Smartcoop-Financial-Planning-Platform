@@ -72,6 +72,7 @@ class FinancialModelService
                 'exit_revenue_multiple_conservative' => 0,
                 'exit_revenue_multiple_base' => 0,
                 'exit_revenue_multiple_optimistic' => 0,
+                'custom_assumptions' => [],
             ];
         }
 
@@ -205,12 +206,47 @@ class FinancialModelService
                         'exit_revenue_multiple_conservative' => $yearAssumptions['exit_revenue_multiple_conservative'] ?? null,
                         'exit_revenue_multiple_base' => $yearAssumptions['exit_revenue_multiple_base'] ?? null,
                         'exit_revenue_multiple_optimistic' => $yearAssumptions['exit_revenue_multiple_optimistic'] ?? null,
+                        'custom_assumptions' => $yearAssumptions['custom_assumptions'] ?? null,
                     ], function($val) { return $val !== null; })
                 );
 
+                // --- Process Custom Assumptions ---
+                $customAssumptionsList = $assumptions->custom_assumptions ?? [];
+                $customNewCoops = 0;
+                $customRevenue = 0;
+                $customCogs = 0;
+                $customOpex = 0;
+
+                foreach ($customAssumptionsList as $custom) {
+                    $calculatedValue = 0;
+                    if ($custom['type'] === 'fixed_value') {
+                        $calculatedValue = (float) $custom['value'];
+                    } elseif ($custom['type'] === 'percentage_of') {
+                        $refKey = $custom['reference_variable'];
+                        $refValue = $assumptions->{$refKey} ?? 0;
+                        $calculatedValue = ($custom['value'] / 100) * $refValue;
+                    }
+
+                    switch ($custom['impact_category']) {
+                        case 'add_to_new_coops':
+                            $customNewCoops += $calculatedValue;
+                            break;
+                        case 'add_to_revenue':
+                            $customRevenue += $calculatedValue;
+                            break;
+                        case 'add_to_cogs':
+                            $customCogs += $calculatedValue;
+                            break;
+                        case 'add_to_opex':
+                            $customOpex += $calculatedValue;
+                            break;
+                    }
+                }
+                // ----------------------------------
+
                 // 2. Perform Customer Growth calculation
                 $beginningCoops = $prevEndingActiveCoops;
-                $newCoops = $assumptions->new_coops_acquired;
+                $newCoops = $assumptions->new_coops_acquired + $customNewCoops;
                 $churnRateFrac = $assumptions->monthly_churn_rate / 100;
                 
                 $churnedCoops = (int) round($beginningCoops * $churnRateFrac);
@@ -253,7 +289,8 @@ class FinancialModelService
                                 $ppobTransactionRevenue +
                                 $academyRevenue +
                                 $offlineTrainingRevenue +
-                                $enterpriseApiRevenue;
+                                $enterpriseApiRevenue + 
+                                $customRevenue;
 
                 $arr = $saasSubscriptionRevenue + $iosAddonRevenue;
                 $arpu = $endingActiveCoops > 0 ? $totalRevenue / $endingActiveCoops : 0;
@@ -292,7 +329,8 @@ class FinancialModelService
                              $implementationOnboardingCost +
                              $customerSupportCost +
                              $paymentApiVariableCost +
-                             $otherCostOfRevenue;
+                             $otherCostOfRevenue +
+                             $customCogs;
 
                 $grossProfit = $totalRevenue - $totalCogs;
                 $grossMargin = $totalRevenue > 0 ? ($grossProfit / $totalRevenue) * 100 : 0;
@@ -314,7 +352,8 @@ class FinancialModelService
                              $legalAccountingOpex +
                              $travelEventsOpex +
                              $recruitmentTrainingOpex +
-                             $otherGaOpex;
+                             $otherGaOpex +
+                             $customOpex;
 
                 // Save to cost_projections
                 CostProjection::create([
@@ -512,6 +551,7 @@ class FinancialModelService
                         'exit_revenue_multiple_conservative' => 0,
                         'exit_revenue_multiple_base' => 0,
                         'exit_revenue_multiple_optimistic' => 0,
+                        'custom_assumptions' => [],
                     ]
                 );
             }
