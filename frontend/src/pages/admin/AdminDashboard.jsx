@@ -100,65 +100,100 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row font-sans selection:bg-primary/20">
       <Toaster position="top-right" richColors />
       
-      {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-card border-b md:border-b-0 md:border-r border-border flex flex-col justify-between shadow-sm z-10 flex-shrink-0">
+      {/* Sidebar - Smartcoop Brand Blue Theme */}
+      <aside className="w-full md:w-64 bg-gradient-to-b from-[#003d6b] via-[#005fa4] to-[#002d50] text-white border-b md:border-b-0 md:border-r border-blue-900/40 flex flex-col justify-between shadow-xl z-10 flex-shrink-0 relative overflow-hidden">
         <div className="p-6 space-y-8">
           {/* Logo */}
-          <div className="flex flex-col leading-none">
-            <span className="text-2xl font-bold text-primary">smart<span className="text-[#f28c1f]">coop</span></span>
-            <span className="text-[10px] font-medium text-red-500 tracking-[0.2em] uppercase ml-0.5 mt-1">admin panel</span>
+          <div className="flex flex-col items-start leading-none group pt-1">
+            <span className="text-[24px] font-extrabold text-white tracking-tight flex items-center">
+              smart<span className="text-[#FFD700]">coop</span>
+            </span>
+            <span className="text-[8.5px] font-bold text-blue-200/80 tracking-[0.22em] uppercase mt-1">
+              ADMIN PANEL
+            </span>
           </div>
 
           {/* Nav links */}
-          <nav className="space-y-2">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 px-2">Management</p>
+          <nav className="space-y-1.5">
+            <p className="text-[11px] font-extrabold text-[#FFD700] uppercase tracking-wider mb-3 px-1">Management</p>
             <button
               onClick={() => setActiveTab("overview")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold text-left leading-tight ${activeTab === "overview" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+              className={`group w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm border-l-4 transition-all duration-200 cursor-pointer ${
+                activeTab === "overview" 
+                  ? "bg-white/15 backdrop-blur-md text-white font-bold border-[#FFD700] shadow-md shadow-black/10" 
+                  : "border-transparent text-blue-100/75 hover:bg-white/10 hover:text-white font-semibold"
+              }`}
             >
-              <LayoutDashboard className="h-4 w-4 flex-shrink-0" /> 
-              <span>System Overview</span>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <LayoutDashboard className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "overview" ? "text-[#FFD700]" : "text-blue-200/60 group-hover:text-white"}`} /> 
+                <span className="whitespace-nowrap truncate">System Overview</span>
+              </div>
+              {activeTab === "overview" && <div className="h-1.5 w-1.5 rounded-full bg-[#FFD700] shadow-2xs shrink-0 ml-1" />}
             </button>
             <button
               onClick={() => setActiveTab("users")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold text-left leading-tight ${activeTab === "users" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+              className={`group w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm border-l-4 transition-all duration-200 cursor-pointer ${
+                activeTab === "users" 
+                  ? "bg-white/15 backdrop-blur-md text-white font-bold border-[#FFD700] shadow-md shadow-black/10" 
+                  : "border-transparent text-blue-100/75 hover:bg-white/10 hover:text-white font-semibold"
+              }`}
             >
-              <Users className="h-4 w-4 flex-shrink-0" /> 
-              <span>Users & Roles</span>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Users className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "users" ? "text-[#FFD700]" : "text-blue-200/60 group-hover:text-white"}`} /> 
+                <span className="whitespace-nowrap truncate">Users & Roles</span>
+              </div>
+              {activeTab === "users" && <div className="h-1.5 w-1.5 rounded-full bg-[#FFD700] shadow-2xs shrink-0 ml-1" />}
             </button>
             <button
               onClick={() => setActiveTab("billing")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold text-left leading-tight ${activeTab === "billing" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+              className={`group w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm border-l-4 transition-all duration-200 cursor-pointer ${
+                activeTab === "billing" 
+                  ? "bg-white/15 backdrop-blur-md text-white font-bold border-[#FFD700] shadow-md shadow-black/10" 
+                  : "border-transparent text-blue-100/75 hover:bg-white/10 hover:text-white font-semibold"
+              }`}
             >
-              <CreditCard className="h-4 w-4 flex-shrink-0" /> 
-              <span>Billing & Plans</span>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <CreditCard className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "billing" ? "text-[#FFD700]" : "text-blue-200/60 group-hover:text-white"}`} /> 
+                <span className="whitespace-nowrap truncate">Billing & Plans</span>
+              </div>
+              {activeTab === "billing" && <div className="h-1.5 w-1.5 rounded-full bg-[#FFD700] shadow-2xs shrink-0 ml-1" />}
             </button>
             <button
               onClick={() => setActiveTab("audit")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold text-left leading-tight ${activeTab === "audit" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+              className={`group w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm border-l-4 transition-all duration-200 cursor-pointer ${
+                activeTab === "audit" 
+                  ? "bg-white/15 backdrop-blur-md text-white font-bold border-[#FFD700] shadow-md shadow-black/10" 
+                  : "border-transparent text-blue-100/75 hover:bg-white/10 hover:text-white font-semibold"
+              }`}
             >
-              <Activity className="h-4 w-4 flex-shrink-0" /> 
-              <span>Audit Log</span>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Activity className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "audit" ? "text-[#FFD700]" : "text-blue-200/60 group-hover:text-white"}`} /> 
+                <span className="whitespace-nowrap truncate">Audit Log</span>
+              </div>
+              {activeTab === "audit" && <div className="h-1.5 w-1.5 rounded-full bg-[#FFD700] shadow-2xs shrink-0 ml-1" />}
             </button>
           </nav>
         </div>
 
         {/* User Info & Logout */}
-        <div className="p-6 border-t border-border space-y-4">
-          <div className="flex items-center gap-3 bg-muted/50 p-3 rounded-xl border border-border">
-            <div className="h-9 w-9 rounded-full bg-red-500/10 flex flex-shrink-0 items-center justify-center text-red-500 font-bold uppercase">
-              {userData?.name?.charAt(0)}
+        <div className="p-6 border-t border-white/15 space-y-4">
+          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/10 border border-white/15 backdrop-blur-sm">
+            <div className="h-10 w-10 rounded-xl bg-[#FFD700] text-[#003d6b] flex items-center justify-center font-extrabold text-sm shadow-md shrink-0">
+              {userData?.name?.charAt(0).toUpperCase() || "A"}
             </div>
-            <div className="overflow-hidden">
-              <p className="text-sm font-bold truncate">{userData?.name}</p>
-              <p className="text-xs text-muted-foreground truncate">Platform Admin</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-white truncate">{userData?.name}</p>
+              <p className="text-[10px] font-bold text-[#FFD700] capitalize flex items-center gap-1 mt-0.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#FFD700]" /> Platform Admin
+              </p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-500 hover:bg-red-100 rounded-lg text-sm font-semibold transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold rounded-xl text-xs shadow-md shadow-black/20 transition-all duration-200 cursor-pointer border-none"
           >
-            <LogOut className="h-4 w-4" /> Keluar
+            <LogOut className="h-4 w-4 text-white" /> 
+            <span>Keluar</span>
           </button>
         </div>
       </aside>

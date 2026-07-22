@@ -254,17 +254,6 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
       <div className="space-y-2">
       {/* Top Nav Rendered in Portal */}
       {portalTarget && createPortal(navContent, portalTarget)}
-
-      <div className="flex justify-end mb-4 print:hidden">
-        <button 
-          onClick={handlePrint}
-          className="flex items-center gap-2 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-1.5 rounded-md transition-colors shadow-sm"
-          title="Print Laporan"
-        >
-          <Printer className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Export PDF</span>
-        </button>
-      </div>
       
       {/* Main Content */}
       <div className="space-y-8 print:m-0 print:p-0 print:space-y-6">

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { 
   Building2, Users, LayoutDashboard, Settings, LogOut, 
   ChevronRight, Brain, PieChart, Activity, Calculator, Search, Bell, TrendingUp, RefreshCw,
-  AlertTriangle, X
+  AlertTriangle, X, Printer
 } from "lucide-react";
 
 import FinancialAnalystTab from "./components/FinancialAnalystTab";
@@ -15,9 +15,9 @@ import { useValuationModel } from "./utils/valuationHelper";
 import { toast } from "sonner";
 
 const SIDEBAR_TABS = [
-  { id: "analyst", label: "Analisis & Ringkasan Model", icon: TrendingUp },
-  { id: "drivers", label: "Input Asumsi Keuangan", icon: Activity },
-  { id: "projection", label: "Laporan Detail Proforma", icon: PieChart }
+  { id: "analyst", label: "Ringkasan Model", icon: TrendingUp },
+  { id: "drivers", label: "Asumsi Keuangan", icon: Activity },
+  { id: "projection", label: "Proyeksi Keuangan", icon: PieChart }
 ];
 
 export default function CfoDashboard({ userData, handleLogout }) {
@@ -229,103 +229,112 @@ export default function CfoDashboard({ userData, handleLogout }) {
   return (
     <div className="h-screen overflow-hidden print:h-auto print:overflow-visible bg-[#f8fafc] text-foreground flex font-sans selection:bg-primary/20">
 
-      {/* Sidebar - Identical to previous */}
-      <aside className="w-64 bg-card border-r border-border hidden md:flex flex-col flex-shrink-0 shadow-sm z-10 print:hidden">
-        <div className="h-16 flex items-center px-6 border-b border-border bg-background">
-          <a href="/" className="flex flex-col items-start leading-none group">
-            <span className="text-[22px] font-bold text-[#005fa4] tracking-tight">
+      {/* Sidebar - Smartcoop Brand Blue Theme */}
+      <aside className="w-64 bg-gradient-to-b from-[#003d6b] via-[#005fa4] to-[#002d50] text-white hidden md:flex flex-col flex-shrink-0 justify-between p-6 shadow-xl z-10 print:hidden border-r border-blue-900/40 relative overflow-hidden">
+        <div className="space-y-8">
+          {/* Logo */}
+          <div className="flex flex-col items-start leading-none group pt-1">
+            <span className="text-[24px] font-extrabold text-white tracking-tight flex items-center">
               smart<span className="text-[#FFD700]">coop</span>
             </span>
-            <span className="text-[8px] font-medium text-[#005fa4]/70 tracking-[0.2em] uppercase mt-0.5">
-              financial
+            <span className="text-[8.5px] font-bold text-blue-200/80 tracking-[0.22em] uppercase mt-1">
+              FINANCIAL
             </span>
-          </a>
-        </div>
+          </div>
 
-        <div className="p-4 flex-1 overflow-y-auto space-y-6">
           <div className="space-y-1.5 relative">
-            <p className="px-3 text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Finance & Strategy</p>
+            <p className="px-3 text-[11px] font-extrabold text-[#FFD700] uppercase tracking-wider mb-3">Finance & Strategy</p>
             {SIDEBAR_TABS.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`relative w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-semibold text-left outline-none ${
-                    isActive ? "text-primary-foreground" : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl transition-all duration-200 font-bold text-left text-sm border-l-4 cursor-pointer ${
+                    isActive 
+                      ? "bg-white/15 backdrop-blur-md text-white border-[#FFD700] shadow-md shadow-black/10" 
+                      : "border-transparent text-blue-100/75 hover:bg-white/10 hover:text-white"
                   }`}
                 >
-                  {isActive && (
-                    <motion.div
-                      layoutId="cfoSidebarIndicator"
-                      className="absolute inset-0 bg-primary shadow-md rounded-xl z-0"
-                      initial={false}
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                  <tab.icon className="h-5 w-5 relative z-10 shrink-0" /> 
-                  <span className="relative z-10 leading-tight">{tab.label}</span>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <tab.icon className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-[#FFD700]" : "text-blue-200/60 group-hover:text-white"}`} /> 
+                    <span className="whitespace-nowrap">{tab.label}</span>
+                  </div>
+                  {isActive && <div className="h-1.5 w-1.5 rounded-full bg-[#FFD700] shadow-2xs shrink-0 ml-1" />}
                 </button>
               );
             })}
           </div>
         </div>
 
-        <div className="p-4 border-t border-border">
-          <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-muted/50 border border-border">
-            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Users className="h-4 w-4 text-primary" />
+        <div className="pt-6 border-t border-white/15 space-y-3">
+          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/10 border border-white/15 backdrop-blur-sm">
+            <div className="h-9 w-9 rounded-xl bg-[#FFD700] text-[#003d6b] flex items-center justify-center font-extrabold text-xs shadow-md shrink-0">
+              <Users className="h-4 w-4" />
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-bold truncate">Tim Keuangan</p>
-              <p className="text-xs text-muted-foreground truncate">CFO Mode</p>
+              <p className="text-xs font-bold text-white truncate">Tim Keuangan</p>
+              <p className="text-[10px] font-bold text-[#FFD700] flex items-center gap-1 mt-0.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#FFD700]" /> CFO Mode
+              </p>
             </div>
           </div>
           <button
             onClick={onLogout}
-            className="w-full mt-3 flex items-center gap-2 justify-center px-4 py-2 text-sm text-red-500 font-semibold hover:bg-red-50 rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold rounded-xl text-xs shadow-md shadow-black/20 transition-all duration-200 cursor-pointer border-none"
           >
-            <LogOut className="h-4 w-4" /> Keluar
+            <LogOut className="h-4 w-4 text-white" /> 
+            <span>Keluar</span>
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden print:h-auto print:overflow-visible">
-        {/* Header */}
-        <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 sticky top-0 z-10 shadow-sm print:hidden">
-          <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground shrink-0 whitespace-nowrap">
-            <span className="hidden sm:inline">Finance</span>
-            <ChevronRight className="h-4 w-4 hidden sm:inline" />
-            <span className="text-foreground font-bold">
-              {activeTab === "analyst" ? "Ringkasan Model Finansial" :
-                activeTab === "drivers" ? "Input Asumsi Keuangan" :
-                  "Laporan Detail Proforma"}
-            </span>
+        {/* Header - Workspace & Company Info (Option B without status badge) */}
+        <header className="h-16 bg-slate-50/60 dark:bg-slate-900/60 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800 flex items-center justify-between px-6 sticky top-0 z-10 print:hidden">
+          <div className="flex items-center gap-3 text-sm font-semibold shrink-0 whitespace-nowrap">
+            <div className="h-8 w-8 rounded-lg bg-[#005fa4]/10 dark:bg-blue-950/40 flex items-center justify-center text-[#005fa4] dark:text-blue-400 shrink-0 border border-[#005fa4]/15">
+              <Building2 className="h-4 w-4" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-slate-900 dark:text-white font-extrabold text-sm sm:text-base">
+                {companyAccess?.company?.name || "Koperasi Smartcoop"}
+              </span>
+            </div>
           </div>
 
           <div id="header-portal-target" className="flex-1 flex justify-end overflow-hidden mx-4 min-w-0"></div>
-
         </header>
 
         {/* Dynamic Content Area */}
         <div className="p-6 md:p-8 overflow-y-auto flex-1 print:p-0 print:h-auto print:overflow-visible print:bg-white">
           <div className="max-w-7xl mx-auto space-y-6">
 
-            {/* Header Title section */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+            {/* Header Title Section with Integrated Inline Action */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 mb-2 border-b border-slate-200/60 dark:border-slate-800">
               <div>
-                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">
+                <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                   {activeTab === "analyst" && "Analisis & Rekomendasi Finansial"}
                   {activeTab === "drivers" && "Input Asumsi Keuangan"}
                   {activeTab === "projection" && "Laporan Laba Rugi Proforma"}
                 </h1>
-                <p className="text-muted-foreground mt-1 text-sm font-medium">
+                <p className="text-slate-500 dark:text-slate-400 mt-1 text-xs md:text-sm font-medium">
                   {activeTab === "analyst" && "Analisis otomatis kelayakan keuangan koperasi, status profitabilitas, dan rekomendasi strategis."}
                   {activeTab === "drivers" && "Atur asumsi bisnis dan operasional di bawah ini untuk melihat dampaknya secara langsung pada proyeksi keuangan Anda."}
                   {activeTab === "projection" && "Laporan laba rugi berdasarkan input asumsi yang diatur di tab sebelumnya."}
                 </p>
               </div>
+
+              {activeTab === "projection" && (
+                <button 
+                  onClick={() => window.print()}
+                  className="flex items-center gap-2 text-xs font-bold bg-[#005fa4] hover:bg-[#004b82] text-white px-4 py-2.5 rounded-xl shadow-md shadow-[#005fa4]/20 transition-all cursor-pointer shrink-0 print:hidden"
+                >
+                  <Printer className="h-4 w-4 text-[#FFD700]" />
+                  <span>Export PDF</span>
+                </button>
+              )}
             </div>
 
             {/* Render Active Component */}
