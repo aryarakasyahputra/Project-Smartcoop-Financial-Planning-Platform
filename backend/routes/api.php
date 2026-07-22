@@ -29,6 +29,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Team Management (Founder Dashboard)
     Route::get('/companies/{companyId}/members', [\App\Http\Controllers\TeamController::class, 'index']);
     Route::delete('/companies/{companyId}/members/{userId}', [\App\Http\Controllers\TeamController::class, 'destroy']);
+    Route::get('/companies/{companyId}/invitations', [InvitationController::class, 'index']);
+    Route::post('/invitations/{id}/resend', [InvitationController::class, 'resend']);
+    Route::delete('/invitations/{id}', [InvitationController::class, 'destroy']);
     
     // Admin Routes
     Route::middleware([\App\Http\Middleware\CheckAdmin::class])->prefix('admin')->group(function () {

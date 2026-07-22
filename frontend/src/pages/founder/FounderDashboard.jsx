@@ -1,23 +1,13 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { 
-  LogOut, Building, User, Settings, ShieldCheck, Sparkles, 
-  Database, LayoutDashboard, BarChart3, LineChart as LineChartIcon, Users, 
-  Mail, UserPlus, RefreshCw, Compass, Shield, ArrowUpRight,
-  TrendingUp, Wallet, Award, ShieldAlert, ChevronRight, ChevronDown, Coins, Activity, Calculator, Layers, Trash2
+  LogOut, Building, LayoutDashboard, LineChart as LineChartIcon, Users, 
+  RefreshCw
 } from "lucide-react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  AreaChart,
-  Area
-} from "recharts";
-import ProjectionModelTab from "../cfo/components/ProjectionModelTab";
+
+import FounderOverviewTab from "./components/FounderOverviewTab";
+import FounderProjectionsTab from "./components/FounderProjectionsTab";
+import FounderTeamTab from "./components/FounderTeamTab";
+
 import { toast } from "sonner";
 import { simulateProjections, formatRupiah } from "../cfo/utils/financialModel";
 import { useValuationModel } from "../cfo/utils/valuationHelper";
@@ -33,15 +23,12 @@ function getScenarioAssumptions(baseAssumptions, scenario) {
     modified[year] = { ...a };
     
     if (scenario === "optimistic") {
-      // 1. Boost active cooperatives acquisition by 20%
       if (a.new_coops_acquired !== undefined) {
         modified[year].new_coops_acquired = Math.round(a.new_coops_acquired * 1.20);
       }
-      // 2. Reduce churn rate by 20%
       if (a.monthly_churn_rate !== undefined) {
         modified[year].monthly_churn_rate = a.monthly_churn_rate * 0.8;
       }
-      // 3. Increase pricing fees (setup, monthly sub) by 10%
       if (a.monthly_subscription_fee !== undefined) {
         modified[year].monthly_subscription_fee = Math.round(a.monthly_subscription_fee * 1.10);
       }
@@ -49,15 +36,12 @@ function getScenarioAssumptions(baseAssumptions, scenario) {
         modified[year].setup_fee = Math.round(a.setup_fee * 1.10);
       }
     } else if (scenario === "pessimistic") {
-      // 1. Decrease active cooperatives acquisition by 20%
       if (a.new_coops_acquired !== undefined) {
         modified[year].new_coops_acquired = Math.round(a.new_coops_acquired * 0.80);
       }
-      // 2. Increase churn rate by 25%
       if (a.monthly_churn_rate !== undefined) {
         modified[year].monthly_churn_rate = a.monthly_churn_rate * 1.25;
       }
-      // 3. Lower pricing fees by 10%
       if (a.monthly_subscription_fee !== undefined) {
         modified[year].monthly_subscription_fee = Math.round(a.monthly_subscription_fee * 0.90);
       }
@@ -73,261 +57,376 @@ function getScenarioAssumptions(baseAssumptions, scenario) {
 export default function FounderDashboard({ userData, handleLogout }) {
   const [activeTab, setActiveTab] = useState("overview");
   const [activeScenario, setActiveScenario] = useState("base");
-  const [inviting, setInviting] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState("");
+  const [chartMetric, setChartMetric] = useState("revenue");
+  
+  const [baseAssumptions, setBaseAssumptions] = useState({});
+  const [projectionData, setProjectionData] = useState([]);
   const [loadingProjections, setLoadingProjections] = useState(true);
-  const [assumptionsByYear, setAssumptionsByYear] = useState({});
+  const [hoveredYear, setHoveredYear] = useState(null);
+
+  // Members & Invitations State
   const [members, setMembers] = useState([]);
-  const [loadingMembers, setLoadingMembers] = useState(false);
+  const [loadingMembers, setLoadingMembers] = useState(true);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("3");
+  const [inviting, setInviting] = useState(false);
+  const [pendingInvitations, setPendingInvitations] = useState([]);
+  const [loadingInvitations, setLoadingInvitations] = useState(true);
+  const [memberToDelete, setMemberToDelete] = useState(null);
+  const [deletingMember, setDeletingMember] = useState(false);
+  const maxSeats = 5;
 
-  const primaryCompany = userData?.company_accesses?.[0]?.company;
-  const projectId = primaryCompany?.projects?.[0]?.id;
+  const companyAccess = userData?.company_accesses?.[0];
+  const primaryCompany = companyAccess?.company;
+  const projectId = primaryCompany?.projects?.[0]?.id || primaryCompany?.id;
 
+  const getToken = () => sessionStorage.getItem("token") || localStorage.getItem("token") || localStorage.getItem("auth_token");
+
+  // Fetch Base Assumptions
   useEffect(() => {
-    const token = sessionStorage.getItem("token");
-    if (!token) return;
-
-    const fetchData = async () => {
-      if (!projectId) {
-        setLoadingProjections(false);
-        return;
-      }
+    async function fetchAssumptions() {
+      if (!projectId) return;
       try {
-        const response = await fetch(`http://localhost:8000/api/projects/${projectId}/assumptions`, {
-          headers: { 
-            "Authorization": `Bearer ${token}`,
-            "Accept": "application/json"
-          }
-        });
-        
-        if (response.ok) {
-          const responseData = await response.json();
-          const mapped = {};
-          if (responseData && responseData.assumptions && Array.isArray(responseData.assumptions)) {
-            responseData.assumptions.forEach(item => {
-              const parsedItem = {};
-              for (const key in item) {
-                if (typeof item[key] === 'string' && !isNaN(item[key]) && item[key].trim() !== '') {
-                  parsedItem[key] = Number(item[key]);
-                } else {
-                  parsedItem[key] = item[key];
-                }
-              }
-              mapped[item.year] = parsedItem;
-            });
-          }
-          setAssumptionsByYear(mapped);
-        }
-      } catch (err) {
-        console.error("Gagal memuat asumsi:", err);
-      } finally {
-        setLoadingProjections(false);
-      }
-    };
-
-    fetchData();
-  }, [projectId]);
-
-  useEffect(() => {
-    const fetchMembers = async () => {
-      if (!primaryCompany) return;
-      setLoadingMembers(true);
-      try {
-        const token = sessionStorage.getItem("token");
-        const res = await fetch(`http://localhost:8000/api/companies/${primaryCompany.id}/members`, {
+        setLoadingProjections(true);
+        const token = getToken();
+        const res = await fetch(`http://127.0.0.1:8000/api/projects/${projectId}/assumptions`, {
           headers: {
             "Authorization": `Bearer ${token}`,
             "Accept": "application/json"
           }
         });
-        if (res.ok) {
-          const data = await res.json();
-          setMembers(data.members || []);
+        const json = await res.json();
+        const rawList = json.assumptions || json.data || [];
+        if (rawList && Array.isArray(rawList) && rawList.length > 0) {
+          const formatted = {};
+          rawList.forEach(item => {
+            const parsedItem = {};
+            for (const key in item) {
+              if (typeof item[key] === 'string' && !isNaN(item[key]) && item[key].trim() !== '') {
+                parsedItem[key] = Number(item[key]);
+              } else {
+                parsedItem[key] = item[key];
+              }
+            }
+            formatted[item.year] = parsedItem;
+          });
+          setBaseAssumptions(formatted);
         }
       } catch (err) {
-        console.error("Gagal memuat anggota tim:", err);
+        console.error("Failed to fetch assumptions:", err);
       } finally {
-        setLoadingMembers(false);
+        setLoadingProjections(false);
       }
-    };
-    fetchMembers();
-  }, [primaryCompany]);
+    }
+    fetchAssumptions();
+  }, [projectId]);
 
-  // Dynamic scenario assumptions
-  const activeScenarioAssumptions = useMemo(() => {
-    return getScenarioAssumptions(assumptionsByYear, activeScenario);
-  }, [assumptionsByYear, activeScenario]);
+  // Recalculate Projections on Scenario or Base Assumptions Change
+  useEffect(() => {
+    if (Object.keys(baseAssumptions).length > 0) {
+      const scenarioAssumptions = getScenarioAssumptions(baseAssumptions, activeScenario);
+      const computed = simulateProjections(scenarioAssumptions);
+      setProjectionData(computed);
+    }
+  }, [baseAssumptions, activeScenario]);
 
-  const projectionData = useMemo(() => {
-    return simulateProjections(activeScenarioAssumptions);
-  }, [activeScenarioAssumptions]);
-
+  // Valuation Hook
   const valuation = useValuationModel(projectionData);
 
-  const [hoveredYear, setHoveredYear] = useState(null);
-  const [chartMetric, setChartMetric] = useState("revenue");
+  // Fetch Members & Pending Invitations
+  const fetchMembersAndInvitations = useCallback(async () => {
+    if (!primaryCompany?.id) return;
+    const token = getToken();
+    
+    // Fetch Members
+    try {
+      setLoadingMembers(true);
+      const res = await fetch(`http://127.0.0.1:8000/api/companies/${primaryCompany.id}/members`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/json"
+        }
+      });
+      const json = await res.json();
+      const list = json.members || json.data || (Array.isArray(json) ? json : []);
+      setMembers(list);
+    } catch (err) {
+      console.error("Failed to fetch members:", err);
+    } finally {
+      setLoadingMembers(false);
+    }
 
-  const getColHighlightClass = (year) => {
-    return hoveredYear === year ? "bg-primary/5 border-x border-primary/10" : "";
-  };
+    // Fetch Invitations
+    try {
+      setLoadingInvitations(true);
+      const res = await fetch(`http://127.0.0.1:8000/api/companies/${primaryCompany.id}/invitations`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/json"
+        }
+      });
+      const json = await res.json();
+      const list = json.invitations || json.data || (Array.isArray(json) ? json : []);
+      setPendingInvitations(list.filter(inv => inv.status === 'pending'));
+    } catch (err) {
+      console.error("Failed to fetch invitations:", err);
+    } finally {
+      setLoadingInvitations(false);
+    }
+  }, [primaryCompany?.id]);
 
-  const chartData = useMemo(() => {
-    return projectionData.map(d => ({
-      year: d.year.toString(),
-      revenueB: d.totalRevenue ? Number((d.totalRevenue / 1000000000).toFixed(2)) : 0,
-      arrB: d.arr ? Number((d.arr / 1000000000).toFixed(2)) : 0,
-      ebitdaB: d.ebitda ? Number((d.ebitda / 1000000000).toFixed(2)) : 0,
-      endingCashB: d.endingCash ? Number((d.endingCash / 1000000000).toFixed(2)) : 0,
-      endingCoops: d.endingCoops || 0
-    }));
-  }, [projectionData]);
+  useEffect(() => {
+    fetchMembersAndInvitations();
+  }, [fetchMembersAndInvitations]);
 
-  const data2029 = useMemo(() => {
-    if (!projectionData || projectionData.length === 0) return {};
-    return projectionData.find(y => y.year === 2029) || projectionData[projectionData.length - 1] || {};
-  }, [projectionData]);
-
-  const activeExitVal = useMemo(() => {
-    if (activeScenario === "optimistic") return valuation.exitValOpt;
-    if (activeScenario === "pessimistic") return valuation.exitValCons;
-    return valuation.exitValBase;
-  }, [valuation, activeScenario]);
-
-  const activeMOIC = useMemo(() => {
-    if (activeScenario === "optimistic") return valuation.moicOpt;
-    if (activeScenario === "pessimistic") return valuation.moicCons;
-    return valuation.moicBase;
-  }, [valuation, activeScenario]);
-
-  const activeIRR = useMemo(() => {
-    if (activeScenario === "optimistic") return valuation.irrOpt;
-    if (activeScenario === "pessimistic") return valuation.irrCons;
-    return valuation.irrBase;
-  }, [valuation, activeScenario]);
-
+  // Invite Handler
   const handleInviteSubmit = async (e) => {
     e.preventDefault();
-    if (!inviteEmail || !inviteRole || !primaryCompany) {
-      toast.error("Harap isi semua kolom!");
+    if (!primaryCompany?.id) return;
+    
+    if (members.length + pendingInvitations.length >= maxSeats) {
+      toast.error("Batas Lisensi Tim Tercapai!", {
+        description: `Anda telah menggunakan seluruh ${maxSeats} kuota lisensi tim.`
+      });
       return;
     }
 
-    setInviting(true);
     try {
-      const token = sessionStorage.getItem("token");
-      const res = await fetch("/api/invitations", {
+      setInviting(true);
+      const token = getToken();
+      const res = await fetch(`http://127.0.0.1:8000/api/companies/${primaryCompany.id}/invite`, {
         method: "POST",
         headers: {
+          "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Accept": "application/json"
         },
         body: JSON.stringify({
           email: inviteEmail,
-          role_id: inviteRole,
-          company_id: primaryCompany.id
+          role_id: parseInt(inviteRole, 10)
         })
       });
-
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Undangan kolaborasi berhasil dikirim!");
+      const json = await res.json();
+      if (res.ok || json.invitation || json.success) {
+        toast.success("Undangan Berhasil Dikirim!", {
+          description: json.message || `Link undangan telah dikirimkan ke ${inviteEmail}`
+        });
         setInviteEmail("");
-        setInviteRole("");
+        fetchMembersAndInvitations();
       } else {
-        toast.error(data.message || "Gagal mengirim undangan.");
+        toast.error("Gagal Mengirim Undangan", {
+          description: json.message || "Email sudah diundang atau terjadi kesalahan server."
+        });
       }
     } catch (err) {
-      toast.error("Terjadi kesalahan sistem saat mengirim undangan.");
+      console.error("Failed to invite:", err);
+      toast.error("Terjadi Kesalahan Server");
     } finally {
       setInviting(false);
     }
   };
 
-  const handleRemoveMember = async (userId) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus akses pengguna ini dari perusahaan?")) return;
+  // Resend Invitation Handler
+  const handleResendInvitation = async (invitationId) => {
     try {
-      const token = sessionStorage.getItem("token");
-      const res = await fetch(`http://localhost:8000/api/companies/${primaryCompany.id}/members/${userId}`, {
+      const token = getToken();
+      const res = await fetch(`http://127.0.0.1:8000/api/invitations/${invitationId}/resend`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/json"
+        }
+      });
+      const json = await res.json();
+      if (res.ok || json.success) {
+        toast.success("Undangan Dikirim Ulang!", { description: json.message });
+      } else {
+        toast.error("Gagal Mengirim Ulang", { description: json.message });
+      }
+    } catch (err) {
+      console.error("Failed to resend invitation:", err);
+      toast.error("Kesalahan koneksi server.");
+    }
+  };
+
+  // Cancel Invitation Handler
+  const handleCancelInvitation = async (invitationId) => {
+    try {
+      const token = getToken();
+      const res = await fetch(`http://127.0.0.1:8000/api/invitations/${invitationId}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
           "Accept": "application/json"
         }
       });
-      if (res.ok) {
-        toast.success("Anggota berhasil dihapus.");
-        setMembers(members.filter(m => m.id !== userId));
+      const json = await res.json();
+      if (res.ok || json.success) {
+        toast.success("Undangan Dibatalkan!", { description: json.message });
+        fetchMembersAndInvitations();
       } else {
-        const data = await res.json();
-        toast.error(data.message || "Gagal menghapus anggota.");
+        toast.error("Gagal Membatalkan", { description: json.message });
       }
     } catch (err) {
-      toast.error("Terjadi kesalahan sistem saat menghapus anggota.");
+      console.error("Failed to cancel invitation:", err);
+      toast.error("Kesalahan koneksi server.");
     }
   };
 
+  // Remove Member Handler
+  const confirmRemoveMember = async () => {
+    if (!memberToDelete || !primaryCompany?.id) return;
+    try {
+      setDeletingMember(true);
+      const token = getToken();
+      const res = await fetch(`http://127.0.0.1:8000/api/companies/${primaryCompany.id}/members/${memberToDelete.id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/json"
+        }
+      });
+      const json = await res.json();
+      if (res.ok || json.success) {
+        toast.success("Akses Anggota Dihapus", { description: json.message });
+        setMemberToDelete(null);
+        fetchMembersAndInvitations();
+      } else {
+        toast.error("Gagal Menghapus Akses", { description: json.message });
+      }
+    } catch (err) {
+      console.error("Failed to delete member:", err);
+      toast.error("Terjadi kesalahan koneksi server.");
+    } finally {
+      setDeletingMember(false);
+    }
+  };
+
+  // 2029 Data Calculation for KPI Cards
+  const data2029 = useMemo(() => {
+    if (!projectionData || projectionData.length === 0) return {};
+    return projectionData[projectionData.length - 1] || {};
+  }, [projectionData]);
+
+  // Chart Data Preparation
+  const chartData = useMemo(() => {
+    return projectionData.map(d => ({
+      year: d.year,
+      revenueB: Number((d.totalRevenue / 1_000_000_000).toFixed(2)),
+      arrB: Number((d.arr / 1_000_000_000).toFixed(2)),
+      ebitdaB: Number((d.ebitda / 1_000_000_000).toFixed(2)),
+      endingCashB: Number((d.endingCash / 1_000_000_000).toFixed(2)),
+      endingCoops: d.endingCoops
+    }));
+  }, [projectionData]);
+
+  // Highlight column helper
+  const getColHighlightClass = (year) => {
+    if (hoveredYear === year) return "bg-primary/10 font-bold text-primary";
+    return "";
+  };
+
+  // Exit Val calculations based on scenario
+  const activeExitVal = useMemo(() => {
+    if (activeScenario === "optimistic") return (data2029.totalRevenue || 0) * 1.2 * 7;
+    if (activeScenario === "pessimistic") return (data2029.totalRevenue || 0) * 0.8 * 3;
+    return (data2029.totalRevenue || 0) * 5; // Base case
+  }, [activeScenario, data2029]);
+
+  const activeMOIC = useMemo(() => {
+    if (!valuation.impliedSeedEquityVal || valuation.impliedSeedEquityVal === 0) return 0;
+    return (activeExitVal * valuation.dynamicInvestorEquityFrac) / (valuation.seedInvestment || 1);
+  }, [activeExitVal, valuation]);
+
+  const activeIRR = useMemo(() => {
+    if (activeMOIC <= 0) return 0;
+    return Math.pow(activeMOIC, 1 / 5) - 1;
+  }, [activeMOIC]);
+
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row md:h-screen md:overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-card border-b md:border-b-0 md:border-r border-border flex flex-col justify-between p-6 md:sticky md:top-0 md:h-screen shadow-sm z-10">
+    <div className="flex h-screen bg-background font-sans overflow-hidden">
+      {/* Ocean Blue Sidebar */}
+      <aside className="w-64 bg-gradient-to-b from-[#003d6b] via-[#005fa4] to-[#002d50] text-white flex flex-col justify-between p-6 shrink-0 shadow-2xl relative z-20">
         <div className="space-y-8">
-          {/* Logo */}
-          <div className="flex flex-col items-start leading-none group">
-            <span className="text-[22px] font-bold text-[#005fa4] tracking-tight">
+          {/* Logo Header */}
+          <div className="flex flex-col items-start leading-none group pt-1">
+            <span className="text-[24px] font-extrabold text-white tracking-tight flex items-center">
               smart<span className="text-[#FFD700]">coop</span>
             </span>
-            <span className="text-[8px] font-medium text-[#005fa4]/70 tracking-[0.2em] uppercase mt-1">
-              founder panel
+            <span className="text-[8.5px] font-bold text-blue-200/80 tracking-[0.22em] uppercase mt-1">
+              FOUNDER PANEL
             </span>
           </div>
 
-          {/* Navigation */}
-          <nav className="space-y-1">
+          {/* Navigation Menu */}
+          <nav className="space-y-2">
             <button 
               onClick={() => setActiveTab("overview")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${activeTab === "overview" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"}`}
+              className={`group w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm border-l-4 transition-all duration-200 cursor-pointer ${
+                activeTab === "overview" 
+                  ? "bg-white/15 backdrop-blur-md text-white font-bold border-[#FFD700] shadow-md shadow-black/10" 
+                  : "border-transparent text-blue-100/75 hover:bg-white/10 hover:text-white font-semibold"
+              }`}
             >
-              <LayoutDashboard className="h-4 w-4" /> Workspace Overview
+              <div className="flex items-center gap-2.5 min-w-0">
+                <LayoutDashboard className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "overview" ? "text-[#FFD700]" : "text-blue-200/60 group-hover:text-white"}`} />
+                <span className="whitespace-nowrap truncate">Workspace Overview</span>
+              </div>
+              {activeTab === "overview" && <div className="h-1.5 w-1.5 rounded-full bg-[#FFD700] shadow-2xs shrink-0 ml-1" />}
             </button>
+
             <button 
               onClick={() => setActiveTab("projections")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${activeTab === "projections" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"}`}
+              className={`group w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm border-l-4 transition-all duration-200 cursor-pointer ${
+                activeTab === "projections" 
+                  ? "bg-white/15 backdrop-blur-md text-white font-bold border-[#FFD700] shadow-md shadow-black/10" 
+                  : "border-transparent text-blue-100/75 hover:bg-white/10 hover:text-white font-semibold"
+              }`}
             >
-              <LineChartIcon className="h-4 w-4" /> Proyeksi Keuangan
+              <div className="flex items-center gap-2.5 min-w-0">
+                <LineChartIcon className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "projections" ? "text-[#FFD700]" : "text-blue-200/60 group-hover:text-white"}`} />
+                <span className="whitespace-nowrap truncate">Proyeksi Keuangan</span>
+              </div>
+              {activeTab === "projections" && <div className="h-1.5 w-1.5 rounded-full bg-[#FFD700] shadow-2xs shrink-0 ml-1" />}
             </button>
-            <button 
-              onClick={() => { setActiveTab("overview"); setTimeout(() => window.location.hash = "scenarios", 100); }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors text-muted-foreground hover:bg-muted/50 hover:text-foreground`}
-            >
-              <Sparkles className="h-4 w-4" /> Skenario Bisnis
-            </button>
+
             <button 
               onClick={() => setActiveTab("team")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${activeTab === "team" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"}`}
+              className={`group w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm border-l-4 transition-all duration-200 cursor-pointer ${
+                activeTab === "team" 
+                  ? "bg-white/15 backdrop-blur-md text-white font-bold border-[#FFD700] shadow-md shadow-black/10" 
+                  : "border-transparent text-blue-100/75 hover:bg-white/10 hover:text-white font-semibold"
+              }`}
             >
-              <Users className="h-4 w-4" /> Manajemen Tim
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Users className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "team" ? "text-[#FFD700]" : "text-blue-200/60 group-hover:text-white"}`} />
+                <span className="whitespace-nowrap truncate">Manajemen Tim</span>
+              </div>
+              {activeTab === "team" && <div className="h-1.5 w-1.5 rounded-full bg-[#FFD700] shadow-2xs shrink-0 ml-1" />}
             </button>
           </nav>
         </div>
 
         {/* Profile Info & Logout */}
-        <div className="mt-8 pt-6 border-t border-border space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
-              {userData?.name?.charAt(0).toUpperCase()}
+        <div className="mt-8 pt-6 border-t border-white/15 space-y-4">
+          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/10 border border-white/15 backdrop-blur-sm">
+            <div className="h-10 w-10 rounded-xl bg-[#FFD700] text-[#003d6b] flex items-center justify-center font-extrabold text-sm shadow-md shrink-0">
+              {userData?.name?.charAt(0).toUpperCase() || "F"}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold truncate">{userData?.name}</p>
-              <p className="text-xs text-muted-foreground capitalize">Founder (Owner)</p>
+              <p className="text-xs font-bold text-white truncate">{userData?.name}</p>
+              <p className="text-[10px] font-bold text-[#FFD700] capitalize flex items-center gap-1 mt-0.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#FFD700]" /> Founder (Owner)
+              </p>
             </div>
           </div>
+
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-destructive/20 text-destructive hover:bg-destructive/5 rounded-lg text-sm font-semibold transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold rounded-xl text-xs shadow-md shadow-black/20 transition-all duration-200 cursor-pointer border-none"
           >
-            <LogOut className="h-4 w-4" /> Keluar
+            <LogOut className="h-4 w-4 text-white" /> 
+            <span>Keluar</span>
           </button>
         </div>
       </aside>
@@ -352,573 +451,56 @@ export default function FounderDashboard({ userData, handleLogout }) {
           )}
         </header>
 
-        {activeTab === "projections" && (
-          <section id="projections" className="space-y-6">
-            {loadingProjections ? (
-              <div className="flex justify-center p-12">
-                <div className="h-8 w-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-              </div>
-            ) : projectionData && projectionData.length > 0 ? (
-              <div className="overflow-x-auto">
-                <ProjectionModelTab data={projectionData} formatRupiah={formatRupiah} valuation={valuation} />
-              </div>
-            ) : (
-              <div className="text-center p-12 text-muted-foreground bg-card border border-border rounded-2xl">
-                Data asumsi belum tersedia. Silakan hubungi tim CFO untuk mengatur asumsi finansial.
-              </div>
-            )}
-          </section>
+        {activeTab === "overview" && (
+          <FounderOverviewTab
+            activeScenario={activeScenario}
+            setActiveScenario={setActiveScenario}
+            data2029={data2029}
+            valuation={valuation}
+            activeExitVal={activeExitVal}
+            activeMOIC={activeMOIC}
+            activeIRR={activeIRR}
+            chartMetric={chartMetric}
+            setChartMetric={setChartMetric}
+            chartData={chartData}
+            projectionData={projectionData}
+            hoveredYear={hoveredYear}
+            setHoveredYear={setHoveredYear}
+            getColHighlightClass={getColHighlightClass}
+          />
         )}
 
-        {activeTab === "overview" && (
-          <>
-            {/* Scenario Selector Banner */}
-            <section id="scenarios" className="bg-card border border-border rounded-2xl p-6 space-y-6 shadow-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-4">
-                <div>
-                  <h2 className="text-lg font-bold flex items-center gap-2 text-slate-800">
-                    <Sparkles className="h-5 w-5 text-[#f28c1f]" /> Simulasi Skenario Bisnis
-                  </h2>
-                  <p className="text-xs text-muted-foreground">Pilih skenario aktif untuk memicu re-kalkulasi instan pada KPI dan proyeksi finansial.</p>
-                </div>
-                <div className="flex gap-2 bg-background p-1 border border-border rounded-xl">
-                  <button 
-                    onClick={() => setActiveScenario("base")}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeScenario === "base" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    Base Case
-                  </button>
-                  <button 
-                    onClick={() => setActiveScenario("optimistic")}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeScenario === "optimistic" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    Optimistic Case
-                  </button>
-                  <button 
-                    onClick={() => setActiveScenario("pessimistic")}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeScenario === "pessimistic" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    Pessimistic Case
-                  </button>
-                </div>
-              </div>
-
-              {/* KPI Cards Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Card 1: 2029 Revenue */}
-                <div className="bg-background p-5 rounded-xl border border-border space-y-1.5 shadow-sm hover:shadow-md transition-all">
-                  <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <Coins className="h-4 w-4 text-emerald-600" /> Proyeksi Revenue (2029)
-                  </span>
-                  <h3 className="text-xl font-extrabold text-slate-800">{formatRupiah(data2029.totalRevenue || 0)}</h3>
-                  <p className="text-[10px] text-muted-foreground">Target pendapatan di akhir tahun ke-5</p>
-                </div>
-
-                {/* Card 2: 2029 ARR */}
-                <div className="bg-background p-5 rounded-xl border border-border space-y-1.5 shadow-sm hover:shadow-md transition-all">
-                  <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <Activity className="h-4 w-4 text-indigo-600" /> Proyeksi ARR (2029)
-                  </span>
-                  <h3 className="text-xl font-extrabold text-slate-800">{formatRupiah(data2029.arr || 0)}</h3>
-                  <p className="text-[10px] text-muted-foreground">Annual Recurring Revenue tahun ke-5</p>
-                </div>
-
-                {/* Card 3: 2029 EBITDA */}
-                <div className="bg-background p-5 rounded-xl border border-border space-y-1.5 shadow-sm hover:shadow-md transition-all">
-                  <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <Calculator className="h-4 w-4 text-amber-600" /> EBITDA Proyeksi (2029)
-                  </span>
-                  <h3 className={`text-xl font-extrabold ${(data2029.ebitda || 0) >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                    {formatRupiah(data2029.ebitda || 0)}
-                  </h3>
-                  <p className="text-[10px] text-muted-foreground">Operasional profitabilitas tahun ke-5</p>
-                </div>
-
-                {/* Card 4: 2029 Active Coops */}
-                <div className="bg-background p-5 rounded-xl border border-border space-y-1.5 shadow-sm hover:shadow-md transition-all">
-                  <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <Users className="h-4 w-4 text-primary" /> Koperasi Aktif (2029)
-                  </span>
-                  <h3 className="text-xl font-extrabold text-slate-800">
-                    {new Intl.NumberFormat('id-ID').format(data2029.endingCoops || 0)} Unit
-                  </h3>
-                  <p className="text-[10px] text-muted-foreground">Target jumlah koperasi terlayani</p>
-                </div>
-
-                {/* Card 5: Seed Equity % */}
-                <div className="bg-background p-5 rounded-xl border border-border space-y-1.5 shadow-sm hover:shadow-md transition-all">
-                  <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <ShieldAlert className="h-4 w-4 text-indigo-500" /> Porsi Kepemilikan Investor
-                  </span>
-                  <h3 className="text-xl font-extrabold text-slate-800">
-                    {(valuation.dynamicInvestorEquityFrac * 100).toFixed(1)}%
-                  </h3>
-                  <p className="text-[10px] text-muted-foreground">Porsi saham investor pasca-funding Seed</p>
-                </div>
-
-                {/* Card 6: Exit Valuation */}
-                <div className="bg-background p-5 rounded-xl border border-border space-y-1.5 shadow-sm hover:shadow-md transition-all">
-                  <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <TrendingUp className="h-4 w-4 text-primary" /> Estimasi Exit Valuation
-                  </span>
-                  <h3 className="text-xl font-extrabold text-primary">
-                    {formatRupiah(activeExitVal)}
-                  </h3>
-                  <p className="text-[10px] text-muted-foreground">Valuasi keluar perusahaan (2029)</p>
-                </div>
-
-                {/* Card 7: MOIC */}
-                <div className="bg-background p-5 rounded-xl border border-border space-y-1.5 shadow-sm hover:shadow-md transition-all">
-                  <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <Award className="h-4 w-4 text-amber-500" /> Proyeksi MOIC Investor
-                  </span>
-                  <h3 className="text-xl font-extrabold text-slate-800">
-                    {activeMOIC.toFixed(2)}x
-                  </h3>
-                  <p className="text-[10px] text-muted-foreground">Multiple on Invested Capital</p>
-                </div>
-
-                {/* Card 8: IRR */}
-                <div className="bg-background p-5 rounded-xl border border-border space-y-1.5 shadow-sm hover:shadow-md transition-all">
-                  <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="h-4 w-4 text-indigo-500" /> Proyeksi IRR Investor
-                  </span>
-                  <h3 className="text-xl font-extrabold text-slate-800">
-                    {(activeIRR * 100).toFixed(1)}%
-                  </h3>
-                  <p className="text-[10px] text-muted-foreground">Internal Rate of Return (5 Tahun)</p>
-                </div>
-              </div>
-            </section>
-
-            {/* Interactive Trend Chart Card */}
-            <div className="bg-card border border-border rounded-2xl p-6 space-y-6 shadow-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-4">
-                <div>
-                  <h3 className="text-base font-bold flex items-center gap-2 text-slate-800">
-                    <TrendingUp className="h-5 w-5 text-primary" /> Grafik Tren Proyeksi Finansial
-                  </h3>
-                  <p className="text-xs text-muted-foreground">Visualisasi pertumbuhan indikator finansial utama berdasarkan skenario terpilih.</p>
-                </div>
-                
-                {/* Metric Selector Tabs */}
-                <div className="flex flex-wrap gap-2 bg-background p-1 border border-border rounded-xl">
-                  <button
-                    onClick={() => setChartMetric("revenue")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${chartMetric === "revenue" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    Revenue & ARR
-                  </button>
-                  <button
-                    onClick={() => setChartMetric("ebitda")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${chartMetric === "ebitda" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    EBITDA
-                  </button>
-                  <button
-                    onClick={() => setChartMetric("cash")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${chartMetric === "cash" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    Ending Cash
-                  </button>
-                  <button
-                    onClick={() => setChartMetric("coops")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${chartMetric === "coops" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    Koperasi Aktif
-                  </button>
-                </div>
-              </div>
-
-              <div className="h-72 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="colorARR" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="colorEBITDA" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="colorCash" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="colorCoops" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" opacity={0.3} />
-                    <XAxis dataKey="year" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis 
-                      stroke="#94a3b8" 
-                      fontSize={11} 
-                      tickLine={false} 
-                      axisLine={false} 
-                      tickFormatter={(value) => chartMetric === "coops" ? `${value} Unit` : `Rp ${value}B`}
-                    />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: "white", borderRadius: "12px", border: "1px solid #e2e8f0" }}
-                      formatter={(value, name) => {
-                        if (name === "Koperasi Aktif") return [`${value} Unit`, name];
-                        return [`Rp ${value} Miliar`, name];
-                      }}
-                    />
-                    <Legend verticalAlign="top" height={36} iconType="circle" />
-                    
-                    {chartMetric === "revenue" && (
-                      <>
-                        <Area type="monotone" dataKey="revenueB" name="Total Revenue" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRevenue)" />
-                        <Area type="monotone" dataKey="arrB" name="ARR" stroke="#6366f1" strokeWidth={2.5} fillOpacity={1} fill="url(#colorARR)" />
-                      </>
-                    )}
-                    {chartMetric === "ebitda" && (
-                      <Area type="monotone" dataKey="ebitdaB" name="EBITDA" stroke="#f59e0b" strokeWidth={2.5} fillOpacity={1} fill="url(#colorEBITDA)" />
-                    )}
-                    {chartMetric === "cash" && (
-                      <Area type="monotone" dataKey="endingCashB" name="Ending Cash" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCash)" />
-                    )}
-                    {chartMetric === "coops" && (
-                      <Area type="monotone" dataKey="endingCoops" name="Koperasi Aktif" stroke="#4f46e5" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCoops)" />
-                    )}
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Metric / Driver Table */}
-            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
-              <div className="p-4 border-b border-border bg-muted/10">
-                <h3 className="text-base font-bold flex items-center gap-2 text-slate-800">
-                  <Wallet className="h-5 w-5 text-primary" /> Ringkasan Proyeksi & Driver Finansial (Rp)
-                </h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead className="text-[10px] uppercase bg-muted/30 text-muted-foreground border-b border-border">
-                    <tr>
-                      <th className="px-5 py-3.5 font-bold">Metric / Driver</th>
-                      {projectionData.map((col) => (
-                        <th 
-                          key={col.year} 
-                          className={`px-5 py-3.5 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
-                          onMouseEnter={() => setHoveredYear(col.year)}
-                          onMouseLeave={() => setHoveredYear(null)}
-                        >
-                          {col.year}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {/* Active Cooperatives */}
-                    <tr className="hover:bg-muted/10 transition-colors">
-                      <td className="px-5 py-2.5 font-medium text-slate-700">Active Cooperatives</td>
-                      {projectionData.map((c) => (
-                        <td 
-                          key={c.year} 
-                          className={`px-5 py-2.5 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                          onMouseEnter={() => setHoveredYear(c.year)}
-                          onMouseLeave={() => setHoveredYear(null)}
-                        >
-                          {new Intl.NumberFormat('id-ID').format(c.endingCoops)}
-                        </td>
-                      ))}
-                    </tr>
-                    
-                    {/* Members */}
-                    <tr className="hover:bg-muted/10 transition-colors">
-                      <td className="px-5 py-2.5 text-muted-foreground pl-8">Cooperative Members</td>
-                      {projectionData.map((c) => (
-                        <td 
-                          key={c.year} 
-                          className={`px-5 py-2.5 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                          onMouseEnter={() => setHoveredYear(c.year)}
-                          onMouseLeave={() => setHoveredYear(null)}
-                        >
-                          {new Intl.NumberFormat('id-ID').format(c.totalMembers)}
-                        </td>
-                      ))}
-                    </tr>
-
-                    {/* Revenue */}
-                    <tr className="hover:bg-muted/10 transition-colors bg-emerald-50/10">
-                      <td className="px-5 py-2.5 font-semibold text-emerald-700">Revenue</td>
-                      {projectionData.map((c) => (
-                        <td 
-                          key={c.year} 
-                          className={`px-5 py-2.5 text-right font-mono font-semibold text-emerald-700 transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                          onMouseEnter={() => setHoveredYear(c.year)}
-                          onMouseLeave={() => setHoveredYear(null)}
-                        >
-                          {formatRupiah(c.totalRevenue)}
-                        </td>
-                      ))}
-                    </tr>
-
-                    {/* ARR */}
-                    <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                      <td className="px-5 py-2.5 pl-8">ARR</td>
-                      {projectionData.map((c) => (
-                        <td 
-                          key={c.year} 
-                          className={`px-5 py-2.5 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                          onMouseEnter={() => setHoveredYear(c.year)}
-                          onMouseLeave={() => setHoveredYear(null)}
-                        >
-                          {formatRupiah(c.arr)}
-                        </td>
-                      ))}
-                    </tr>
-
-                    {/* Gross Margin */}
-                    <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                      <td className="px-5 py-2.5 pl-8">Gross Margin %</td>
-                      {projectionData.map((c) => (
-                        <td 
-                          key={c.year} 
-                          className={`px-5 py-2.5 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                          onMouseEnter={() => setHoveredYear(c.year)}
-                          onMouseLeave={() => setHoveredYear(null)}
-                        >
-                          {c.grossMargin.toFixed(1)}%
-                        </td>
-                      ))}
-                    </tr>
-
-                    {/* EBITDA */}
-                    <tr className="hover:bg-muted/10 transition-colors bg-amber-50/10">
-                      <td className="px-5 py-2.5 font-semibold text-amber-700">EBITDA</td>
-                      {projectionData.map((c) => (
-                        <td 
-                          key={c.year} 
-                          className={`px-5 py-2.5 text-right font-mono font-semibold transition-colors duration-150 ${getColHighlightClass(c.year)} ${c.ebitda >= 0 ? 'text-green-600' : 'text-red-500'}`}
-                          onMouseEnter={() => setHoveredYear(c.year)}
-                          onMouseLeave={() => setHoveredYear(null)}
-                        >
-                          {formatRupiah(c.ebitda)}
-                        </td>
-                      ))}
-                    </tr>
-
-                    {/* EBITDA Margin */}
-                    <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                      <td className="px-5 py-2.5 pl-8">EBITDA Margin %</td>
-                      {projectionData.map((c) => (
-                        <td 
-                          key={c.year} 
-                          className={`px-5 py-2.5 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                          onMouseEnter={() => setHoveredYear(c.year)}
-                          onMouseLeave={() => setHoveredYear(null)}
-                        >
-                          {c.ebitdaMargin.toFixed(1)}%
-                        </td>
-                      ))}
-                    </tr>
-
-                    {/* Ending Cash */}
-                    <tr className="hover:bg-muted/10 transition-colors font-medium bg-blue-50/5">
-                      <td className="px-5 py-2.5 font-semibold text-blue-700">Ending Cash</td>
-                      {projectionData.map((c) => (
-                        <td 
-                          key={c.year} 
-                          className={`px-5 py-2.5 text-right font-mono font-semibold text-blue-700 transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                          onMouseEnter={() => setHoveredYear(c.year)}
-                          onMouseLeave={() => setHoveredYear(null)}
-                        >
-                          {formatRupiah(c.endingCash)}
-                        </td>
-                      ))}
-                    </tr>
-
-                    {/* Cash Runway */}
-                    <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                      <td className="px-5 py-2.5 pl-8 font-semibold">Runway (Months)</td>
-                      {projectionData.map((c) => (
-                        <td 
-                          key={c.year} 
-                          className={`px-5 py-2.5 text-right transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                          onMouseEnter={() => setHoveredYear(c.year)}
-                          onMouseLeave={() => setHoveredYear(null)}
-                        >
-                          {c.ebitda >= 0 ? (
-                            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-green-100 text-green-800">
-                              Profitable
-                            </span>
-                          ) : (
-                            <span className="font-bold text-slate-700 font-mono">
-                              {c.runwayMonths ? (c.runwayMonths % 1 === 0 ? c.runwayMonths.toFixed(0) : c.runwayMonths.toFixed(1)) : '0'} Bulan
-                            </span>
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </>
+        {activeTab === "projections" && (
+          <FounderProjectionsTab
+            loadingProjections={loadingProjections}
+            projectionData={projectionData}
+            formatRupiah={formatRupiah}
+            valuation={valuation}
+          />
         )}
 
         {activeTab === "team" && (
-          <div className="space-y-8">
-            {/* Team Grid (Invite widget + Company Status) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Invite Widget */}
-          <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6" style={{ boxShadow: "var(--shadow-card)" }}>
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-                <UserPlus className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold">Undang Kolaborator Tim</h2>
-                <p className="text-xs text-muted-foreground">Berikan akses workspace perusahaan Anda ke CFO atau Investor Viewer.</p>
-              </div>
-            </div>
-
-            <form onSubmit={handleInviteSubmit} className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase">Email Tujuan</label>
-                <input 
-                  type="email" 
-                  required 
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder="cfo@perusahaan.com"
-                  className="w-full mt-1.5 px-4 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase">Role Hak Akses</label>
-                <select 
-                  required
-                  value={inviteRole}
-                  onChange={(e) => setInviteRole(e.target.value)}
-                  className="w-full mt-1.5 px-4 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-                >
-                  <option value="">-- Pilih Akses Peran --</option>
-                  <option value="3">Finance / CFO (Akses Penuh Edit Drivers)</option>
-                  <option value="4">Investor Viewer (Hanya Baca Proyeksi)</option>
-                </select>
-              </div>
-
-              <button 
-                type="submit"
-                disabled={inviting}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-semibold rounded-lg text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
-              >
-                {inviting ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 animate-spin" /> Mengirim Undangan...
-                  </>
-                ) : (
-                  "Kirim Link Undangan"
-                )}
-              </button>
-            </form>
-          </section>
-
-          {/* Company Workspace Status */}
-          <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6" style={{ boxShadow: "var(--shadow-card)" }}>
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-                <Database className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold">Informasi Perusahaan</h2>
-                <p className="text-xs text-muted-foreground">Detail registrasi entitas hukum dan status driver-based engine.</p>
-              </div>
-            </div>
-
-            <div className="space-y-4 divide-y divide-border">
-              <div className="flex justify-between items-center py-2 text-sm">
-                <span className="text-muted-foreground">Nama Entitas</span>
-                <span className="font-semibold">{primaryCompany?.name}</span>
-              </div>
-              <div className="flex justify-between items-center py-2.5 text-sm">
-                <span className="text-muted-foreground">Akses Database ID</span>
-                <code className="px-2 py-0.5 bg-muted border border-border rounded text-xs">#{primaryCompany?.id}</code>
-              </div>
-              <div className="flex justify-between items-center py-2.5 text-sm">
-                <span className="text-muted-foreground">Status Engine</span>
-                <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-500">
-                  <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span> Auto-Recalculating
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-2.5 text-sm">
-                <span className="text-muted-foreground">Hak Akses Anda</span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 border border-primary/20 rounded text-xs font-semibold text-primary">
-                  <Shield className="h-3 w-3" /> Owner / Founder
-                </span>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        {/* Team Members List */}
-        <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6" style={{ boxShadow: "var(--shadow-card)" }}>
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-              <Users className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold">Daftar Anggota Tim</h2>
-              <p className="text-xs text-muted-foreground">Kelola pengguna yang memiliki akses ke workspace perusahaan Anda.</p>
-            </div>
-          </div>
-          
-          {loadingMembers ? (
-             <div className="flex justify-center p-8">
-               <div className="h-6 w-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-             </div>
-          ) : members.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
-                  <tr>
-                    <th className="px-4 py-3 font-semibold">Nama</th>
-                    <th className="px-4 py-3 font-semibold">Email</th>
-                    <th className="px-4 py-3 font-semibold">Role</th>
-                    <th className="px-4 py-3 font-semibold text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {members.map(member => (
-                    <tr key={member.id} className="hover:bg-muted/10 transition-colors">
-                      <td className="px-4 py-3 font-medium">{member.name}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{member.email}</td>
-                      <td className="px-4 py-3 capitalize">{member.role?.name || "N/A"}</td>
-                      <td className="px-4 py-3 text-right">
-                        {member.id !== userData?.id && member.role?.name !== 'founder' ? (
-                          <button 
-                            onClick={() => handleRemoveMember(member.id)}
-                            className="p-1.5 text-destructive hover:bg-destructive/10 rounded transition-colors"
-                            title="Hapus Akses"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        ) : (
-                          <span className="text-xs text-muted-foreground italic">Owner</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center p-4 border border-dashed rounded-lg">Belum ada anggota tim lain di perusahaan ini.</p>
-          )}
-        </section>
-          </div>
+          <FounderTeamTab
+            members={members}
+            pendingInvitations={pendingInvitations}
+            maxSeats={maxSeats}
+            inviteEmail={inviteEmail}
+            setInviteEmail={setInviteEmail}
+            inviteRole={inviteRole}
+            setInviteRole={setInviteRole}
+            inviting={inviting}
+            handleInviteSubmit={handleInviteSubmit}
+            primaryCompany={primaryCompany}
+            loadingMembers={loadingMembers}
+            setMemberToDelete={setMemberToDelete}
+            userData={userData}
+            loadingInvitations={loadingInvitations}
+            handleResendInvitation={handleResendInvitation}
+            handleCancelInvitation={handleCancelInvitation}
+            memberToDelete={memberToDelete}
+            deletingMember={deletingMember}
+            confirmRemoveMember={confirmRemoveMember}
+          />
         )}
       </main>
     </div>

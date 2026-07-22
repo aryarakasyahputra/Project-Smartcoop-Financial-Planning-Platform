@@ -105,60 +105,93 @@ export default function InvestorDashboard({ userData, handleLogout }) {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row md:h-screen md:overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-card border-b md:border-b-0 md:border-r border-border flex flex-col justify-between p-6 md:sticky md:top-0 md:h-screen shadow-sm z-10">
+      {/* Sidebar - Smartcoop Brand Blue Theme */}
+      <aside className="w-full md:w-64 bg-gradient-to-b from-[#003d6b] via-[#005fa4] to-[#002d50] text-white border-b md:border-b-0 md:border-r border-blue-900/40 flex flex-col justify-between p-6 md:sticky md:top-0 md:h-screen shadow-xl z-10 relative overflow-hidden">
         <div className="space-y-8">
           {/* Logo */}
-          <div className="flex flex-col leading-none">
-            <span className="text-2xl font-bold text-primary">smart<span className="text-[#f28c1f]">coop</span></span>
-            <span className="text-[10px] font-medium text-emerald-500 tracking-[0.2em] uppercase ml-0.5 mt-1">investor panel</span>
+          <div className="flex flex-col items-start leading-none group pt-1">
+            <span className="text-[24px] font-extrabold text-white tracking-tight flex items-center">
+              smart<span className="text-[#FFD700]">coop</span>
+            </span>
+            <span className="text-[8.5px] font-bold text-blue-200/80 tracking-[0.22em] uppercase mt-1">
+              INVESTOR PANEL
+            </span>
           </div>
 
           {/* Navigation */}
-          <nav className="space-y-1">
+          <nav className="space-y-1.5">
             <button 
               onClick={() => setActiveTab("overview")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${activeTab === "overview" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"}`}
+              className={`group w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm border-l-4 transition-all duration-200 cursor-pointer ${
+                activeTab === "overview" 
+                  ? "bg-white/15 backdrop-blur-md text-white font-bold border-[#FFD700] shadow-md shadow-black/10" 
+                  : "border-transparent text-blue-100/75 hover:bg-white/10 hover:text-white font-semibold"
+              }`}
             >
-              <LayoutDashboard className="h-4 w-4" /> Portfolio Review
+              <div className="flex items-center gap-2.5 min-w-0">
+                <LayoutDashboard className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "overview" ? "text-[#FFD700]" : "text-blue-200/60 group-hover:text-white"}`} />
+                <span className="whitespace-nowrap truncate">Portfolio Review</span>
+              </div>
+              {activeTab === "overview" && <div className="h-1.5 w-1.5 rounded-full bg-[#FFD700] shadow-2xs shrink-0 ml-1" />}
             </button>
+
             <button 
               onClick={() => setActiveTab("projections")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${activeTab === "projections" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"}`}
+              className={`group w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm border-l-4 transition-all duration-200 cursor-pointer ${
+                activeTab === "projections" 
+                  ? "bg-white/15 backdrop-blur-md text-white font-bold border-[#FFD700] shadow-md shadow-black/10" 
+                  : "border-transparent text-blue-100/75 hover:bg-white/10 hover:text-white font-semibold"
+              }`}
             >
-              <LineChart className="h-4 w-4" /> Model Proyeksi Keuangan
+              <div className="flex items-center gap-2.5 min-w-0">
+                <LineChart className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "projections" ? "text-[#FFD700]" : "text-blue-200/60 group-hover:text-white"}`} />
+                <span className="whitespace-nowrap truncate">Model Proyeksi Keuangan</span>
+              </div>
+              {activeTab === "projections" && <div className="h-1.5 w-1.5 rounded-full bg-[#FFD700] shadow-2xs shrink-0 ml-1" />}
             </button>
+
             <button 
               onClick={() => { setActiveTab("overview"); setTimeout(() => window.location.hash = "valuations", 100); }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              className="group w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-blue-100/75 hover:bg-white/10 hover:text-white transition-all duration-200 cursor-pointer border-l-4 border-transparent"
             >
-              <Wallet className="h-4 w-4" /> Valuasi & Fundraising
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Wallet className="h-4 w-4 shrink-0 text-blue-200/60 group-hover:text-white" />
+                <span className="whitespace-nowrap truncate">Valuasi & Fundraising</span>
+              </div>
             </button>
+
             <button 
               onClick={() => { setActiveTab("overview"); setTimeout(() => window.location.hash = "downloads", 100); }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              className="group w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-blue-100/75 hover:bg-white/10 hover:text-white transition-all duration-200 cursor-pointer border-l-4 border-transparent"
             >
-              <FileText className="h-4 w-4" /> Dokumen Pelaporan
+              <div className="flex items-center gap-2.5 min-w-0">
+                <FileText className="h-4 w-4 shrink-0 text-blue-200/60 group-hover:text-white" />
+                <span className="whitespace-nowrap truncate">Dokumen Pelaporan</span>
+              </div>
             </button>
           </nav>
         </div>
 
         {/* User Info & Logout */}
-        <div className="mt-8 pt-6 border-t border-border space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold">
-              {userData?.name?.charAt(0).toUpperCase()}
+        <div className="mt-8 pt-6 border-t border-white/15 space-y-4">
+          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/10 border border-white/15 backdrop-blur-sm">
+            <div className="h-10 w-10 rounded-xl bg-[#FFD700] text-[#003d6b] flex items-center justify-center font-extrabold text-sm shadow-md shrink-0">
+              {userData?.name?.charAt(0).toUpperCase() || "I"}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold truncate">{userData?.name}</p>
-              <p className="text-xs text-muted-foreground capitalize">Investor Viewer</p>
+              <p className="text-xs font-bold text-white truncate">{userData?.name}</p>
+              <p className="text-[10px] font-bold text-[#FFD700] capitalize flex items-center gap-1 mt-0.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#FFD700]" /> Investor Viewer
+              </p>
             </div>
           </div>
+
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-destructive/20 text-destructive hover:bg-destructive/5 rounded-lg text-sm font-semibold transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold rounded-xl text-xs shadow-md shadow-black/20 transition-all duration-200 cursor-pointer border-none"
           >
-            <LogOut className="h-4 w-4" /> Keluar
+            <LogOut className="h-4 w-4 text-white" /> 
+            <span>Keluar</span>
           </button>
         </div>
       </aside>
