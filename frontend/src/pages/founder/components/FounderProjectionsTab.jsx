@@ -1,7 +1,10 @@
 import React from "react";
 import ProjectionModelTab from "../../cfo/components/ProjectionModelTab";
+import { useLanguage } from "../../../context/LanguageContext";
 
 export default function FounderProjectionsTab({ loadingProjections, projectionData, formatRupiah, valuation }) {
+  const { language } = useLanguage();
+
   return (
     <section id="projections" className="space-y-6">
       {loadingProjections ? (
@@ -14,7 +17,10 @@ export default function FounderProjectionsTab({ loadingProjections, projectionDa
         </div>
       ) : (
         <div className="text-center p-12 text-muted-foreground bg-card border border-border rounded-2xl">
-          Data asumsi belum tersedia. Silakan hubungi tim CFO untuk mengatur asumsi finansial.
+          {language === "en" 
+            ? "Assumption data is not available yet. Please contact the CFO team to configure financial assumptions."
+            : "Data asumsi belum tersedia. Silakan hubungi tim CFO untuk mengatur asumsi finansial."
+          }
         </div>
       )}
     </section>
