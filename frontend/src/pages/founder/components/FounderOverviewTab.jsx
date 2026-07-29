@@ -7,6 +7,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area
 } from "recharts";
 import { formatRupiah } from "../../cfo/utils/financialModel";
+import { useLanguage } from "../../../context/LanguageContext";
 
 export default function FounderOverviewTab({
   activeScenario,
@@ -24,6 +25,8 @@ export default function FounderOverviewTab({
   setHoveredYear,
   getColHighlightClass
 }) {
+  const { language } = useLanguage();
+
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Scenario Selector Banner - High End Executive Control */}
@@ -38,11 +41,14 @@ export default function FounderOverviewTab({
                 <Sparkles className="h-4 w-4 text-[#005fa4]" />
               </div>
               <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                Simulasi Skenario Bisnis
+                {language === "en" ? "Business Scenario Simulation" : "Simulasi Skenario Bisnis"}
               </h2>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium pl-10">
-              Pilih skenario aktif untuk memicu re-kalkulasi instan pada KPI dan proyeksi finansial.
+              {language === "en" 
+                ? "Select an active scenario to trigger instant recalculation across KPIs and projections."
+                : "Pilih skenario aktif untuk memicu re-kalkulasi instan pada KPI dan proyeksi finansial."
+              }
             </p>
           </div>
 
@@ -57,7 +63,7 @@ export default function FounderOverviewTab({
               }`}
             >
               <ShieldCheck className={`h-3.5 w-3.5 ${activeScenario === "base" ? "text-[#FFD700]" : "text-slate-400"}`} />
-              <span>Base Case</span>
+              <span>{language === "en" ? "Base Case" : "Moderat"}</span>
             </button>
 
             <button 
@@ -69,7 +75,7 @@ export default function FounderOverviewTab({
               }`}
             >
               <TrendingUp className={`h-3.5 w-3.5 ${activeScenario === "optimistic" ? "text-[#FFD700]" : "text-slate-400"}`} />
-              <span>Optimistic Case</span>
+              <span>{language === "en" ? "Optimistic Case" : "Optimis"}</span>
             </button>
 
             <button 
@@ -81,7 +87,7 @@ export default function FounderOverviewTab({
               }`}
             >
               <AlertTriangle className={`h-3.5 w-3.5 ${activeScenario === "pessimistic" ? "text-[#FFD700]" : "text-slate-400"}`} />
-              <span>Pessimistic Case</span>
+              <span>{language === "en" ? "Pessimistic Case" : "Pesimis"}</span>
             </button>
           </div>
         </div>
@@ -92,7 +98,7 @@ export default function FounderOverviewTab({
           <div className="bg-slate-50/50 dark:bg-slate-900/40 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3 shadow-2xs hover:shadow-md hover:border-[#005fa4]/40 transition-all duration-300 relative group">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">
-                Proyeksi Revenue (2029)
+                {language === "en" ? "Projected Revenue (2029)" : "Proyeksi Revenue (2029)"}
               </span>
               <div className="h-8 w-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border border-emerald-200/60 dark:border-emerald-800/60 flex items-center justify-center shrink-0">
                 <Coins className="h-4 w-4" />
@@ -102,7 +108,9 @@ export default function FounderOverviewTab({
               <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
                 {formatRupiah(data2029.totalRevenue || 0)}
               </h3>
-              <p className="text-[11px] text-slate-500 font-medium mt-1">Target pendapatan di akhir tahun ke-5</p>
+              <p className="text-[11px] text-slate-500 font-medium mt-1">
+                {language === "en" ? "Year 5 target revenue" : "Target pendapatan di akhir tahun ke-5"}
+              </p>
             </div>
           </div>
 
@@ -110,7 +118,7 @@ export default function FounderOverviewTab({
           <div className="bg-slate-50/50 dark:bg-slate-900/40 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3 shadow-2xs hover:shadow-md hover:border-[#005fa4]/40 transition-all duration-300 relative group">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">
-                Proyeksi ARR (2029)
+                {language === "en" ? "Projected ARR (2029)" : "Proyeksi ARR (2029)"}
               </span>
               <div className="h-8 w-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 border border-indigo-200/60 dark:border-indigo-800/60 flex items-center justify-center shrink-0">
                 <Activity className="h-4 w-4" />
@@ -120,7 +128,9 @@ export default function FounderOverviewTab({
               <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
                 {formatRupiah(data2029.arr || 0)}
               </h3>
-              <p className="text-[11px] text-slate-500 font-medium mt-1">Annual Recurring Revenue tahun ke-5</p>
+              <p className="text-[11px] text-slate-500 font-medium mt-1">
+                {language === "en" ? "Annual Recurring Revenue in Year 5" : "Annual Recurring Revenue tahun ke-5"}
+              </p>
             </div>
           </div>
 
@@ -128,7 +138,7 @@ export default function FounderOverviewTab({
           <div className="bg-slate-50/50 dark:bg-slate-900/40 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3 shadow-2xs hover:shadow-md hover:border-[#005fa4]/40 transition-all duration-300 relative group">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">
-                EBITDA Proyeksi (2029)
+                {language === "en" ? "Projected EBITDA (2029)" : "EBITDA Proyeksi (2029)"}
               </span>
               <div className={`h-8 w-8 rounded-xl flex items-center justify-center shrink-0 border ${
                 (data2029.ebitda || 0) >= 0 
@@ -143,7 +153,9 @@ export default function FounderOverviewTab({
                 {formatRupiah(data2029.ebitda || 0)}
               </h3>
               <p className="text-[11px] text-slate-500 font-medium mt-1">
-                {(data2029.ebitda || 0) >= 0 ? 'Operasional profitabel' : 'Operasional butuh akselerasi'}
+                {(data2029.ebitda || 0) >= 0 
+                  ? (language === "en" ? "Profitable operations" : "Operasional profitabel") 
+                  : (language === "en" ? "Requires acceleration" : "Operasional butuh akselerasi")}
               </p>
             </div>
           </div>
@@ -152,7 +164,7 @@ export default function FounderOverviewTab({
           <div className="bg-slate-50/50 dark:bg-slate-900/40 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3 shadow-2xs hover:shadow-md hover:border-[#005fa4]/40 transition-all duration-300 relative group">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">
-                Koperasi Aktif (2029)
+                {language === "en" ? "Active Cooperatives (2029)" : "Koperasi Aktif (2029)"}
               </span>
               <div className="h-8 w-8 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#005fa4] dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60 flex items-center justify-center shrink-0">
                 <Users className="h-4 w-4" />
@@ -160,9 +172,11 @@ export default function FounderOverviewTab({
             </div>
             <div>
               <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
-                {new Intl.NumberFormat('id-ID').format(data2029.endingCoops || 0)} <span className="text-sm font-bold text-slate-500">Unit</span>
+                {new Intl.NumberFormat(language === "en" ? "en-US" : "id-ID").format(data2029.endingCoops || 0)} <span className="text-sm font-bold text-slate-500">{language === "en" ? "Units" : "Unit"}</span>
               </h3>
-              <p className="text-[11px] text-slate-500 font-medium mt-1">Target jumlah koperasi terlayani</p>
+              <p className="text-[11px] text-slate-500 font-medium mt-1">
+                {language === "en" ? "Target active cooperatives served" : "Target jumlah koperasi terlayani"}
+              </p>
             </div>
           </div>
 
@@ -170,7 +184,7 @@ export default function FounderOverviewTab({
           <div className="bg-slate-50/50 dark:bg-slate-900/40 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3 shadow-2xs hover:shadow-md hover:border-[#005fa4]/40 transition-all duration-300 relative group">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">
-                Kepemilikan Investor
+                {language === "en" ? "Investor Ownership %" : "Kepemilikan Investor"}
               </span>
               <div className="h-8 w-8 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 border border-purple-200/60 dark:border-purple-800/60 flex items-center justify-center shrink-0">
                 <ShieldAlert className="h-4 w-4" />
@@ -180,7 +194,9 @@ export default function FounderOverviewTab({
               <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
                 {(valuation.dynamicInvestorEquityFrac * 100).toFixed(1)}%
               </h3>
-              <p className="text-[11px] text-slate-500 font-medium mt-1">Porsi saham investor pasca-Seed</p>
+              <p className="text-[11px] text-slate-500 font-medium mt-1">
+                {language === "en" ? "Post-Seed investor equity share" : "Porsi saham investor pasca-Seed"}
+              </p>
             </div>
           </div>
 
@@ -188,7 +204,7 @@ export default function FounderOverviewTab({
           <div className="bg-slate-50/50 dark:bg-slate-900/40 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3 shadow-2xs hover:shadow-md hover:border-[#005fa4]/40 transition-all duration-300 relative group">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">
-                Exit Valuation (2029)
+                {language === "en" ? "Exit Valuation (2029)" : "Valuasi Exit (2029)"}
               </span>
               <div className="h-8 w-8 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#005fa4] dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60 flex items-center justify-center shrink-0">
                 <TrendingUp className="h-4 w-4" />
@@ -198,7 +214,9 @@ export default function FounderOverviewTab({
               <h3 className="text-xl sm:text-2xl font-black text-[#005fa4] dark:text-blue-400 font-mono tracking-tight">
                 {formatRupiah(activeExitVal)}
               </h3>
-              <p className="text-[11px] text-slate-500 font-medium mt-1">Valuasi keluar perusahaan (2029)</p>
+              <p className="text-[11px] text-slate-500 font-medium mt-1">
+                {language === "en" ? "Estimated company exit value (2029)" : "Valuasi keluar perusahaan (2029)"}
+              </p>
             </div>
           </div>
 
@@ -206,7 +224,7 @@ export default function FounderOverviewTab({
           <div className="bg-slate-50/50 dark:bg-slate-900/40 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3 shadow-2xs hover:shadow-md hover:border-[#005fa4]/40 transition-all duration-300 relative group">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">
-                Proyeksi MOIC Investor
+                {language === "en" ? "Projected Investor MOIC" : "Proyeksi MOIC Investor"}
               </span>
               <div className="h-8 w-8 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 border border-amber-200/60 dark:border-amber-800/60 flex items-center justify-center shrink-0">
                 <Award className="h-4 w-4" />
@@ -215,7 +233,7 @@ export default function FounderOverviewTab({
             <div>
               <div className="flex items-baseline gap-2">
                 <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
-                  {activeMOIC > 0 ? `${activeMOIC.toFixed(2)}x` : "Base 5.0x"}
+                  {activeMOIC > 0 ? `${activeMOIC.toFixed(2)}x` : (language === "en" ? "Base 5.0x" : "Moderat 5.0x")}
                 </h3>
                 {activeMOIC === 0 && (
                   <span className="px-2 py-0.5 text-[9px] font-bold bg-blue-50 text-[#005fa4] rounded-md border border-blue-200">
@@ -231,7 +249,7 @@ export default function FounderOverviewTab({
           <div className="bg-slate-50/50 dark:bg-slate-900/40 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3 shadow-2xs hover:shadow-md hover:border-[#005fa4]/40 transition-all duration-300 relative group">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">
-                Proyeksi IRR Investor
+                {language === "en" ? "Projected Investor IRR" : "Proyeksi IRR Investor"}
               </span>
               <div className="h-8 w-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 border border-indigo-200/60 dark:border-indigo-800/60 flex items-center justify-center shrink-0">
                 <Sparkles className="h-4 w-4" />
@@ -243,7 +261,9 @@ export default function FounderOverviewTab({
                   {activeIRR > 0 ? `${(activeIRR * 100).toFixed(1)}%` : "38.0% Target"}
                 </h3>
               </div>
-              <p className="text-[11px] text-slate-500 font-medium mt-1">Internal Rate of Return (5-Tahun)</p>
+              <p className="text-[11px] text-slate-500 font-medium mt-1">
+                {language === "en" ? "Internal Rate of Return (5-Year)" : "Internal Rate of Return (5-Tahun)"}
+              </p>
             </div>
           </div>
         </div>
@@ -254,10 +274,13 @@ export default function FounderOverviewTab({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
           <div>
             <h3 className="text-base font-extrabold flex items-center gap-2 text-slate-900 dark:text-white">
-              <TrendingUp className="h-5 w-5 text-[#005fa4]" /> Grafik Tren Proyeksi Finansial
+              <TrendingUp className="h-5 w-5 text-[#005fa4]" /> {language === "en" ? "Financial Trend Projection Chart" : "Grafik Tren Proyeksi Finansial"}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-              Visualisasi pertumbuhan indikator finansial utama berdasarkan skenario terpilih.
+              {language === "en" 
+                ? "Visualization of key financial indicator growth based on selected scenario."
+                : "Visualisasi pertumbuhan indikator finansial utama berdasarkan skenario terpilih."
+              }
             </p>
           </div>
           
@@ -285,7 +308,7 @@ export default function FounderOverviewTab({
               onClick={() => setChartMetric("coops")}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${chartMetric === "coops" ? "bg-[#005fa4] text-white shadow-sm" : "text-slate-600 dark:text-slate-400 hover:text-slate-900"}`}
             >
-              Koperasi Aktif
+              {language === "en" ? "Active Coops" : "Koperasi Aktif"}
             </button>
           </div>
         </div>
@@ -327,8 +350,8 @@ export default function FounderOverviewTab({
               <Tooltip 
                 contentStyle={{ backgroundColor: "white", borderRadius: "16px", border: "1px solid #e2e8f0", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)" }}
                 formatter={(value, name) => {
-                  if (name === "Koperasi Aktif") return [`${value} Unit`, name];
-                  return [`Rp ${value} Miliar`, name];
+                  if (name === "Koperasi Aktif" || name === "Active Coops") return [`${value} Unit`, name];
+                  return [language === "en" ? `Rp ${value} Billion` : `Rp ${value} Miliar`, name];
                 }}
               />
               <Legend verticalAlign="top" height={36} iconType="circle" />
@@ -346,7 +369,7 @@ export default function FounderOverviewTab({
                 <Area type="monotone" dataKey="endingCashB" name="Ending Cash" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCash)" />
               )}
               {chartMetric === "coops" && (
-                <Area type="monotone" dataKey="endingCoops" name="Koperasi Aktif" stroke="#4f46e5" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCoops)" />
+                <Area type="monotone" dataKey="endingCoops" name={language === "en" ? "Active Coops" : "Koperasi Aktif"} stroke="#4f46e5" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCoops)" />
               )}
             </AreaChart>
           </ResponsiveContainer>
@@ -357,14 +380,14 @@ export default function FounderOverviewTab({
       <div className="bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
         <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
           <h3 className="text-base font-extrabold flex items-center gap-2 text-slate-900 dark:text-white">
-            <Wallet className="h-5 w-5 text-[#005fa4]" /> Ringkasan Proyeksi & Driver Finansial (Rp)
+            <Wallet className="h-5 w-5 text-[#005fa4]" /> {language === "en" ? "Projection Summary & Financial Drivers (Rp)" : "Ringkasan Proyeksi & Driver Finansial (Rp)"}
           </h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
             <thead className="text-[10px] uppercase bg-slate-50/80 dark:bg-slate-800/50 text-slate-500 border-b border-slate-200 dark:border-slate-800">
               <tr>
-                <th className="px-6 py-4 font-bold">Metric / Driver</th>
+                <th className="px-6 py-4 font-bold">{language === "en" ? "Metric / Driver" : "Metrik / Driver"}</th>
                 {projectionData.map((col) => (
                   <th 
                     key={col.year} 
@@ -380,7 +403,9 @@ export default function FounderOverviewTab({
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {/* Active Cooperatives */}
               <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                <td className="px-6 py-3.5 font-medium text-slate-800 dark:text-slate-200">Active Cooperatives</td>
+                <td className="px-6 py-3.5 font-medium text-slate-800 dark:text-slate-200">
+                  {language === "en" ? "Active Cooperatives" : "Jumlah Koperasi Aktif"}
+                </td>
                 {projectionData.map((c) => (
                   <td 
                     key={c.year} 
@@ -388,14 +413,16 @@ export default function FounderOverviewTab({
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
-                    {new Intl.NumberFormat('id-ID').format(c.endingCoops)}
+                    {new Intl.NumberFormat(language === "en" ? "en-US" : "id-ID").format(c.endingCoops)}
                   </td>
                 ))}
               </tr>
               
               {/* Members */}
               <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                <td className="px-6 py-3.5 text-slate-500 pl-8">Cooperative Members</td>
+                <td className="px-6 py-3.5 text-slate-500 pl-8">
+                  {language === "en" ? "Cooperative Members" : "Total Anggota Koperasi"}
+                </td>
                 {projectionData.map((c) => (
                   <td 
                     key={c.year} 
@@ -403,14 +430,16 @@ export default function FounderOverviewTab({
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
-                    {new Intl.NumberFormat('id-ID').format(c.totalMembers)}
+                    {new Intl.NumberFormat(language === "en" ? "en-US" : "id-ID").format(c.totalMembers)}
                   </td>
                 ))}
               </tr>
 
               {/* Revenue */}
               <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors bg-emerald-50/20 dark:bg-emerald-950/20">
-                <td className="px-6 py-3.5 font-bold text-emerald-700 dark:text-emerald-400">Revenue</td>
+                <td className="px-6 py-3.5 font-bold text-emerald-700 dark:text-emerald-400">
+                  {language === "en" ? "Total Revenue" : "Total Pendapatan"}
+                </td>
                 {projectionData.map((c) => (
                   <td 
                     key={c.year} 
@@ -440,7 +469,9 @@ export default function FounderOverviewTab({
 
               {/* Gross Margin */}
               <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors text-slate-500">
-                <td className="px-6 py-3.5 pl-8">Gross Margin %</td>
+                <td className="px-6 py-3.5 pl-8">
+                  {language === "en" ? "Gross Margin %" : "Margin Laba Kotor (%)"}
+                </td>
                 {projectionData.map((c) => (
                   <td 
                     key={c.year} 
@@ -470,7 +501,9 @@ export default function FounderOverviewTab({
 
               {/* EBITDA Margin */}
               <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors text-slate-500">
-                <td className="px-6 py-3.5 pl-8">EBITDA Margin %</td>
+                <td className="px-6 py-3.5 pl-8">
+                  {language === "en" ? "EBITDA Margin %" : "Margin EBITDA (%)"}
+                </td>
                 {projectionData.map((c) => (
                   <td 
                     key={c.year} 
@@ -485,7 +518,9 @@ export default function FounderOverviewTab({
 
               {/* Ending Cash */}
               <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors font-medium bg-blue-50/20 dark:bg-blue-950/20">
-                <td className="px-6 py-3.5 font-bold text-[#005fa4] dark:text-blue-400">Ending Cash</td>
+                <td className="px-6 py-3.5 font-bold text-[#005fa4] dark:text-blue-400">
+                  {language === "en" ? "Ending Cash Balance" : "Saldo Kas Akhir"}
+                </td>
                 {projectionData.map((c) => (
                   <td 
                     key={c.year} 
@@ -500,7 +535,9 @@ export default function FounderOverviewTab({
 
               {/* Cash Runway */}
               <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors text-slate-500">
-                <td className="px-6 py-3.5 pl-8 font-semibold">Runway (Months)</td>
+                <td className="px-6 py-3.5 pl-8 font-semibold">
+                  {language === "en" ? "Cash Runway (Months)" : "Runway Kas (Bulan)"}
+                </td>
                 {projectionData.map((c) => (
                   <td 
                     key={c.year} 
@@ -510,11 +547,11 @@ export default function FounderOverviewTab({
                   >
                     {c.ebitda >= 0 ? (
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200">
-                        Profitable
+                        {language === "en" ? "Profitable" : "Profitable"}
                       </span>
                     ) : (
                       <span className="font-bold text-slate-700 dark:text-slate-300 font-mono">
-                        {c.runwayMonths ? (c.runwayMonths % 1 === 0 ? c.runwayMonths.toFixed(0) : c.runwayMonths.toFixed(1)) : '0'} Bulan
+                        {c.runwayMonths ? (c.runwayMonths % 1 === 0 ? c.runwayMonths.toFixed(0) : c.runwayMonths.toFixed(1)) : '0'} {language === "en" ? "Months" : "Bulan"}
                       </span>
                     )}
                   </td>

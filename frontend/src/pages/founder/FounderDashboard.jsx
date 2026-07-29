@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { 
   LogOut, Building, LayoutDashboard, LineChart as LineChartIcon, Users, 
-  RefreshCw
+  RefreshCw, Globe
 } from "lucide-react";
 
 import FounderOverviewTab from "./components/FounderOverviewTab";
@@ -11,6 +11,7 @@ import FounderTeamTab from "./components/FounderTeamTab";
 import { toast } from "sonner";
 import { simulateProjections, formatRupiah } from "../cfo/utils/financialModel";
 import { useValuationModel } from "../cfo/utils/valuationHelper";
+import { useLanguage } from "../../context/LanguageContext";
 
 function getScenarioAssumptions(baseAssumptions, scenario) {
   if (scenario === "base") return baseAssumptions;
@@ -55,6 +56,7 @@ function getScenarioAssumptions(baseAssumptions, scenario) {
 }
 
 export default function FounderDashboard({ userData, handleLogout }) {
+  const { language, setLanguage, t } = useLanguage();
   const [activeTab, setActiveTab] = useState("overview");
   const [activeScenario, setActiveScenario] = useState("base");
   const [chartMetric, setChartMetric] = useState("revenue");
@@ -185,8 +187,8 @@ export default function FounderDashboard({ userData, handleLogout }) {
     if (!primaryCompany?.id) return;
     
     if (members.length + pendingInvitations.length >= maxSeats) {
-      toast.error("Batas Lisensi Tim Tercapai!", {
-        description: `Anda telah menggunakan seluruh ${maxSeats} kuota lisensi tim.`
+      toast.error(language === "en" ? "Team License Limit Reached!" : "Batas Lisensi Tim Tercapai!", {
+        description: language === "en" ? `You have used all ${maxSeats} team license seats.` : `Anda telah menggunakan seluruh ${maxSeats} kuota lisensi tim.`
       });
       return;
     }
@@ -208,19 +210,19 @@ export default function FounderDashboard({ userData, handleLogout }) {
       });
       const json = await res.json();
       if (res.ok || json.invitation || json.success) {
-        toast.success("Undangan Berhasil Dikirim!", {
-          description: json.message || `Link undangan telah dikirimkan ke ${inviteEmail}`
+        toast.success(language === "en" ? "Invitation Sent Successfully!" : "Undangan Berhasil Dikirim!", {
+          description: json.message || (language === "en" ? `Invitation link sent to ${inviteEmail}` : `Link undangan telah dikirimkan ke ${inviteEmail}`)
         });
         setInviteEmail("");
         fetchMembersAndInvitations();
       } else {
-        toast.error("Gagal Mengirim Undangan", {
-          description: json.message || "Email sudah diundang atau terjadi kesalahan server."
+        toast.error(language === "en" ? "Failed to Send Invitation" : "Gagal Mengirim Undangan", {
+          description: json.message || (language === "en" ? "Email already invited or server error occurred." : "Email sudah diundang atau terjadi kesalahan server.")
         });
       }
     } catch (err) {
       console.error("Failed to invite:", err);
-      toast.error("Terjadi Kesalahan Server");
+      toast.error(language === "en" ? "Server Error Occurred" : "Terjadi Kesalahan Server");
     } finally {
       setInviting(false);
     }
@@ -239,13 +241,13 @@ export default function FounderDashboard({ userData, handleLogout }) {
       });
       const json = await res.json();
       if (res.ok || json.success) {
-        toast.success("Undangan Dikirim Ulang!", { description: json.message });
+        toast.success(language === "en" ? "Invitation Resent!" : "Undangan Dikirim Ulang!", { description: json.message });
       } else {
-        toast.error("Gagal Mengirim Ulang", { description: json.message });
+        toast.error(language === "en" ? "Failed to Resend" : "Gagal Mengirim Ulang", { description: json.message });
       }
     } catch (err) {
       console.error("Failed to resend invitation:", err);
-      toast.error("Kesalahan koneksi server.");
+      toast.error(language === "en" ? "Server connection error." : "Kesalahan koneksi server.");
     }
   };
 
@@ -262,14 +264,14 @@ export default function FounderDashboard({ userData, handleLogout }) {
       });
       const json = await res.json();
       if (res.ok || json.success) {
-        toast.success("Undangan Dibatalkan!", { description: json.message });
+        toast.success(language === "en" ? "Invitation Cancelled!" : "Undangan Dibatalkan!", { description: json.message });
         fetchMembersAndInvitations();
       } else {
-        toast.error("Gagal Membatalkan", { description: json.message });
+        toast.error(language === "en" ? "Failed to Cancel" : "Gagal Membatalkan", { description: json.message });
       }
     } catch (err) {
       console.error("Failed to cancel invitation:", err);
-      toast.error("Kesalahan koneksi server.");
+      toast.error(language === "en" ? "Server connection error." : "Kesalahan koneksi server.");
     }
   };
 
@@ -288,15 +290,15 @@ export default function FounderDashboard({ userData, handleLogout }) {
       });
       const json = await res.json();
       if (res.ok || json.success) {
-        toast.success("Akses Anggota Dihapus", { description: json.message });
+        toast.success(language === "en" ? "Member Access Removed" : "Akses Anggota Dihapus", { description: json.message });
         setMemberToDelete(null);
         fetchMembersAndInvitations();
       } else {
-        toast.error("Gagal Menghapus Akses", { description: json.message });
+        toast.error(language === "en" ? "Failed to Remove Access" : "Gagal Menghapus Akses", { description: json.message });
       }
     } catch (err) {
       console.error("Failed to delete member:", err);
-      toast.error("Terjadi kesalahan koneksi server.");
+      toast.error(language === "en" ? "Server connection error." : "Terjadi kesalahan koneksi server.");
     } finally {
       setDeletingMember(false);
     }
@@ -368,9 +370,11 @@ export default function FounderDashboard({ userData, handleLogout }) {
                   : "border-transparent text-blue-100/75 hover:bg-white/10 hover:text-white font-semibold"
               }`}
             >
-              <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
                 <LayoutDashboard className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "overview" ? "text-[#FFD700]" : "text-blue-200/60 group-hover:text-white"}`} />
-                <span className="whitespace-nowrap truncate">Workspace Overview</span>
+                <span className="truncate text-xs sm:text-sm">
+                  {language === "en" ? "Workspace Overview" : "Ringkasan Workspace"}
+                </span>
               </div>
               {activeTab === "overview" && <div className="h-1.5 w-1.5 rounded-full bg-[#FFD700] shadow-2xs shrink-0 ml-1" />}
             </button>
@@ -383,9 +387,11 @@ export default function FounderDashboard({ userData, handleLogout }) {
                   : "border-transparent text-blue-100/75 hover:bg-white/10 hover:text-white font-semibold"
               }`}
             >
-              <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
                 <LineChartIcon className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "projections" ? "text-[#FFD700]" : "text-blue-200/60 group-hover:text-white"}`} />
-                <span className="whitespace-nowrap truncate">Proyeksi Keuangan</span>
+                <span className="truncate text-xs sm:text-sm">
+                  {language === "en" ? "Financial Projections" : "Proyeksi Keuangan"}
+                </span>
               </div>
               {activeTab === "projections" && <div className="h-1.5 w-1.5 rounded-full bg-[#FFD700] shadow-2xs shrink-0 ml-1" />}
             </button>
@@ -398,9 +404,11 @@ export default function FounderDashboard({ userData, handleLogout }) {
                   : "border-transparent text-blue-100/75 hover:bg-white/10 hover:text-white font-semibold"
               }`}
             >
-              <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
                 <Users className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "team" ? "text-[#FFD700]" : "text-blue-200/60 group-hover:text-white"}`} />
-                <span className="whitespace-nowrap truncate">Manajemen Tim</span>
+                <span className="truncate text-xs sm:text-sm">
+                  {language === "en" ? "Team Management" : "Manajemen Tim"}
+                </span>
               </div>
               {activeTab === "team" && <div className="h-1.5 w-1.5 rounded-full bg-[#FFD700] shadow-2xs shrink-0 ml-1" />}
             </button>
@@ -426,7 +434,7 @@ export default function FounderDashboard({ userData, handleLogout }) {
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold rounded-xl text-xs shadow-md shadow-black/20 transition-all duration-200 cursor-pointer border-none"
           >
             <LogOut className="h-4 w-4 text-white" /> 
-            <span>Keluar</span>
+            <span>{language === "en" ? "Logout" : "Keluar"}</span>
           </button>
         </div>
       </aside>
@@ -437,18 +445,56 @@ export default function FounderDashboard({ userData, handleLogout }) {
         <header id="overview" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              {activeTab === "overview" ? "Founder Workspace" : activeTab === "projections" ? "Model Proyeksi Keuangan" : "Manajemen Tim"}
+              {activeTab === "overview" 
+                ? (language === "en" ? "Founder Workspace" : "Founder Workspace") 
+                : activeTab === "projections" 
+                  ? (language === "en" ? "Financial Projection Model" : "Model Proyeksi Keuangan") 
+                  : (language === "en" ? "Team Management" : "Manajemen Tim")
+              }
             </h1>
             <p className="text-muted-foreground mt-1">
-              {activeTab === "overview" ? "Kelola perusahaan, skenario pertumbuhan, dan operasional Anda." : activeTab === "projections" ? "Proyeksi laba rugi komprehensif berdasarkan asumsi yang telah diatur oleh tim CFO." : "Kelola anggota tim dan hak akses mereka pada workspace Anda."}
+              {activeTab === "overview" 
+                ? (language === "en" ? "Manage your company, growth scenarios, and operations." : "Kelola perusahaan, skenario pertumbuhan, dan operasional Anda.") 
+                : activeTab === "projections" 
+                  ? (language === "en" ? "Comprehensive P&L projections based on CFO assumptions." : "Proyeksi laba rugi komprehensif berdasarkan asumsi yang telah diatur oleh tim CFO.") 
+                  : (language === "en" ? "Manage team members and their workspace access permissions." : "Kelola anggota tim dan hak akses mereka pada workspace Anda.")
+              }
             </p>
           </div>
-          {primaryCompany && (
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl">
-              <Building className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold text-foreground">{primaryCompany.name}</span>
+          
+          <div className="flex items-center gap-3">
+            {primaryCompany && (
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl shadow-2xs">
+                <Building className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold text-foreground">{primaryCompany.name}</span>
+              </div>
+            )}
+
+            {/* Language Switcher */}
+            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
+              <Globe className="h-4 w-4 text-slate-500 ml-1.5 mr-0.5" />
+              <button
+                onClick={() => setLanguage("id")}
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  language === "id"
+                    ? "bg-white dark:bg-slate-700 text-[#005fa4] dark:text-blue-400 shadow-xs"
+                    : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                }`}
+              >
+                ID
+              </button>
+              <button
+                onClick={() => setLanguage("en")}
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  language === "en"
+                    ? "bg-white dark:bg-slate-700 text-[#005fa4] dark:text-blue-400 shadow-xs"
+                    : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                }`}
+              >
+                EN
+              </button>
             </div>
-          )}
+          </div>
         </header>
 
         {activeTab === "overview" && (

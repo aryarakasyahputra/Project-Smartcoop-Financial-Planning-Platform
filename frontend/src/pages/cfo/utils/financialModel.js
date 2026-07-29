@@ -302,26 +302,34 @@ export const simulateProjections = (assumptionsByYear) => {
   return projections;
 };
 
-export const getAnalystInsights = (data, assumptionsByYear) => {
+export const getAnalystInsights = (data, assumptionsByYear, language = "id") => {
   if (!data || data.length === 0) return { cagr: 0, breakEvenYear: "N/A", ltv: 0, totalEbitda5Y: 0, healthRating: "N/A", healthAdvice: "" };
   
   const rev1 = data[0].totalRevenue;
   const rev5 = data[data.length - 1].totalRevenue;
   const cagr = rev1 > 0 ? (((rev5 / rev1) ** (1 / 4)) - 1) * 100 : 0;
   
-  const breakEvenYear = data.find(row => row.ebitda > 0)?.year || "Belum Tercapai";
+  const rawBreakEven = data.find(row => row.ebitda > 0)?.year;
+  const breakEvenYear = rawBreakEven ? rawBreakEven : (language === "en" ? "Not Reached" : "Belum Tercapai");
   
   const totalEbitda5Y = data.reduce((sum, row) => sum + row.ebitda, 0);
   const avgChurn = data.reduce((sum, row) => sum + (assumptionsByYear[row.year]?.monthly_churn_rate ?? 2.0), 0) / 5;
 
-  let healthRating = "Sangat Sehat";
-  let healthAdvice = "Model finansial menunjukkan pertumbuhan top-line SaaS yang sangat kuat dengan skala ekonomis yang baik pada EBITDA margin di tahun 2029.";
+  let healthRating = language === "en" ? "Very Healthy" : "Sangat Sehat";
+  let healthAdvice = language === "en" 
+    ? "The financial model demonstrates very strong top-line SaaS growth with good economies of scale on EBITDA margin by 2029."
+    : "Model finansial menunjukkan pertumbuhan top-line SaaS yang sangat kuat dengan skala ekonomis yang baik pada EBITDA margin di tahun 2029.";
+  
   if (avgChurn > 2.0) {
-    healthRating = "Peringatan Retensi";
-    healthAdvice = "Rata-rata churn rate tahunan mendekati batas atas. Meningkatkan kualitas onboarding koperasi disarankan untuk menekan churn.";
+    healthRating = language === "en" ? "Retention Warning" : "Peringatan Retensi";
+    healthAdvice = language === "en"
+      ? "Average annual churn rate is near upper limit. Improving cooperative onboarding quality is recommended to lower churn."
+      : "Rata-rata churn rate tahunan mendekati batas atas. Meningkatkan kualitas onboarding koperasi disarankan untuk menekan churn.";
   } else if (totalEbitda5Y < 0) {
-    healthRating = "Defisit EBITDA";
-    healthAdvice = "Defisit EBITDA berlanjut hingga tahun 5. Direkomendasikan untuk meningkatkan ARPU atau menurunkan biaya operasional tetap.";
+    healthRating = language === "en" ? "EBITDA Deficit" : "Defisit EBITDA";
+    healthAdvice = language === "en"
+      ? "EBITDA deficit continues into Year 5. Recommended to increase ARPU or reduce fixed operating expenses."
+      : "Defisit EBITDA berlanjut hingga tahun 5. Direkomendasikan untuk meningkatkan ARPU atau menurunkan biaya operasional tetap.";
   }
 
   return {
