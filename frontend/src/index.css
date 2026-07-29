@@ -82,6 +82,7 @@
   h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
 }
 
+
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
