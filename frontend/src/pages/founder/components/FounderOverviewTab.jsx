@@ -420,7 +420,7 @@ export default function FounderOverviewTab({
               
               {/* Members */}
               <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                <td className="px-6 py-3.5 text-slate-500 pl-8">
+                <td className="px-6 py-3.5 text-slate-600 dark:text-slate-400">
                   {language === "en" ? "Cooperative Members" : "Total Anggota Koperasi"}
                 </td>
                 {projectionData.map((c) => (
@@ -436,14 +436,14 @@ export default function FounderOverviewTab({
               </tr>
 
               {/* Revenue */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors bg-emerald-50/20 dark:bg-emerald-950/20">
-                <td className="px-6 py-3.5 font-bold text-emerald-700 dark:text-emerald-400">
+              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                <td className="px-6 py-3.5 font-bold text-slate-900 dark:text-white">
                   {language === "en" ? "Total Revenue" : "Total Pendapatan"}
                 </td>
                 {projectionData.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3.5 text-right font-mono font-bold text-emerald-700 dark:text-emerald-400 transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-6 py-3.5 text-right font-mono font-bold text-slate-900 dark:text-white transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -453,8 +453,8 @@ export default function FounderOverviewTab({
               </tr>
 
               {/* ARR */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors text-slate-500">
-                <td className="px-6 py-3.5 pl-8">ARR</td>
+              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors text-slate-600 dark:text-slate-400">
+                <td className="px-6 py-3.5">ARR</td>
                 {projectionData.map((c) => (
                   <td 
                     key={c.year} 
@@ -468,8 +468,8 @@ export default function FounderOverviewTab({
               </tr>
 
               {/* Gross Margin */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors text-slate-500">
-                <td className="px-6 py-3.5 pl-8">
+              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors text-slate-600 dark:text-slate-400">
+                <td className="px-6 py-3.5">
                   {language === "en" ? "Gross Margin %" : "Margin Laba Kotor (%)"}
                 </td>
                 {projectionData.map((c) => (
@@ -485,8 +485,8 @@ export default function FounderOverviewTab({
               </tr>
 
               {/* EBITDA */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors bg-amber-50/20 dark:bg-amber-950/20">
-                <td className="px-6 py-3.5 font-bold text-amber-700 dark:text-amber-400">EBITDA</td>
+              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                <td className="px-6 py-3.5 font-bold text-slate-900 dark:text-white">EBITDA</td>
                 {projectionData.map((c) => (
                   <td 
                     key={c.year} 
@@ -500,8 +500,8 @@ export default function FounderOverviewTab({
               </tr>
 
               {/* EBITDA Margin */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors text-slate-500">
-                <td className="px-6 py-3.5 pl-8">
+              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors text-slate-600 dark:text-slate-400">
+                <td className="px-6 py-3.5">
                   {language === "en" ? "EBITDA Margin %" : "Margin EBITDA (%)"}
                 </td>
                 {projectionData.map((c) => (
@@ -517,14 +517,14 @@ export default function FounderOverviewTab({
               </tr>
 
               {/* Ending Cash */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors font-medium bg-blue-50/20 dark:bg-blue-950/20">
-                <td className="px-6 py-3.5 font-bold text-[#005fa4] dark:text-blue-400">
+              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors font-medium">
+                <td className="px-6 py-3.5 font-bold text-slate-900 dark:text-white">
                   {language === "en" ? "Ending Cash Balance" : "Saldo Kas Akhir"}
                 </td>
                 {projectionData.map((c) => (
                   <td 
                     key={c.year} 
-                    className={`px-6 py-3.5 text-right font-mono font-bold text-[#005fa4] dark:text-blue-400 transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    className={`px-6 py-3.5 text-right font-mono font-bold text-slate-900 dark:text-white transition-colors duration-150 ${getColHighlightClass(c.year)}`}
                     onMouseEnter={() => setHoveredYear(c.year)}
                     onMouseLeave={() => setHoveredYear(null)}
                   >
@@ -534,8 +534,8 @@ export default function FounderOverviewTab({
               </tr>
 
               {/* Cash Runway */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors text-slate-500">
-                <td className="px-6 py-3.5 pl-8 font-semibold">
+              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors text-slate-600 dark:text-slate-400">
+                <td className="px-6 py-3.5 font-semibold">
                   {language === "en" ? "Cash Runway (Months)" : "Runway Kas (Bulan)"}
                 </td>
                 {projectionData.map((c) => (

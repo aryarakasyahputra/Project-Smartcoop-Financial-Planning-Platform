@@ -1,9 +1,14 @@
 import React from "react";
 import { createPortal } from "react-dom";
-import { TrendingUp, TrendingDown, Printer, Wallet, Users, Award, ShieldAlert, ChevronRight, ChevronDown, Coins, Activity, Calculator, BarChart3, Layers, Info } from "lucide-react";
+import { TrendingUp, TrendingDown, Printer, Wallet, Users, Award, ShieldAlert, ChevronRight, ChevronDown, Coins, Activity, Calculator, BarChart3, Layers, Info, BarChart2, AreaChart as AreaChartIcon } from "lucide-react";
 import {
   LineChart,
   Line,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  ComposedChart,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -392,6 +397,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
 
   // UI Interactive States
   const [activeChartMetric, setActiveChartMetric] = React.useState("all");
+  const [chartViewMode, setChartViewMode] = React.useState("area");
   const [hoveredYear, setHoveredYear] = React.useState(null);
   const [activeSection, setActiveSection] = React.useState("section-chart");
   const [portalTarget, setPortalTarget] = React.useState(null);
@@ -458,9 +464,6 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
   };
 
   const getColHighlightClass = (year) => {
-    if (hoveredYear === year) {
-      return "bg-primary/10 font-bold text-primary dark:bg-primary/20";
-    }
     return "";
   };
 
@@ -532,74 +535,224 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
         {/* Main Content */}
         <div className="space-y-8 print:m-0 print:p-0 print:space-y-6">
           {/* Chart Section */}
-          <div id="section-chart" className="bg-card border border-border rounded-xl p-6 shadow-sm scroll-mt-24 print:break-inside-avoid print:shadow-none print:border-none print:p-0 print:mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <h3 className="text-lg font-bold flex items-center gap-2 print:text-xl print:text-black">
-                <TrendingUp className="h-5 w-5 text-primary print:text-black" /> {language === "en" ? "5-Year Performance Projections (Millions Rp)" : "Proyeksi Kinerja 5-Tahun (Jutaan Rupiah)"}
-              </h3>
-              <div className="flex flex-wrap gap-1 bg-muted/50 p-1 rounded-lg border border-border print:hidden">
-                <button
-                  onClick={() => setActiveChartMetric("all")}
-                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${activeChartMetric === "all" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+          <div id="section-chart" className="bg-card border border-border rounded-2xl p-6 shadow-sm scroll-mt-24 print:break-inside-avoid print:shadow-none print:border-none print:p-0 print:mb-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+              <div>
+                <h3 className="text-lg font-bold flex items-center gap-2 print:text-xl print:text-black text-slate-800 dark:text-slate-100">
+                  <TrendingUp className="h-5 w-5 text-[#005fa4] print:text-black" />
+                  {language === "en" ? "5-Year Financial Performance Projections" : "Proyeksi Kinerja Keuangan 5-Tahun"}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {language === "en" ? "Interactive visualization of Revenue, Expenses, EBITDA & Cash Balance" : "Visualisasi interaktif Pendapatan, Beban, EBITDA & Saldo Kas"}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 print:hidden">
+                {/* Style Mode Switcher */}
+                <div className="flex items-center bg-muted/60 p-1 rounded-xl border border-border">
+                  <button
+                    onClick={() => setChartViewMode("area")}
+                    title={language === "en" ? "Gradient Area View" : "Tampilan Grafik Area Gradient"}
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all ${
+                      chartViewMode === "area"
+                        ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm border border-slate-200/80 dark:border-slate-700"
+                        : "text-muted-foreground hover:text-foreground"
                     }`}
-                >
-                  {language === "en" ? "All Metrics" : "Semua Metrik"}
-                </button>
-                <button
-                  onClick={() => setActiveChartMetric("revenue")}
-                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${activeChartMetric === "revenue" ? "bg-emerald-600 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  >
+                    <AreaChartIcon className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Area</span>
+                  </button>
+                  <button
+                    onClick={() => setChartViewMode("bar")}
+                    title={language === "en" ? "Bar Chart View" : "Tampilan Grafik Batang (Bar)"}
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all ${
+                      chartViewMode === "bar"
+                        ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm border border-slate-200/80 dark:border-slate-700"
+                        : "text-muted-foreground hover:text-foreground"
                     }`}
-                >
-                  {language === "en" ? "Revenue" : "Pendapatan"}
-                </button>
-                <button
-                  onClick={() => setActiveChartMetric("ebitda")}
-                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${activeChartMetric === "ebitda" ? "bg-amber-500 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  >
+                    <BarChart2 className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Bar</span>
+                  </button>
+                  <button
+                    onClick={() => setChartViewMode("line")}
+                    title={language === "en" ? "Line View" : "Tampilan Grafik Garis"}
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all ${
+                      chartViewMode === "line"
+                        ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm border border-slate-200/80 dark:border-slate-700"
+                        : "text-muted-foreground hover:text-foreground"
                     }`}
-                >
-                  EBITDA
-                </button>
-                <button
-                  onClick={() => setActiveChartMetric("expenses")}
-                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${activeChartMetric === "expenses" ? "bg-red-600 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  >
+                    <Activity className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Line</span>
+                  </button>
+                </div>
+
+                {/* Metric Filters */}
+                <div className="flex flex-wrap gap-1 bg-muted/60 p-1 rounded-xl border border-border">
+                  <button
+                    onClick={() => setActiveChartMetric("all")}
+                    className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
+                      activeChartMetric === "all" ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-sm" : "text-muted-foreground hover:text-foreground"
                     }`}
-                >
-                  {language === "en" ? "Expenses" : "Beban"}
-                </button>
-                <button
-                  onClick={() => setActiveChartMetric("cash")}
-                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${activeChartMetric === "cash" ? "bg-blue-600 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  >
+                    {language === "en" ? "All" : "Semua Metrik"}
+                  </button>
+                  <button
+                    onClick={() => setActiveChartMetric("revenue")}
+                    className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
+                      activeChartMetric === "revenue" ? "bg-emerald-600 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
                     }`}
-                >
-                  Ending Cash
-                </button>
+                  >
+                    {language === "en" ? "Revenue" : "Pendapatan"}
+                  </button>
+                  <button
+                    onClick={() => setActiveChartMetric("ebitda")}
+                    className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
+                      activeChartMetric === "ebitda" ? "bg-amber-500 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    EBITDA
+                  </button>
+                  <button
+                    onClick={() => setActiveChartMetric("expenses")}
+                    className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
+                      activeChartMetric === "expenses" ? "bg-rose-600 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {language === "en" ? "Expenses" : "Beban"}
+                  </button>
+                  <button
+                    onClick={() => setActiveChartMetric("cash")}
+                    className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
+                      activeChartMetric === "cash" ? "bg-blue-600 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Ending Cash
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="h-[400px] w-full">
+
+            <div className="h-[420px] w-full pt-2">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
-                  <XAxis dataKey="name" stroke="#9ca3af" fontSize={12} tickMargin={10} />
-                  <YAxis stroke="#9ca3af" fontSize={12} tickFormatter={(val) => `Rp${val}M`} />
-                  <Tooltip
-                    formatter={(value, name) => [`Rp ${new Intl.NumberFormat("id-ID").format(value)} ${language === "en" ? "Million" : "Juta"}`, name]}
-                    labelStyle={{ color: '#111827', fontWeight: 'bold' }}
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                  {(activeChartMetric === "all" || activeChartMetric === "revenue") && (
-                    <Line type="monotone" dataKey="revenue" name={language === "en" ? "Revenue" : "Pendapatan"} stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                  )}
-                  {(activeChartMetric === "all" || activeChartMetric === "expenses") && (
-                    <Line type="monotone" dataKey="expenses" name={language === "en" ? "Expenses (COGS+OPEX)" : "Beban (COGS+OPEX)"} stroke="#ef4444" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                  )}
-                  {(activeChartMetric === "all" || activeChartMetric === "ebitda") && (
-                    <Line type="monotone" dataKey="ebitdaM" name="EBITDA" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                  )}
-                  {activeChartMetric === "cash" && (
-                    <Line type="monotone" dataKey="endingCashM" name="Ending Cash" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                  )}
-                </LineChart>
+                {(() => {
+                  const formatYAxisVal = (val) => {
+                    if (val === 0) return "Rp 0";
+                    if (Math.abs(val) >= 1000) {
+                      const billions = val / 1000;
+                      return `Rp ${billions % 1 === 0 ? billions : billions.toFixed(1)} M`;
+                    }
+                    return `Rp ${val} Jt`;
+                  };
+
+                  const tooltipFormatter = (value, name) => [
+                    `Rp ${new Intl.NumberFormat("id-ID").format(value * 1000000)}`,
+                    name
+                  ];
+
+                  const commonGradients = (
+                    <defs>
+                      <linearGradient id="colorRevGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.35}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0.0}/>
+                      </linearGradient>
+                      <linearGradient id="colorExpGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.35}/>
+                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.0}/>
+                      </linearGradient>
+                      <linearGradient id="colorEbitdaGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.35}/>
+                        <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0}/>
+                      </linearGradient>
+                      <linearGradient id="colorCashGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.35}/>
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.0}/>
+                      </linearGradient>
+                    </defs>
+                  );
+
+                  if (chartViewMode === "bar") {
+                    return (
+                      <BarChart data={chartData} margin={{ top: 10, right: 30, left: 15, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
+                        <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} />
+                        <YAxis stroke="#64748b" fontSize={11} tickLine={false} tickFormatter={formatYAxisVal} />
+                        <Tooltip
+                          formatter={tooltipFormatter}
+                          contentStyle={{ backgroundColor: "rgba(255, 255, 255, 0.95)", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)" }}
+                        />
+                        <Legend wrapperStyle={{ paddingTop: "15px" }} />
+                        {(activeChartMetric === "all" || activeChartMetric === "revenue") && (
+                          <Bar dataKey="revenue" name={language === "en" ? "Revenue" : "Pendapatan"} fill="#10b981" radius={[6, 6, 0, 0]} />
+                        )}
+                        {(activeChartMetric === "all" || activeChartMetric === "expenses") && (
+                          <Bar dataKey="expenses" name={language === "en" ? "Expenses (COGS+OPEX)" : "Beban (COGS+OPEX)"} fill="#f43f5e" radius={[6, 6, 0, 0]} />
+                        )}
+                        {(activeChartMetric === "all" || activeChartMetric === "ebitda") && (
+                          <Bar dataKey="ebitdaM" name="EBITDA" fill="#f59e0b" radius={[6, 6, 0, 0]} />
+                        )}
+                        {activeChartMetric === "cash" && (
+                          <Bar dataKey="endingCashM" name="Ending Cash" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                        )}
+                      </BarChart>
+                    );
+                  }
+
+                  if (chartViewMode === "line") {
+                    return (
+                      <LineChart data={chartData} margin={{ top: 10, right: 30, left: 15, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
+                        <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} />
+                        <YAxis stroke="#64748b" fontSize={11} tickLine={false} tickFormatter={formatYAxisVal} />
+                        <Tooltip
+                          formatter={tooltipFormatter}
+                          contentStyle={{ backgroundColor: "rgba(255, 255, 255, 0.95)", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)" }}
+                        />
+                        <Legend wrapperStyle={{ paddingTop: "15px" }} />
+                        {(activeChartMetric === "all" || activeChartMetric === "revenue") && (
+                          <Line type="monotone" dataKey="revenue" name={language === "en" ? "Revenue" : "Pendapatan"} stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: "#fff" }} activeDot={{ r: 7 }} />
+                        )}
+                        {(activeChartMetric === "all" || activeChartMetric === "expenses") && (
+                          <Line type="monotone" dataKey="expenses" name={language === "en" ? "Expenses (COGS+OPEX)" : "Beban (COGS+OPEX)"} stroke="#f43f5e" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: "#fff" }} activeDot={{ r: 7 }} />
+                        )}
+                        {(activeChartMetric === "all" || activeChartMetric === "ebitda") && (
+                          <Line type="monotone" dataKey="ebitdaM" name="EBITDA" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: "#fff" }} activeDot={{ r: 7 }} />
+                        )}
+                        {activeChartMetric === "cash" && (
+                          <Line type="monotone" dataKey="endingCashM" name="Ending Cash" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: "#fff" }} activeDot={{ r: 7 }} />
+                        )}
+                      </LineChart>
+                    );
+                  }
+
+                  // Default View Mode: "area" (Gradient Filled Area Chart)
+                  return (
+                    <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 15, bottom: 5 }}>
+                      {commonGradients}
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
+                      <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} />
+                      <YAxis stroke="#64748b" fontSize={11} tickLine={false} tickFormatter={formatYAxisVal} />
+                      <Tooltip
+                        formatter={tooltipFormatter}
+                        contentStyle={{ backgroundColor: "rgba(255, 255, 255, 0.95)", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)" }}
+                      />
+                      <Legend wrapperStyle={{ paddingTop: "15px" }} />
+                      {(activeChartMetric === "all" || activeChartMetric === "revenue") && (
+                        <Area type="monotone" dataKey="revenue" name={language === "en" ? "Revenue" : "Pendapatan"} stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRevGrad)" dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 6 }} />
+                      )}
+                      {(activeChartMetric === "all" || activeChartMetric === "expenses") && (
+                        <Area type="monotone" dataKey="expenses" name={language === "en" ? "Expenses (COGS+OPEX)" : "Beban (COGS+OPEX)"} stroke="#f43f5e" strokeWidth={2.5} fillOpacity={1} fill="url(#colorExpGrad)" dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 6 }} />
+                      )}
+                      {(activeChartMetric === "all" || activeChartMetric === "ebitda") && (
+                        <Area type="monotone" dataKey="ebitdaM" name="EBITDA" stroke="#f59e0b" strokeWidth={2.5} fillOpacity={1} fill="url(#colorEbitdaGrad)" dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 6 }} />
+                      )}
+                      {activeChartMetric === "cash" && (
+                        <Area type="monotone" dataKey="endingCashM" name="Ending Cash" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCashGrad)" dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 6 }} />
+                      )}
+                    </AreaChart>
+                  );
+                })()}
               </ResponsiveContainer>
             </div>
           </div>
@@ -608,11 +761,11 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
           <div id="section-growth" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid">
             <div className="p-4 border-b bg-muted/10 flex items-center justify-between">
               <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
-                <Users className="h-5 w-5 text-indigo-600" /> {language === "en" ? "1. Customer Growth Model" : "1. Model Pertumbuhan Koperasi"}
+                <Users className="h-5 w-5 text-slate-400" /> {language === "en" ? "1. Customer Growth Model" : "1. Model Pertumbuhan Koperasi"}
               </h3>
               <button
                 onClick={() => toggleSection("growth")}
-                className="text-xs text-indigo-600 flex items-center gap-1 font-semibold bg-indigo-50 hover:bg-indigo-100 transition-colors px-2.5 py-1 rounded-full"
+                className="text-xs font-bold text-[#005fa4] dark:text-blue-300 bg-blue-50/80 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200/60 dark:border-blue-800/60 flex items-center gap-1.5 transition-colors px-3 py-1 rounded-full cursor-pointer"
               >
                 {collapsedSections.growth ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                 {collapsedSections.growth ? (language === "en" ? "View Details" : "Lihat Perhitungan Detail") : (language === "en" ? "Hide Details" : "Sembunyikan Detail")}
@@ -724,7 +877,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                           </>
                         )}
                         {/* Output Utama (Always Visible) */}
-                        <tr className="hover:bg-muted/5 transition-colors font-bold text-indigo-700 bg-indigo-50/20">
+                        <tr className="hover:bg-muted/5 transition-colors font-bold text-slate-800 bg-muted/10 border-t">
                           <td className="px-4 py-3 pl-6"><MetricLabel label="Ending Active Cooperatives" /></td>
                           {data.map((c) => (
                             <td
@@ -737,7 +890,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                             </td>
                           ))}
                         </tr>
-                        <tr className="hover:bg-muted/5 transition-colors font-bold text-indigo-700 bg-indigo-50/20">
+                        <tr className="hover:bg-muted/5 transition-colors font-bold text-slate-800 bg-muted/10 border-b">
                           <td className="px-4 py-3 pl-6"><MetricLabel label="Total Cooperative Members" /></td>
                           {data.map((c) => (
                             <td
@@ -763,7 +916,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                 </h3>
                 <button
                   onClick={() => toggleSection("revenue")}
-                  className="text-xs text-emerald-600 flex items-center gap-1 font-semibold bg-emerald-50 hover:bg-emerald-100 transition-colors px-2.5 py-1 rounded-full"
+                  className="text-xs font-bold text-[#005fa4] dark:text-blue-300 bg-blue-50/80 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200/60 dark:border-blue-800/60 flex items-center gap-1.5 transition-colors px-3 py-1 rounded-full cursor-pointer"
                 >
                   {collapsedSections.revenue ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                   {collapsedSections.revenue ? (language === "en" ? "View Details" : "Lihat Perhitungan Detail") : (language === "en" ? "Hide Details" : "Sembunyikan Detail")}
@@ -969,7 +1122,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                 </h3>
                 <button
                   onClick={() => toggleSection("cogs")}
-                  className="text-xs text-red-600 flex items-center gap-1 font-semibold bg-red-50 hover:bg-red-100 transition-colors px-2.5 py-1 rounded-full"
+                  className="text-xs font-bold text-[#005fa4] dark:text-blue-300 bg-blue-50/80 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200/60 dark:border-blue-800/60 flex items-center gap-1.5 transition-colors px-3 py-1 rounded-full cursor-pointer"
                 >
                   {collapsedSections.cogs ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                   {collapsedSections.cogs ? (language === "en" ? "View Details" : "Lihat Perhitungan Detail") : (language === "en" ? "Hide Details" : "Sembunyikan Detail")}
@@ -1136,7 +1289,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                 </h3>
                 <button
                   onClick={() => toggleSection("opex")}
-                  className="text-xs text-orange-600 flex items-center gap-1 font-semibold bg-orange-50 hover:bg-orange-100 transition-colors px-2.5 py-1 rounded-full"
+                  className="text-xs font-bold text-[#005fa4] dark:text-blue-300 bg-blue-50/80 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200/60 dark:border-blue-800/60 flex items-center gap-1.5 transition-colors px-3 py-1 rounded-full cursor-pointer"
                 >
                   {collapsedSections.opex ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                   {collapsedSections.opex ? (language === "en" ? "View Details" : "Lihat Perhitungan Detail") : (language === "en" ? "Hide Details" : "Sembunyikan Detail")}
@@ -1162,8 +1315,8 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                   <tbody className="divide-y divide-border">
                     {!collapsedSections.opex && (
                       <>
-                        <tr className="hover:bg-muted/5 transition-colors text-slate-505 font-medium italic">
-                          <td className="px-4 py-3 pl-6 text-xs"><MetricLabel label="Total Headcount (FTE)" /></td>
+                        <tr className="hover:bg-muted/5 transition-colors text-slate-600">
+                          <td className="px-4 py-3 pl-6"><MetricLabel label="Total Headcount (FTE)" /></td>
                           {data.map((c) => (
                             <td
                               key={c.year}
@@ -1264,7 +1417,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                 </h3>
                 <button
                   onClick={() => toggleSection("ebitda")}
-                  className="text-xs text-amber-600 flex items-center gap-1 font-semibold bg-amber-50 hover:bg-amber-100 transition-colors px-2.5 py-1 rounded-full"
+                  className="text-xs font-bold text-[#005fa4] dark:text-blue-300 bg-blue-50/80 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200/60 dark:border-blue-800/60 flex items-center gap-1.5 transition-colors px-3 py-1 rounded-full cursor-pointer"
                 >
                   {collapsedSections.ebitda ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                   {collapsedSections.ebitda ? (language === "en" ? "View Details" : "Lihat Perhitungan Detail") : (language === "en" ? "Hide Details" : "Sembunyikan Detail")}
@@ -1400,7 +1553,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                 </h3>
                 <button
                   onClick={() => toggleSection("saas")}
-                  className="text-xs text-indigo-600 flex items-center gap-1 font-semibold bg-indigo-50 hover:bg-indigo-100 transition-colors px-2.5 py-1 rounded-full"
+                  className="text-xs font-bold text-[#005fa4] dark:text-blue-300 bg-blue-50/80 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200/60 dark:border-blue-800/60 flex items-center gap-1.5 transition-colors px-3 py-1 rounded-full cursor-pointer"
                 >
                   {collapsedSections.saas ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                   {collapsedSections.saas ? (language === "en" ? "View Details" : "Lihat Perhitungan Detail") : (language === "en" ? "Hide Details" : "Sembunyikan Detail")}
@@ -1644,7 +1797,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                         </td>
                       ))}
                     </tr>
-                    <tr className="bg-primary/5 font-bold text-primary border-t border-b">
+                    <tr className="hover:bg-muted/5 transition-colors font-bold text-slate-800 border-t border-b">
                       <td className="px-4 py-4"><MetricLabel label="Ending Cash" /></td>
                       {data.map((c, i) => (
                         <td
@@ -1660,7 +1813,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                         </td>
                       ))}
                     </tr>
-                    <tr className="bg-muted/30 text-muted-foreground">
+                    <tr className="hover:bg-muted/5 transition-colors text-muted-foreground">
                       <td className="px-4 py-3 font-semibold text-xs"><MetricLabel label="Average Monthly Burn / Profit" /></td>
                       {data.map((c) => (
                         <td
@@ -1673,7 +1826,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                         </td>
                       ))}
                     </tr>
-                    <tr className="bg-muted/30 text-muted-foreground border-b-2">
+                    <tr className="hover:bg-muted/5 transition-colors text-muted-foreground border-b-2">
                       <td className="px-4 py-3 font-semibold text-xs"><MetricLabel label="Runway (Months)" /></td>
                       {data.map((c) => (
                         <td
@@ -1789,7 +1942,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                         </td>
                       ))}
                     </tr>
-                    <tr className="bg-primary/5 font-semibold text-slate-700">
+                    <tr className="hover:bg-muted/5 transition-colors font-semibold text-slate-700">
                       <td className="px-4 py-3"><MetricLabel label="Enterprise Value - Conservative" /></td>
                       {data.map((c) => (
                         <td
@@ -1802,7 +1955,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                         </td>
                       ))}
                     </tr>
-                    <tr className="bg-primary/5 font-bold text-primary border-t border-b">
+                    <tr className="hover:bg-muted/5 transition-colors font-bold text-slate-800 border-t border-b">
                       <td className="px-4 py-3"><MetricLabel label="Enterprise Value - Base" /></td>
                       {data.map((c) => (
                         <td
@@ -1815,7 +1968,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                         </td>
                       ))}
                     </tr>
-                    <tr className="bg-primary/5 font-semibold text-slate-700">
+                    <tr className="hover:bg-muted/5 transition-colors font-semibold text-slate-700">
                       <td className="px-4 py-3"><MetricLabel label="Enterprise Value - Optimistic" /></td>
                       {data.map((c) => (
                         <td
@@ -1854,7 +2007,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                         </td>
                       ))}
                     </tr>
-                    <tr className="bg-muted/30 text-muted-foreground">
+                    <tr className="hover:bg-muted/5 transition-colors text-muted-foreground">
                       <td className="px-4 py-3 text-xs"><MetricLabel label="Implied Seed Equity %" /></td>
                       {data.map((c) => (
                         <td
@@ -1962,7 +2115,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                             <ColoredNumber value={(valuation.dynamicEsopEquityFrac * 100)} format="percent" />
                           </td>
                         </tr>
-                        <tr className="bg-primary/5 text-primary">
+                        <tr className="hover:bg-muted/5 transition-colors text-slate-800 font-semibold">
                           <td className="px-4 py-3 font-semibold"><MetricLabel label="Seed Investor" /></td>
                           <td className="px-4 py-3 whitespace-nowrap text-right">
                             <div className="flex items-center justify-end gap-1">
@@ -1983,7 +2136,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                             <ColoredNumber value={(valuation.dynamicInvestorEquityFrac * 100)} format="percent" />
                           </td>
                         </tr>
-                        <tr className="bg-muted/40 font-bold border-t-2 text-slate-800">
+                        <tr className="hover:bg-muted/5 transition-colors font-bold border-t-2 text-slate-800">
                           <td className="px-4 py-3"><MetricLabel label="Total" /></td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono">
                             <ColoredNumber value={(valuation.foundersPreSeed + valuation.esopPreSeed + valuation.investorPreSeed)} format="percent" />
@@ -2046,10 +2199,10 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                         <tr>
                           <td className="px-4 py-3 text-muted-foreground"><MetricLabel label="Revenue Multiple" /></td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-semibold text-slate-700">{valuation.multCons}x</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-bold text-primary">{valuation.multBase}x</td>
+                          <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-bold text-slate-800">{valuation.multBase}x</td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-semibold text-slate-700">{valuation.multOpt}x</td>
                         </tr>
-                        <tr className="bg-muted/10">
+                        <tr className="hover:bg-muted/5 transition-colors">
                           <td className="px-4 py-3 font-semibold text-slate-700"><MetricLabel label="Estimated Exit Valuation" /></td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono"><ColoredNumber value={valuation.exitValCons} format="rupiah" /></td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-bold text-slate-800"><ColoredNumber value={valuation.exitValBase} format="rupiah" /></td>
@@ -2061,10 +2214,10 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono"><ColoredNumber value={(valuation.dynamicInvestorEquityFrac * 100)} format="percent" /></td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono"><ColoredNumber value={(valuation.dynamicInvestorEquityFrac * 100)} format="percent" /></td>
                         </tr>
-                        <tr className="bg-primary/5">
-                          <td className="px-4 py-3 font-bold text-primary"><MetricLabel label="Investor Equity Value" /></td>
+                        <tr className="hover:bg-muted/5 transition-colors">
+                          <td className="px-4 py-3 font-bold text-slate-800"><MetricLabel label="Investor Equity Value" /></td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono"><ColoredNumber value={valuation.invValCons} format="rupiah" /></td>
-                          <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-bold text-primary"><ColoredNumber value={valuation.invValBase} format="rupiah" /></td>
+                          <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-bold text-slate-800"><ColoredNumber value={valuation.invValBase} format="rupiah" /></td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono"><ColoredNumber value={valuation.invValOpt} format="rupiah" /></td>
                         </tr>
                         <tr>
@@ -2079,7 +2232,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-green-700">{valuation.moicBase.toFixed(2)}x</td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-green-900">{valuation.moicOpt.toFixed(2)}x</td>
                         </tr>
-                        <tr className="font-bold bg-muted/40">
+                        <tr className="font-bold hover:bg-muted/5 transition-colors text-slate-800">
                           <td className="px-4 py-3 text-slate-800"><MetricLabel label="Estimated IRR (5 Years)" /></td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-amber-700"><ColoredNumber value={(valuation.irrCons * 100)} format="percent" /></td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-green-700"><ColoredNumber value={(valuation.irrBase * 100)} format="percent" /></td>
