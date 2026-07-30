@@ -227,144 +227,70 @@ export default function FounderTeamTab({
           </form>
         </section>
 
-        {/* Company Workspace Status */}
+        {/* Team Members List */}
         <section className="bg-card border border-border/80 rounded-2xl p-6 md:p-8 space-y-6 shadow-xl shadow-slate-100/50 dark:shadow-none relative overflow-hidden transition-all duration-300">
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#005fa4] via-blue-500 to-[#FFD700]" />
           
-          <div className="flex items-start gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#005fa4] to-[#004b82] text-white flex items-center justify-center shadow-lg shadow-[#005fa4]/20 shrink-0 ring-4 ring-[#005fa4]/10">
-              <Building className="h-6 w-6" />
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 bg-[#005fa4]/10 rounded-xl flex items-center justify-center text-[#005fa4] shrink-0">
+              <Users className="h-5 w-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-                  {language === "en" ? "Company Information" : "Informasi Perusahaan"}
-                </h2>
-                <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-full border border-amber-200/60 dark:border-amber-800/60">
-                  {language === "en" ? "Legal Entity" : "Entitas Legal"}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                {language === "en"
-                  ? "Legal entity registration details and driver-based financial engine status."
-                  : "Detail registrasi entitas hukum dan status driver-based financial engine."
-                }
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                {language === "en" ? "Team Members List" : "Daftar Anggota Tim"}
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                {language === "en" ? "Manage users who have access to your company workspace." : "Kelola pengguna yang memiliki akses ke workspace perusahaan Anda."}
               </p>
             </div>
           </div>
-
-          <div className="space-y-3 pt-2">
-            <div className="flex justify-between items-center p-3.5 bg-slate-50/60 dark:bg-slate-900/50 rounded-xl border border-slate-200/70 dark:border-slate-800">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                <Building className="h-3.5 w-3.5 text-[#005fa4]" />
-                {language === "en" ? "Entity Name" : "Nama Entitas"}
-              </span>
-              <span className="font-bold text-sm text-slate-900 dark:text-white">
-                {primaryCompany?.name || (language === "en" ? "Unregistered Company" : "PT Tidak Terdaftar")}
-              </span>
+          
+          {loadingMembers ? (
+             <div className="flex justify-center p-8">
+               <div className="h-6 w-6 border-2 border-[#005fa4]/30 border-t-[#005fa4] rounded-full animate-spin"></div>
+             </div>
+          ) : members.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold">{language === "en" ? "Name" : "Nama"}</th>
+                    <th className="px-4 py-3 font-semibold">Email</th>
+                    <th className="px-4 py-3 font-semibold">{language === "en" ? "Role" : "Role"}</th>
+                    <th className="px-4 py-3 font-semibold text-right">{language === "en" ? "Action" : "Aksi"}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {members.map(member => (
+                    <tr key={member.id} className="hover:bg-muted/10 transition-colors">
+                      <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{member.name}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{member.email}</td>
+                      <td className="px-4 py-3 capitalize font-medium">{member.role?.name || "N/A"}</td>
+                      <td className="px-4 py-3 text-right">
+                        {member.id !== userData?.id && member.role?.name !== 'founder' ? (
+                          <button 
+                            onClick={() => setMemberToDelete(member)}
+                            className="p-1.5 text-destructive hover:bg-destructive/10 rounded transition-colors cursor-pointer"
+                            title={language === "en" ? "Remove Access" : "Hapus Akses"}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground italic">Owner</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-
-            <div className="flex justify-between items-center p-3.5 bg-slate-50/60 dark:bg-slate-900/50 rounded-xl border border-slate-200/70 dark:border-slate-800">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                <Database className="h-3.5 w-3.5 text-[#005fa4]" />
-                {language === "en" ? "Workspace ID" : "ID Workspace"}
-              </span>
-              <div className="flex items-center gap-1.5">
-                <code className="px-2.5 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-mono font-bold text-slate-700 dark:text-slate-300 shadow-2xs">
-                  WS-#{primaryCompany?.id || "0"}
-                </code>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center p-3.5 bg-slate-50/60 dark:bg-slate-900/50 rounded-xl border border-slate-200/70 dark:border-slate-800">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                <Activity className="h-3.5 w-3.5 text-emerald-500" />
-                {language === "en" ? "Engine Status" : "Status Engine"}
-              </span>
-              <span className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 rounded-full text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                Auto-Recalculating Active
-              </span>
-            </div>
-
-            <div className="flex justify-between items-center p-3.5 bg-slate-50/60 dark:bg-slate-900/50 rounded-xl border border-slate-200/70 dark:border-slate-800">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                <ShieldCheck className="h-3.5 w-3.5 text-[#005fa4]" />
-                {language === "en" ? "Your Permission" : "Hak Akses Anda"}
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 rounded-full text-xs font-bold text-[#005fa4] dark:text-blue-300">
-                <Shield className="h-3.5 w-3.5 text-[#005fa4]" />
-                Owner / Founder
-              </span>
-            </div>
-          </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center p-4 border border-dashed rounded-lg">
+              {language === "en" ? "No other team members in this company yet." : "Belum ada anggota tim lain di perusahaan ini."}
+            </p>
+          )}
         </section>
       </div>
-
-      {/* Team Members List */}
-      <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-            <Users className="h-5 w-5" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold">
-              {language === "en" ? "Team Members List" : "Daftar Anggota Tim"}
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              {language === "en" ? "Manage users who have access to your company workspace." : "Kelola pengguna yang memiliki akses ke workspace perusahaan Anda."}
-            </p>
-          </div>
-        </div>
-        
-        {loadingMembers ? (
-           <div className="flex justify-center p-8">
-             <div className="h-6 w-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-           </div>
-        ) : members.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b border-border">
-                <tr>
-                  <th className="px-4 py-3 font-semibold">{language === "en" ? "Name" : "Nama"}</th>
-                  <th className="px-4 py-3 font-semibold">Email</th>
-                  <th className="px-4 py-3 font-semibold">{language === "en" ? "Role" : "Role"}</th>
-                  <th className="px-4 py-3 font-semibold text-right">{language === "en" ? "Action" : "Aksi"}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {members.map(member => (
-                  <tr key={member.id} className="hover:bg-muted/10 transition-colors">
-                    <td className="px-4 py-3 font-medium">{member.name}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{member.email}</td>
-                    <td className="px-4 py-3 capitalize">{member.role?.name || "N/A"}</td>
-                    <td className="px-4 py-3 text-right">
-                      {member.id !== userData?.id && member.role?.name !== 'founder' ? (
-                        <button 
-                          onClick={() => setMemberToDelete(member)}
-                          className="p-1.5 text-destructive hover:bg-destructive/10 rounded transition-colors cursor-pointer"
-                          title={language === "en" ? "Remove Access" : "Hapus Akses"}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      ) : (
-                        <span className="text-xs text-muted-foreground italic">Owner</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground text-center p-4 border border-dashed rounded-lg">
-            {language === "en" ? "No other team members in this company yet." : "Belum ada anggota tim lain di perusahaan ini."}
-          </p>
-        )}
-      </section>
 
       {/* Pending Invitations Table */}
       <section className="bg-card border border-border/80 rounded-2xl p-6 md:p-8 space-y-6 shadow-xl shadow-slate-100/50 dark:shadow-none relative overflow-hidden">

@@ -324,7 +324,6 @@ export default function FounderDashboard({ userData, handleLogout }) {
 
   // Highlight column helper
   const getColHighlightClass = (year) => {
-    if (hoveredYear === year) return "bg-primary/10 font-bold text-primary";
     return "";
   };
 
