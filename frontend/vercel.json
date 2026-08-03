@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "project-smartcoop-financial-planning-platform-production.up.railway.app"
+      "destination": "https://project-smartcoop-financial-planning-platform-production.up.railway.app/api/:path*"
     },
     {
       "source": "/(.*)",
