@@ -163,6 +163,9 @@ export const simulateProjections = (assumptionsByYear) => {
     // SaaS Metrics
     const mrr = arr / 12;
     const annualChurn = (1 - Math.pow(1 - churnRate / 100, 12)) * 100;
+    // Basic NRR estimation: 100% - Churn Rate + Upsell (assumed 5% avg upsell per year)
+    const nrr = Math.max(0, 100 - annualChurn + 5); 
+    
     const estimatedCac = newCoops > 0 ? (salesMarketingOpex + payrollOpex * 0.35) / newCoops : 0;
     const estimatedLtv = (churnRate / 100) > 0 ? (mrr * (grossMargin / 100)) / (churnRate / 100) : 0;
     const ltvCacRatio = estimatedCac > 0 ? estimatedLtv / estimatedCac : 0;
@@ -171,13 +174,19 @@ export const simulateProjections = (assumptionsByYear) => {
     const cacPaybackMonths = mrrGross > 0 ? estimatedCac / mrrGross : 0;
     
     let ruleOf40 = 0;
+    let revYoyGrowth = 0;
+    let arrYoyGrowth = 0;
+    
     if (idx === 0) {
       ruleOf40 = ebitdaMargin / 100;
     } else {
-      const growthRate = computedYears[years[idx - 1]].totalRevenue > 0 
+      revYoyGrowth = computedYears[years[idx - 1]].totalRevenue > 0 
         ? (totalRevenue / computedYears[years[idx - 1]].totalRevenue) - 1 
         : 0;
-      ruleOf40 = growthRate + (ebitdaMargin / 100);
+      arrYoyGrowth = computedYears[years[idx - 1]].arr > 0
+        ? (arr / computedYears[years[idx - 1]].arr) - 1
+        : 0;
+      ruleOf40 = revYoyGrowth + (ebitdaMargin / 100);
     }
     
     computedYears[year] = {
@@ -200,11 +209,15 @@ export const simulateProjections = (assumptionsByYear) => {
       runwayMonths,
       mrr,
       annualChurn,
+      nrr,
       estimatedCac,
       estimatedLtv,
       ltvCacRatio,
       cacPaybackMonths,
       ruleOf40,
+      revYoyGrowth,
+      arrYoyGrowth,
+      monthlyBurn,
       preMoneyValuation: a.pre_money_valuation ?? 0,
       seedInvestment: a.seed_investment ?? 0,
       exitMultipleConservative: a.exit_revenue_multiple_conservative ?? 0,
