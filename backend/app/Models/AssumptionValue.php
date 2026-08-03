@@ -57,6 +57,11 @@ class AssumptionValue extends Model
         'exit_revenue_multiple_conservative',
         'exit_revenue_multiple_base',
         'exit_revenue_multiple_optimistic',
+        'founders_pre_seed_pct',
+        'esop_pre_seed_pct',
+        'investor_pre_seed_pct',
+        'founders_seed_investment',
+        'esop_seed_investment',
         'custom_assumptions',
     ];
 

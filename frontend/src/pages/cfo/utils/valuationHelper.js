@@ -1,25 +1,32 @@
 import { useState } from "react";
 
 export function useValuationModel(data) {
-  // State for Cap Table inputs (simulations)
-  const [foundersPreSeed, setFoundersPreSeed] = useState(100.0);
-  const [esopPreSeed, setEsopPreSeed] = useState(0.0);
-  const [investorPreSeed, setInvestorPreSeed] = useState(0.0);
-  const [esopSeedInv, setEsopSeedInv] = useState(0);
-  const [foundersSeedInv, setFoundersSeedInv] = useState(0);
+  // Find seed year data or any year with customized Cap Table parameters
+  const activeCapTableYear = data?.find(y => 
+    (y.foundersPreSeed !== undefined && y.foundersPreSeed !== 100.0) || 
+    (y.esopPreSeed !== undefined && y.esopPreSeed > 0) || 
+    (y.investorPreSeed !== undefined && y.investorPreSeed > 0) || 
+    (y.foundersSeedInv !== undefined && y.foundersSeedInv > 0) || 
+    (y.esopSeedInv !== undefined && y.esopSeedInv > 0)
+  ) || data?.find(y => y.seedInvestment > 0) || data?.[0];
 
-  // Find seed investment parameters from the year where seed investment is active (typically 2026)
-  const seedYearData = data?.find(y => y.seedInvestment > 0) || data?.[1] || data?.[0];
-  const preMoneyVal = seedYearData?.preMoneyValuation ?? 0;
-  const seedInv = seedYearData?.seedInvestment ?? 0;
+  const preMoneyVal = activeCapTableYear?.preMoneyValuation ?? 0;
+  const seedInv = activeCapTableYear?.seedInvestment ?? 0;
+
+  // Cap Table parameters loaded from assumptions
+  const foundersPreSeed = activeCapTableYear?.foundersPreSeed ?? 100.0;
+  const esopPreSeed = activeCapTableYear?.esopPreSeed ?? 0.0;
+  const investorPreSeed = activeCapTableYear?.investorPreSeed ?? 0.0;
+  const esopSeedInv = activeCapTableYear?.esopSeedInv ?? 0;
+  const foundersSeedInv = activeCapTableYear?.foundersSeedInv ?? 0;
   
   // Dynamic valuation based on ESOP & Founders seed inputs
   const postMoneyVal = preMoneyVal + seedInv + esopSeedInv + foundersSeedInv;
   
-  // Calculate dynamic equity fractions
+  // Calculate dynamic equity fractions matching Excel formulas (D4: =B4*(1-D6), D5: =B5, D6: =Seed Investment / Post-Money)
   const dynamicInvestorEquityFrac = postMoneyVal > 0 ? (((investorPreSeed / 100) * preMoneyVal) + seedInv) / postMoneyVal : 0;
-  const dynamicFoundersEquityFrac = postMoneyVal > 0 ? (((foundersPreSeed / 100) * preMoneyVal) + foundersSeedInv) / postMoneyVal : 0;
-  const dynamicEsopEquityFrac = postMoneyVal > 0 ? (((esopPreSeed / 100) * preMoneyVal) + esopSeedInv) / postMoneyVal : 0;
+  const dynamicEsopEquityFrac = (esopPreSeed / 100) + (postMoneyVal > 0 ? esopSeedInv / postMoneyVal : 0);
+  const dynamicFoundersEquityFrac = ((foundersPreSeed / 100) * (1 - dynamicInvestorEquityFrac)) + (postMoneyVal > 0 ? foundersSeedInv / postMoneyVal : 0);
 
   // Year 2029 projected data for exit ROI
   const data2029 = data?.find(y => y.year === 2029) || data?.[data.length - 1];
@@ -55,11 +62,11 @@ export function useValuationModel(data) {
   const irrOpt = moicOpt > 0 ? Math.pow(moicOpt, 1 / 5) - 1 : 0;
 
   return {
-    foundersPreSeed, setFoundersPreSeed,
-    esopPreSeed, setEsopPreSeed,
-    investorPreSeed, setInvestorPreSeed,
-    esopSeedInv, setEsopSeedInv,
-    foundersSeedInv, setFoundersSeedInv,
+    foundersPreSeed, setFoundersPreSeed: () => {},
+    esopPreSeed, setEsopPreSeed: () => {},
+    investorPreSeed, setInvestorPreSeed: () => {},
+    esopSeedInv, setEsopSeedInv: () => {},
+    foundersSeedInv, setFoundersSeedInv: () => {},
     preMoneyVal,
     seedInv,
     postMoneyVal,

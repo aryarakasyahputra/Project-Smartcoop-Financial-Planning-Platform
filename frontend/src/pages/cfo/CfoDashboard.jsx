@@ -308,9 +308,9 @@ export default function CfoDashboard({ userData, handleLogout }) {
             </div>
           </div>
 
-          {/* Right Header Actions: Navigation Portal Target & Language Switcher on Far Right */}
-          <div className="flex items-center gap-3 flex-1 justify-end min-w-0">
-            <div id="header-portal-target" className="flex justify-end overflow-hidden mx-2 min-w-0"></div>
+          {/* Right Header Actions: Navigation Portal Target & Language Switcher */}
+          <div className="flex items-center justify-between flex-1 min-w-0 ml-4">
+            <div id="header-portal-target" className="flex items-center justify-center overflow-hidden flex-1 mx-2 min-w-0"></div>
 
             <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs shrink-0">
               <Globe className="h-3.5 w-3.5 text-slate-400 ml-1.5 shrink-0" />
@@ -398,6 +398,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
                 data={data}
                 formatRupiah={formatRupiah}
                 valuation={valuation}
+                onAssumptionChange={handleInputChange}
               />
             )}
 

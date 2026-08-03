@@ -206,6 +206,11 @@ class FinancialModelService
                         'exit_revenue_multiple_conservative' => $yearAssumptions['exit_revenue_multiple_conservative'] ?? null,
                         'exit_revenue_multiple_base' => $yearAssumptions['exit_revenue_multiple_base'] ?? null,
                         'exit_revenue_multiple_optimistic' => $yearAssumptions['exit_revenue_multiple_optimistic'] ?? null,
+                        'founders_pre_seed_pct' => $yearAssumptions['founders_pre_seed_pct'] ?? null,
+                        'esop_pre_seed_pct' => $yearAssumptions['esop_pre_seed_pct'] ?? null,
+                        'investor_pre_seed_pct' => $yearAssumptions['investor_pre_seed_pct'] ?? null,
+                        'founders_seed_investment' => $yearAssumptions['founders_seed_investment'] ?? null,
+                        'esop_seed_investment' => $yearAssumptions['esop_seed_investment'] ?? null,
                         'custom_assumptions' => $yearAssumptions['custom_assumptions'] ?? null,
                     ], function($val) { return $val !== null; })
                 );

@@ -392,7 +392,7 @@ const ColoredNumber = ({ value, format, prefix = '', suffix = '' }) => {
   return <span className={colorClass}>{prefix}{formatted}{suffix}</span>;
 };
 
-export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
+export default function ProjectionModelTab({ data, formatRupiah, valuation, onAssumptionChange }) {
   const { language, t } = useLanguage();
 
   // UI Interactive States
@@ -512,7 +512,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
   };
 
   const navContent = (
-    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide w-full max-w-full px-2" style={{ maskImage: "linear-gradient(to right, transparent, black 10px, black calc(100% - 10px), transparent)" }}>
+    <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide max-w-full py-0.5 px-1">
       <a href="#section-chart" className={getNavClass("section-chart")}>{language === "en" ? "Chart" : "Grafik"}</a>
       <a href="#section-growth" className={getNavClass("section-growth")}>{language === "en" ? "Growth" : "Pertumbuhan"}</a>
       <a href="#section-revenue" className={getNavClass("section-revenue")}>{language === "en" ? "Revenue" : "Pendapatan"}</a>
@@ -2051,32 +2051,11 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                       <tbody className="divide-y divide-border">
                         <tr>
                           <td className="px-4 py-3 font-semibold text-slate-700"><MetricLabel label="Founders / Existing Shareholders" /></td>
-                          <td className="px-4 py-3 whitespace-nowrap text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <input
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                max="100"
-                                value={valuation.foundersPreSeed}
-                                onChange={(e) => valuation.setFoundersPreSeed(parseFloat(e.target.value) || 0)}
-                                className="bg-amber-50 hover:bg-amber-100 focus:bg-white border border-amber-200 rounded px-1.5 py-0.5 text-right w-16 font-mono text-xs text-amber-800"
-                              />
-                              <span className="font-mono text-xs">%</span>
-                            </div>
+                          <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-semibold text-slate-700">
+                            <ColoredNumber value={valuation.foundersPreSeed} format="percent" />
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <span className="text-[10px] text-slate-400">Rp</span>
-                              <input
-                                type="number"
-                                step="10000000"
-                                min="0"
-                                value={valuation.foundersSeedInv}
-                                onChange={(e) => valuation.setFoundersSeedInv(parseFloat(e.target.value) || 0)}
-                                className="bg-amber-50 hover:bg-amber-100 focus:bg-white border border-amber-200 rounded px-1.5 py-0.5 text-right w-28 font-mono text-xs text-amber-800"
-                              />
-                            </div>
+                          <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-semibold text-slate-700">
+                            <ColoredNumber value={valuation.foundersSeedInv} format="rupiah" />
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-bold text-slate-700">
                             <ColoredNumber value={(valuation.dynamicFoundersEquityFrac * 100)} format="percent" />
@@ -2084,32 +2063,11 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                         </tr>
                         <tr>
                           <td className="px-4 py-3 text-slate-700 font-medium"><MetricLabel label="Employee Option Pool (ESOP)" /></td>
-                          <td className="px-4 py-3 whitespace-nowrap text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <input
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                max="100"
-                                value={valuation.esopPreSeed}
-                                onChange={(e) => valuation.setEsopPreSeed(parseFloat(e.target.value) || 0)}
-                                className="bg-amber-50 hover:bg-amber-100 focus:bg-white border border-amber-200 rounded px-1.5 py-0.5 text-right w-16 font-mono text-xs text-amber-800"
-                              />
-                              <span className="font-mono text-xs">%</span>
-                            </div>
+                          <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-medium text-slate-700">
+                            <ColoredNumber value={valuation.esopPreSeed} format="percent" />
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <span className="text-[10px] text-slate-400">Rp</span>
-                              <input
-                                type="number"
-                                step="10000000"
-                                min="0"
-                                value={valuation.esopSeedInv}
-                                onChange={(e) => valuation.setEsopSeedInv(parseFloat(e.target.value) || 0)}
-                                className="bg-amber-50 hover:bg-amber-100 focus:bg-white border border-amber-200 rounded px-1.5 py-0.5 text-right w-28 font-mono text-xs text-amber-800"
-                              />
-                            </div>
+                          <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-medium text-slate-700">
+                            <ColoredNumber value={valuation.esopSeedInv} format="rupiah" />
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-slate-700">
                             <ColoredNumber value={(valuation.dynamicEsopEquityFrac * 100)} format="percent" />
@@ -2117,19 +2075,8 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation }) {
                         </tr>
                         <tr className="hover:bg-muted/5 transition-colors text-slate-800 font-semibold">
                           <td className="px-4 py-3 font-semibold"><MetricLabel label="Seed Investor" /></td>
-                          <td className="px-4 py-3 whitespace-nowrap text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <input
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                max="100"
-                                value={valuation.investorPreSeed}
-                                onChange={(e) => valuation.setInvestorPreSeed(parseFloat(e.target.value) || 0)}
-                                className="bg-amber-50 hover:bg-amber-100 focus:bg-white border border-amber-200 rounded px-1.5 py-0.5 text-right w-16 font-mono text-xs text-amber-800"
-                              />
-                              <span className="font-mono text-xs">%</span>
-                            </div>
+                          <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-semibold text-slate-700">
+                            <ColoredNumber value={valuation.investorPreSeed} format="percent" />
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-semibold"><ColoredNumber value={valuation.seedInv} format="rupiah" /></td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-black">
