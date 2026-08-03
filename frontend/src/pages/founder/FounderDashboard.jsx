@@ -123,7 +123,15 @@ export default function FounderDashboard({ userData, handleLogout }) {
     fetchAssumptions();
   }, [projectId]);
 
-  // Recalculate Projections on Scenario or Base Assumptions Change
+  // Base Projections (matching CFO Dashboard)
+  const baseProjections = useMemo(() => {
+    if (Object.keys(baseAssumptions).length > 0) {
+      return simulateProjections(baseAssumptions);
+    }
+    return [];
+  }, [baseAssumptions]);
+
+  // Recalculate Projections on Scenario or Base Assumptions Change for charts
   useEffect(() => {
     if (Object.keys(baseAssumptions).length > 0) {
       const scenarioAssumptions = getScenarioAssumptions(baseAssumptions, activeScenario);
@@ -132,8 +140,8 @@ export default function FounderDashboard({ userData, handleLogout }) {
     }
   }, [baseAssumptions, activeScenario]);
 
-  // Valuation Hook
-  const valuation = useValuationModel(projectionData);
+  // Valuation Hook uses baseProjections to align Exit ROI with CFO Section 10
+  const valuation = useValuationModel(baseProjections);
 
   // Fetch Members & Pending Invitations
   const fetchMembersAndInvitations = useCallback(async () => {
@@ -329,20 +337,22 @@ export default function FounderDashboard({ userData, handleLogout }) {
 
   // Exit Val calculations based on scenario
   const activeExitVal = useMemo(() => {
-    if (activeScenario === "optimistic") return (data2029.totalRevenue || 0) * 1.2 * 7;
-    if (activeScenario === "pessimistic") return (data2029.totalRevenue || 0) * 0.8 * 3;
-    return (data2029.totalRevenue || 0) * 5; // Base case
-  }, [activeScenario, data2029]);
+    if (activeScenario === "optimistic") return valuation.exitValOpt || 0;
+    if (activeScenario === "pessimistic") return valuation.exitValCons || 0;
+    return valuation.exitValBase || 0; // Base case
+  }, [activeScenario, valuation]);
 
   const activeMOIC = useMemo(() => {
-    if (!valuation.impliedSeedEquityVal || valuation.impliedSeedEquityVal === 0) return 0;
-    return (activeExitVal * valuation.dynamicInvestorEquityFrac) / (valuation.seedInvestment || 1);
-  }, [activeExitVal, valuation]);
+    if (activeScenario === "optimistic") return valuation.moicOpt || 0;
+    if (activeScenario === "pessimistic") return valuation.moicCons || 0;
+    return valuation.moicBase || 0;
+  }, [activeScenario, valuation]);
 
   const activeIRR = useMemo(() => {
-    if (activeMOIC <= 0) return 0;
-    return Math.pow(activeMOIC, 1 / 5) - 1;
-  }, [activeMOIC]);
+    if (activeScenario === "optimistic") return valuation.irrOpt || 0;
+    if (activeScenario === "pessimistic") return valuation.irrCons || 0;
+    return valuation.irrBase || 0;
+  }, [activeScenario, valuation]);
 
   return (
     <div className="flex h-screen bg-background font-sans overflow-hidden">

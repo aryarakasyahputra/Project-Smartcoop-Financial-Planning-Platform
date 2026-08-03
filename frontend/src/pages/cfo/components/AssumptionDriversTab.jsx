@@ -391,6 +391,11 @@ export default function AssumptionDriversTab({
       fields: [
         { label: language === "en" ? "Seed Funding Target" : "Target Pendanaan (Suntikan Dana)", key: "seed_investment", prefix: "Rp", parse: parseFloat },
         { label: language === "en" ? "Pre-Money Valuation" : "Valuasi Pre-Money", key: "pre_money_valuation", prefix: "Rp", parse: parseFloat },
+        { label: language === "en" ? "Founders Pre-Seed Share (%)" : "Porsi Saham Pre-Seed Founders (%)", key: "founders_pre_seed_pct", suffix: "%", step: "0.1", parse: parseFloat },
+        { label: language === "en" ? "ESOP Pre-Seed Share (%)" : "Porsi Saham Pre-Seed ESOP (%)", key: "esop_pre_seed_pct", suffix: "%", step: "0.1", parse: parseFloat },
+        { label: language === "en" ? "Investor Pre-Seed Share (%)" : "Porsi Saham Pre-Seed Investor (%)", key: "investor_pre_seed_pct", suffix: "%", step: "0.1", parse: parseFloat },
+        { label: language === "en" ? "Founders Additional Investment" : "Investasi Masuk Founders", key: "founders_seed_investment", prefix: "Rp", parse: parseFloat },
+        { label: language === "en" ? "ESOP Additional Investment" : "Investasi Masuk ESOP", key: "esop_seed_investment", prefix: "Rp", parse: parseFloat },
         { label: language === "en" ? "Exit Multiple (Conservative)" : "Kelipatan Pendapatan (Konservatif)", key: "exit_revenue_multiple_conservative", suffix: "x", step: "0.1", parse: parseFloat },
         { label: language === "en" ? "Exit Multiple (Base Case)" : "Kelipatan Pendapatan (Base Case)", key: "exit_revenue_multiple_base", suffix: "x", step: "0.1", parse: parseFloat },
         { label: language === "en" ? "Exit Multiple (Optimistic)" : "Kelipatan Pendapatan (Optimistik)", key: "exit_revenue_multiple_optimistic", suffix: "x", step: "0.1", parse: parseFloat },
