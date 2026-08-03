@@ -4,22 +4,10 @@ Smartcoop Financial Planning Platform merupakan aplikasi SaaS perencanaan keuang
 
 ---
 
-## 📂 Struktur & Panduan Folder
+## 📂 Struktur Folder Utama
 
-### 1. Frontend (`/frontend`)
-Seluruh halaman utama aplikasi frontend dikelompokkan ke dalam subdirektori di `frontend/src/pages/` berdasarkan peran dan fungsinya:
-* **`admin/`**: Panel Admin Console (Overview, Users, Billing, Audit Log).
-* **`authCallback/`**: Callback Login Pihak Ketiga (OAuth Google).
-* **`cfo/`**: Dashboard khusus peran CFO (Financial Analyst, Drivers, Proyeksi Laba Rugi).
-* **`dashboard/`**: Router Dashboard (Mengarahkan user ke dashboard sesuai Role).
-* **`founder/`**: Dashboard khusus peran Founder (Manajemen Tim, Pengaturan Perusahaan).
-* **`investor/`**: Dashboard khusus peran Investor (Akses read-only ke Proyeksi).
-* **`landing/`**: Landing Page promosi dan modul produk.
-* **`login/` / `register/`**: Halaman Masuk & Pendaftaran Akun Baru.
-* **`onboarding/`**: Halaman Pengisian Profil Perusahaan Baru (Khusus Founder).
-
-### 2. Backend (`/backend`)
-Menggunakan framework Laravel 11 dengan API routes terpusat untuk melayani request dari frontend React.
+* **`/frontend`**: Aplikasi React + Vite (halaman di `src/pages/` dikelompokkan berdasarkan peran: `admin`, `cfo`, `founder`, `investor`, serta alur masuk/onboarding).
+* **`/backend`**: REST API berbasis Laravel 11 untuk melayani proses bisnis dan database.
 
 ---
 
