@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { 
   LogOut, Building, ShieldCheck, Sparkles, Database, 
   LayoutDashboard, BarChart3, LineChart, Shield, Download,
-  TrendingUp, Wallet, Award, ArrowUpRight, BarChart4, FileText
+  TrendingUp, Wallet, Award, ArrowUpRight, BarChart4, FileText,
+  Activity, Calculator, Users, Layers, Info
 } from "lucide-react";
 import { 
   ResponsiveContainer, BarChart, Bar, LineChart as ReLineChart, 
@@ -11,8 +12,23 @@ import {
 import ProjectionModelTab from "../cfo/components/ProjectionModelTab";
 import { simulateProjections, formatRupiah } from "../cfo/utils/financialModel";
 import { useValuationModel } from "../cfo/utils/valuationHelper";
+import ValuationWaterfallChart from "../../components/charts/ValuationWaterfallChart";
+import { RevenueChart, ARRChart, EBITDAChart, CoopsChart } from "../../components/charts/FinancialMetricCharts";
+import { useLanguage } from "../../context/LanguageContext";
+
+const MetricTooltip = ({ label, textEn, textId, language }) => (
+  <div className="relative group flex items-center gap-1 w-fit">
+    <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{label}</span>
+    <Info className="w-3 h-3 text-muted-foreground/60 cursor-pointer" />
+    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-2.5 bg-slate-800 dark:bg-slate-700 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-xl text-center font-normal normal-case tracking-normal leading-relaxed pointer-events-none">
+      {language === "en" ? textEn : textId}
+      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-slate-800 dark:border-t-slate-700"></div>
+    </div>
+  </div>
+);
 
 export default function InvestorDashboard({ userData, handleLogout }) {
+  const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState("overview");
   const [downloadingDeck, setDownloadingDeck] = useState(false);
   const [downloadingReport, setDownloadingReport] = useState(false);
@@ -70,14 +86,25 @@ export default function InvestorDashboard({ userData, handleLogout }) {
   const detailedProjectionData = useMemo(() => simulateProjections(assumptionsByYear), [assumptionsByYear]);
   const valuation = useValuationModel(detailedProjectionData);
 
-  // Mock static financial projection data for investors (Read-Only)
-  const projectionData = [
-    { name: "Tahun 1", ARR: 1800, EBITDA: 216, margin: 12 },
-    { name: "Tahun 2", ARR: 2560, EBITDA: 410, margin: 16 },
-    { name: "Tahun 3", ARR: 3640, EBITDA: 728, margin: 20 },
-    { name: "Tahun 4", ARR: 5180, EBITDA: 1191, margin: 23 },
-    { name: "Tahun 5", ARR: 7370, EBITDA: 1916, margin: 26 },
-  ];
+  const data2029 = useMemo(() => {
+    if (!detailedProjectionData || detailedProjectionData.length === 0) return {};
+    return detailedProjectionData[detailedProjectionData.length - 1] || {};
+  }, [detailedProjectionData]);
+
+  const chartData = useMemo(() => {
+    return detailedProjectionData.map(d => ({
+      year: d.year,
+      revenueB: Number((d.totalRevenue / 1_000_000_000).toFixed(2)),
+      arrB: Number((d.arr / 1_000_000_000).toFixed(2)),
+      ebitdaB: Number((d.ebitda / 1_000_000_000).toFixed(2)),
+      endingCashB: Number((d.endingCash / 1_000_000_000).toFixed(2)),
+      endingCoops: d.endingCoops
+    }));
+  }, [detailedProjectionData]);
+
+  const activeExitVal = useMemo(() => {
+    return (data2029.totalRevenue || 0) * (valuation.exitMultipleBase || 5);
+  }, [data2029, valuation]);
 
   const formatRupiahBillions = (value) => {
     return new Intl.NumberFormat("id-ID", {
@@ -237,88 +264,138 @@ export default function InvestorDashboard({ userData, handleLogout }) {
         {activeTab === "overview" && (
           <>
             {/* Investor Performance KPIs */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="bg-card p-6 rounded-2xl border border-border relative overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
-                <span className="text-xs text-emerald-500 font-semibold uppercase">Implied Valuation (DCF)</span>
-                <h3 className="text-2xl font-bold mt-2">Rp 24.5 Miliar</h3>
-                <p className="text-xs text-muted-foreground mt-2">Berdasarkan CAGR Revenue 42%</p>
+            <div className="space-y-6">
+              {/* Unit Economics */}
+              <div>
+                <h3 className="text-lg font-bold text-foreground mb-4 border-b border-border pb-2 flex items-center gap-2"><Wallet className="w-5 h-5 text-primary" /> Unit Economics</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-card p-4 rounded-xl border border-border">
+                    <MetricTooltip label="CAC" language={language} textEn="(Sales & Marketing Opex + 35% Payroll) / New Coops. If 0, check marketing assumptions & new customer targets." textId="(Opex Sales & Marketing + 35% Payroll) / Koperasi Baru. Jika Rp 0, pastikan asumsi biaya marketing & target pelanggan baru sudah diisi." />
+                    <h3 className="text-xl font-black mt-1 text-foreground">{formatRupiah(data2029.estimatedCac || 0)}</h3>
+                  </div>
+                  <div className="bg-card p-4 rounded-xl border border-border">
+                    <MetricTooltip label="LTV" language={language} textEn="(MRR * Gross Margin) / Churn Rate. If 0, check churn rate and revenue assumptions." textId="(MRR * Gross Margin) / Churn Rate. Jika Rp 0, periksa asumsi tingkat churn dan pendapatan." />
+                    <h3 className="text-xl font-black mt-1 text-foreground">{formatRupiah(data2029.estimatedLtv || 0)}</h3>
+                  </div>
+                  <div className="bg-card p-4 rounded-xl border border-border">
+                    <MetricTooltip label="LTV/CAC Ratio" language={language} textEn="LTV divided by CAC. >3x is considered healthy." textId="LTV dibagi dengan CAC. Rasio >3x dianggap sangat sehat." />
+                    <h3 className="text-xl font-black mt-1 text-emerald-500">{(data2029.ltvCacRatio || 0).toFixed(1)}x</h3>
+                  </div>
+                  <div className="bg-card p-4 rounded-xl border border-border">
+                    <MetricTooltip label="Payback Period" language={language} textEn="Months to recover CAC. CAC / (MRR * Gross Margin). <12 months is ideal." textId="Bulan yang dibutuhkan untuk balik modal CAC. CAC / (MRR * Gross Margin). Kurang dari 12 bulan sangat ideal." />
+                    <h3 className="text-xl font-black mt-1 text-foreground">{(data2029.cacPaybackMonths || 0).toFixed(1)} {language === "en" ? "Mos" : "Bulan"}</h3>
+                  </div>
+                </div>
               </div>
 
-              <div className="bg-card p-6 rounded-2xl border border-border relative overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
-                <span className="text-xs text-primary font-semibold uppercase">Gross Margin %</span>
-                <h3 className="text-2xl font-bold mt-2">85.4%</h3>
-                <p className="text-xs text-green-500 flex items-center gap-0.5 mt-2"><ArrowUpRight className="h-3 w-3" /> Sangat Sehat</p>
+              {/* SaaS Metrics */}
+              <div>
+                <h3 className="text-lg font-bold text-foreground mb-4 border-b border-border pb-2 flex items-center gap-2"><Activity className="w-5 h-5 text-indigo-500" /> SaaS Metrics</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-card p-4 rounded-xl border border-border">
+                    <MetricTooltip label="MRR" language={language} textEn="Monthly Recurring Revenue = ARR / 12." textId="Pendapatan Berulang Bulanan (ARR dibagi 12)." />
+                    <h3 className="text-xl font-black mt-1 text-foreground">{formatRupiah(data2029.mrr || 0)}</h3>
+                  </div>
+                  <div className="bg-card p-4 rounded-xl border border-border">
+                    <MetricTooltip label="Churn Rate" language={language} textEn="Annual percentage of customers who cancel their subscription." textId="Persentase tahunan koperasi yang membatalkan langganan." />
+                    <h3 className="text-xl font-black mt-1 text-rose-500">{(data2029.annualChurn || 0).toFixed(1)}%</h3>
+                  </div>
+                  <div className="bg-card p-4 rounded-xl border border-border">
+                    <MetricTooltip label="NRR" language={language} textEn="Net Revenue Retention. Revenue retained from existing customers including upsells." textId="Net Revenue Retention. Retensi pendapatan dari pelanggan lama termasuk upsell." />
+                    <h3 className="text-xl font-black mt-1 text-emerald-500">{(data2029.nrr || 0).toFixed(1)}%</h3>
+                  </div>
+                  <div className="bg-card p-4 rounded-xl border border-border">
+                    <MetricTooltip label="Gross Margin" language={language} textEn="(Total Revenue - COGS) / Total Revenue. >80% is typical for SaaS." textId="(Total Revenue - HPP) / Total Revenue. Margin >80% sangat khas untuk bisnis SaaS." />
+                    <h3 className="text-xl font-black mt-1 text-foreground">{(data2029.grossMargin || 0).toFixed(1)}%</h3>
+                  </div>
+                </div>
               </div>
 
-              <div className="bg-card p-6 rounded-2xl border border-border relative overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
-                <span className="text-xs text-[#f28c1f] font-semibold uppercase">Target IRR Perkiraan</span>
-                <h3 className="text-2xl font-bold mt-2">35.2%</h3>
-                <p className="text-xs text-muted-foreground mt-2">Proyeksi pengembalian 5 tahun</p>
+              {/* Growth Metrics */}
+              <div>
+                <h3 className="text-lg font-bold text-foreground mb-4 border-b border-border pb-2 flex items-center gap-2"><TrendingUp className="w-5 h-5 text-emerald-500" /> Growth Metrics</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-card p-4 rounded-xl border border-border">
+                    <MetricTooltip label="Revenue Growth YoY" language={language} textEn="Percentage growth of Total Revenue compared to the previous year." textId="Persentase pertumbuhan Total Pendapatan dibandingkan tahun sebelumnya." />
+                    <h3 className="text-xl font-black mt-1 text-emerald-500">{((data2029.revYoyGrowth || 0) * 100).toFixed(1)}%</h3>
+                  </div>
+                  <div className="bg-card p-4 rounded-xl border border-border">
+                    <MetricTooltip label="Customer Growth YoY" language={language} textEn="Percentage growth of Active Cooperatives compared to the previous year." textId="Persentase pertumbuhan jumlah Koperasi Aktif dibandingkan tahun sebelumnya." />
+                    <h3 className="text-xl font-black mt-1 text-emerald-500">{((data2029.yoyCoopGrowth || 0) * 100).toFixed(1)}%</h3>
+                  </div>
+                  <div className="bg-card p-4 rounded-xl border border-border">
+                    <MetricTooltip label="ARR Growth YoY" language={language} textEn="Percentage growth of Annual Recurring Revenue compared to the previous year." textId="Persentase pertumbuhan Pendapatan Berulang Tahunan (ARR) dibandingkan tahun sebelumnya." />
+                    <h3 className="text-xl font-black mt-1 text-emerald-500">{((data2029.arrYoyGrowth || 0) * 100).toFixed(1)}%</h3>
+                  </div>
+                  <div className="bg-card p-4 rounded-xl border border-border">
+                    <MetricTooltip label="EBITDA Margin" language={language} textEn="EBITDA divided by Total Revenue. Measures operational profitability." textId="EBITDA dibagi Total Pendapatan. Mengukur tingkat keuntungan operasional." />
+                    <h3 className={`text-xl font-black mt-1 ${(data2029.ebitdaMargin || 0) >= 0 ? "text-foreground" : "text-rose-500"}`}>{(data2029.ebitdaMargin || 0).toFixed(1)}%</h3>
+                  </div>
+                </div>
               </div>
 
-              <div className="bg-card p-6 rounded-2xl border border-border relative overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
-                <span className="text-xs text-indigo-500 font-semibold uppercase">Cash Runway</span>
-                <h3 className="text-2xl font-bold mt-2">18.5 Bulan</h3>
-                <p className="text-xs text-muted-foreground mt-2">Tingkat pengeluaran terkendali</p>
+              {/* Investor Metrics */}
+              <div>
+                <h3 className="text-lg font-bold text-foreground mb-4 border-b border-border pb-2 flex items-center gap-2"><Award className="w-5 h-5 text-amber-500" /> Investor Metrics</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-card p-4 rounded-xl border border-border">
+                    <MetricTooltip label="Burn Rate / Mo" language={language} textEn="Average monthly cash deficit. Only applies if EBITDA is negative." textId="Rata-rata defisit kas per bulan. Berlaku saat perusahaan membukukan EBITDA negatif (bakar uang)." />
+                    <h3 className="text-xl font-black mt-1 text-rose-500">{formatRupiah(data2029.monthlyBurn || 0)}</h3>
+                  </div>
+                  <div className="bg-card p-4 rounded-xl border border-border">
+                    <MetricTooltip label="Runway" language={language} textEn="Ending Cash / Monthly Burn Rate. Shows how many months before cash runs out." textId="Saldo Kas / Burn Rate Bulanan. Menunjukkan berapa bulan kas bertahan sebelum habis." />
+                    <h3 className="text-xl font-black mt-1 text-foreground">{(data2029.runwayMonths || 0) >= 999 ? "Unlimited" : `${(data2029.runwayMonths || 0).toFixed(1)} ${language === "en" ? "Mos" : "Bln"}`}</h3>
+                  </div>
+                  <div className="bg-card p-4 rounded-xl border border-border">
+                    <MetricTooltip label="Cash Balance" language={language} textEn="Ending cash balance for the year after all inflows (funding) and outflows." textId="Saldo akhir kas di penghujung tahun setelah dikurangi seluruh pengeluaran operasional dan investasi." />
+                    <h3 className="text-xl font-black mt-1 text-foreground">{formatRupiah(data2029.endingCash || 0)}</h3>
+                  </div>
+                  <div className="bg-card p-4 rounded-xl border border-border">
+                    <MetricTooltip label="Break-even Year" language={language} textEn="The first year where EBITDA becomes positive." textId="Tahun pertama dimana EBITDA (keuntungan operasional) berubah menjadi positif." />
+                    <h3 className="text-xl font-black mt-1 text-emerald-500">
+                      {detailedProjectionData.find(row => row.ebitda > 0)?.year || (language === "en" ? "Not Reached" : "Belum")}
+                    </h3>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Chart Visuals */}
-            <div id="valuations" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* ARR Growth Bar Chart */}
-              <section className="bg-card border border-border rounded-2xl p-6 lg:col-span-2 flex flex-col justify-between" style={{ boxShadow: "var(--shadow-card)" }}>
-                <div>
-                  <h2 className="text-lg font-bold flex items-center gap-2">
-                    <BarChart4 className="h-5 w-5 text-emerald-500" /> Proyeksi Pendapatan Berulang Tahunan (ARR)
-                  </h2>
-                  <p className="text-sm text-muted-foreground">Proyeksi pertumbuhan top-line model bisnis SaaS Smartcoop.</p>
-                </div>
+            {/* Comprehensive Visualizations */}
+            <div id="valuations" className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+                <h3 className="text-base font-extrabold flex items-center gap-2 text-foreground mb-2">
+                  <TrendingUp className="h-5 w-5 text-primary" /> {language === "en" ? "Revenue Trajectory (5 Years)" : "Lintasan Pendapatan (5 Tahun)"}
+                </h3>
+                <RevenueChart data={chartData} />
+              </div>
+              
+              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+                <h3 className="text-base font-extrabold flex items-center gap-2 text-foreground mb-2">
+                  <Activity className="h-5 w-5 text-indigo-500" /> {language === "en" ? "ARR Growth" : "Pertumbuhan ARR"}
+                </h3>
+                <ARRChart data={chartData} />
+              </div>
 
-                <div className="h-64 mt-6">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={projectionData}
-                      margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                      <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} />
-                      <YAxis stroke="#888888" fontSize={12} tickLine={false} label={{ value: 'Juta Rp', angle: -90, position: 'insideLeft', fill: '#888888' }} />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: "var(--card)", borderColor: "var(--border)", borderRadius: "12px" }}
-                      />
-                      <Bar name="ARR (Juta)" dataKey="ARR" fill="var(--primary)" radius={[8, 8, 0, 0]} />
-                      <Bar name="EBITDA (Juta)" dataKey="EBITDA" fill="#f28c1f" radius={[8, 8, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </section>
+              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+                <h3 className="text-base font-extrabold flex items-center gap-2 text-foreground mb-2">
+                  <Calculator className="h-5 w-5 text-amber-500" /> {language === "en" ? "EBITDA Projection" : "Proyeksi EBITDA"}
+                </h3>
+                <EBITDAChart data={chartData} />
+              </div>
 
-              {/* Valuation model summaries */}
-              <section className="bg-card border border-border rounded-2xl p-6 lg:col-span-1 space-y-6" style={{ boxShadow: "var(--shadow-card)" }}>
-                <h2 className="text-lg font-bold flex items-center gap-2 border-b border-border pb-3">
-                  <Award className="h-5 w-5 text-emerald-500" /> Ringkasan Analisis Valuasi
-                </h2>
+              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+                <h3 className="text-base font-extrabold flex items-center gap-2 text-foreground mb-2">
+                  <Users className="h-5 w-5 text-emerald-500" /> {language === "en" ? "Cooperative Growth" : "Pertumbuhan Koperasi"}
+                </h3>
+                <CoopsChart data={chartData} />
+              </div>
 
-                <div className="space-y-4">
-                  <div className="p-4 border border-border rounded-xl bg-background">
-                    <h4 className="font-semibold text-sm">Metode Kelipatan Pendapatan (Multiples)</h4>
-                    <p className="text-xs text-muted-foreground mt-1">Menggunakan rata-rata multiples SaaS regional sebesar 6.5x ARR.</p>
-                    <div className="flex justify-between items-center mt-3 text-sm">
-                      <span className="text-muted-foreground">Implied Value</span>
-                      <span className="font-bold text-emerald-500">Rp 11.7 Miliar</span>
-                    </div>
-                  </div>
-
-                  <div className="p-4 border border-border rounded-xl bg-background">
-                    <h4 className="font-semibold text-sm">Arus Kas Terdiskonto (DCF)</h4>
-                    <p className="text-xs text-muted-foreground mt-1">Menggunakan WACC 12.5% dan Terminal Growth Rate 3.0%.</p>
-                    <div className="flex justify-between items-center mt-3 text-sm">
-                      <span className="text-muted-foreground">Implied Value</span>
-                      <span className="font-bold text-emerald-500">Rp 24.5 Miliar</span>
-                    </div>
-                  </div>
-                </div>
-              </section>
+              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm lg:col-span-2">
+                <h3 className="text-base font-extrabold flex items-center gap-2 text-foreground mb-2">
+                  <Layers className="h-5 w-5 text-primary" /> {language === "en" ? "Valuation Waterfall (Exit Year 5)" : "Waterfall Valuasi (Exit Tahun 5)"}
+                </h3>
+                <ValuationWaterfallChart valuation={valuation} activeExitVal={activeExitVal} />
+              </div>
             </div>
 
             {/* Download reports and pitch deck */}
