@@ -13,7 +13,7 @@ export default function AdminAuditTab() {
   const fetchLogs = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const res = await fetch("http://localhost:8000/api/admin/activity-logs", {
+      const res = await fetch("/api/admin/activity-logs", {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Accept": "application/json"

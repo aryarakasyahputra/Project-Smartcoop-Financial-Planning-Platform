@@ -152,7 +152,7 @@ export default function Login() {
         <div className="mt-8 border-t border-border pt-6 text-center text-sm text-muted-foreground">
           <p>Atau login dengan Google (Khusus Undangan)</p>
           <a
-            href="http://localhost:8000/api/auth/google/redirect"
+            href="/api/auth/google/redirect"
             className="w-full mt-4 inline-flex justify-center items-center gap-2 rounded-full border border-border bg-card text-foreground px-6 py-3 text-sm font-semibold hover:bg-muted transition-all"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">

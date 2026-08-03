@@ -21,7 +21,7 @@ export default function AdminDashboard() {
       }
 
       try {
-        const res = await fetch("http://localhost:8000/api/me", {
+        const res = await fetch("/api/me", {
           headers: {
             "Accept": "application/json",
             "Authorization": `Bearer ${token}`
@@ -57,7 +57,7 @@ export default function AdminDashboard() {
     const token = sessionStorage.getItem("token");
     if (token) {
       try {
-        await fetch("http://localhost:8000/api/logout", {
+        await fetch("/api/logout", {
           method: "POST",
           headers: {
             "Accept": "application/json",

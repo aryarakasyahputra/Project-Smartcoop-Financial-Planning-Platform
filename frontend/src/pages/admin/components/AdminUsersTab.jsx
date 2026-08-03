@@ -13,7 +13,7 @@ export default function AdminUsersTab() {
   const fetchUsers = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const res = await fetch("http://localhost:8000/api/admin/users", {
+      const res = await fetch("/api/admin/users", {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Accept": "application/json"
@@ -37,7 +37,7 @@ export default function AdminUsersTab() {
     
     try {
       const token = sessionStorage.getItem("token");
-      const res = await fetch(`http://localhost:8000/api/admin/users/${userId}/status`, {
+      const res = await fetch(`/api/admin/users/${userId}/status`, {
         method: "PUT",
         headers: {
           "Authorization": `Bearer ${token}`,

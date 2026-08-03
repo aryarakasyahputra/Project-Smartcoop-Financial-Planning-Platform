@@ -18,7 +18,7 @@ export default function AdminOverviewTab() {
   const fetchStats = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const res = await fetch("http://localhost:8000/api/admin/stats", {
+      const res = await fetch("/api/admin/stats", {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Accept": "application/json"
