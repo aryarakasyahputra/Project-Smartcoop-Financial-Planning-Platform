@@ -204,7 +204,7 @@ export default function FounderDashboard({ userData, handleLogout }) {
     try {
       setInviting(true);
       const token = getToken();
-      const res = await fetch(`http://127.0.0.1:8000/api/companies/${primaryCompany.id}/invite`, {
+      const res = await fetch(`http://127.0.0.1:8000/api/invitations`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -213,7 +213,8 @@ export default function FounderDashboard({ userData, handleLogout }) {
         },
         body: JSON.stringify({
           email: inviteEmail,
-          role_id: parseInt(inviteRole, 10)
+          role_id: parseInt(inviteRole, 10),
+          company_id: primaryCompany.id
         })
       });
       const json = await res.json();
