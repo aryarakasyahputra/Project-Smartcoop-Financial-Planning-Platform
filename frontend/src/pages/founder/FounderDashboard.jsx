@@ -204,7 +204,7 @@ export default function FounderDashboard({ userData, handleLogout }) {
     try {
       setInviting(true);
       const token = getToken();
-      const res = await fetch(`/api/companies/${primaryCompany.id}/invite`, {
+      const res = await fetch(`/api/invitations`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
