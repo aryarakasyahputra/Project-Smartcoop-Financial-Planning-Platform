@@ -13,13 +13,17 @@ use App\Http\Controllers\InvitationController;
 Route::get('/auth/google/redirect', [SocialAuthController::class, 'redirect']);
 Route::get('/auth/google/callback', [SocialAuthController::class, 'callback']);
 
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\AssumptionController;
+
+Route::post('/payments/notification', [PaymentController::class, 'handleNotification']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/onboarding', [\App\Http\Controllers\OnboardingController::class, 'store']);
     Route::post('/invitations', [InvitationController::class, 'store']);
+    Route::post('/payments/snap-token', [PaymentController::class, 'getSnapToken']);
 
     // Assumption Engine (CFO Dashboard)
     Route::get('/projects/{projectId}/assumptions', [AssumptionController::class, 'get']);

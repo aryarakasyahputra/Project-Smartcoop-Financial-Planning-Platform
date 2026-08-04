@@ -525,7 +525,7 @@ export default function Landing() {
                       <span className="text-[#414751] text-[16px]">Fundraising tracker</span>
                     </li>
                   </ul>
-                  <a href="/register" className="w-full py-4 border border-[#005fa4] text-[#005fa4] rounded-lg text-[14px] font-bold hover:bg-[#005fa4]/5 transition-colors active:scale-95 block text-center">
+                  <a href="/register?plan=starter" className="w-full py-4 border border-[#005fa4] text-[#005fa4] rounded-lg text-[14px] font-bold hover:bg-[#005fa4]/5 transition-colors active:scale-95 block text-center">
                     Mulai Gratis
                   </a>
                 </div>
@@ -572,9 +572,9 @@ export default function Landing() {
                       <span className="text-[#414751] text-[16px]">Custom reporting exports</span>
                     </li>
                   </ul>
-                  <button className="w-full py-4 bg-[#005fa4] text-[#ffffff] rounded-lg text-[14px] font-bold shadow-lg shadow-[#005fa4]/20 hover:opacity-90 active:scale-95 transition-all">
+                  <a href="/register?plan=professional" className="w-full py-4 bg-[#005fa4] text-[#ffffff] rounded-lg text-[14px] font-bold shadow-lg shadow-[#005fa4]/20 hover:opacity-90 active:scale-95 transition-all text-center block">
                     Mulai Sekarang
-                  </button>
+                  </a>
                 </div>
 
                 {/* Enterprise */}
