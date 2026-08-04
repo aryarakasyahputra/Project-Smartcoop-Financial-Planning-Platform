@@ -91,7 +91,7 @@ export default function FounderDashboard({ userData, handleLogout }) {
       try {
         setLoadingProjections(true);
         const token = getToken();
-        const res = await fetch(`http://127.0.0.1:8000/api/projects/${projectId}/assumptions`, {
+        const res = await fetch(`/api/projects/${projectId}/assumptions`, {
           headers: {
             "Authorization": `Bearer ${token}`,
             "Accept": "application/json"
@@ -151,7 +151,7 @@ export default function FounderDashboard({ userData, handleLogout }) {
     // Fetch Members
     try {
       setLoadingMembers(true);
-      const res = await fetch(`http://127.0.0.1:8000/api/companies/${primaryCompany.id}/members`, {
+      const res = await fetch(`/api/companies/${primaryCompany.id}/members`, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Accept": "application/json"
@@ -169,7 +169,7 @@ export default function FounderDashboard({ userData, handleLogout }) {
     // Fetch Invitations
     try {
       setLoadingInvitations(true);
-      const res = await fetch(`http://127.0.0.1:8000/api/companies/${primaryCompany.id}/invitations`, {
+      const res = await fetch(`/api/companies/${primaryCompany.id}/invitations`, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Accept": "application/json"
@@ -204,7 +204,7 @@ export default function FounderDashboard({ userData, handleLogout }) {
     try {
       setInviting(true);
       const token = getToken();
-      const res = await fetch(`http://127.0.0.1:8000/api/companies/${primaryCompany.id}/invite`, {
+      const res = await fetch(`/api/companies/${primaryCompany.id}/invite`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -240,7 +240,7 @@ export default function FounderDashboard({ userData, handleLogout }) {
   const handleResendInvitation = async (invitationId) => {
     try {
       const token = getToken();
-      const res = await fetch(`http://127.0.0.1:8000/api/invitations/${invitationId}/resend`, {
+      const res = await fetch(`/api/invitations/${invitationId}/resend`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -263,7 +263,7 @@ export default function FounderDashboard({ userData, handleLogout }) {
   const handleCancelInvitation = async (invitationId) => {
     try {
       const token = getToken();
-      const res = await fetch(`http://127.0.0.1:8000/api/invitations/${invitationId}`, {
+      const res = await fetch(`/api/invitations/${invitationId}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -289,7 +289,7 @@ export default function FounderDashboard({ userData, handleLogout }) {
     try {
       setDeletingMember(true);
       const token = getToken();
-      const res = await fetch(`http://127.0.0.1:8000/api/companies/${primaryCompany.id}/members/${memberToDelete.id}`, {
+      const res = await fetch(`/api/companies/${primaryCompany.id}/members/${memberToDelete.id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
