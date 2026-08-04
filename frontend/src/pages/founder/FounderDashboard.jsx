@@ -213,7 +213,8 @@ export default function FounderDashboard({ userData, handleLogout }) {
         },
         body: JSON.stringify({
           email: inviteEmail,
-          role_id: parseInt(inviteRole, 10)
+          role_id: parseInt(inviteRole, 10),
+          company_id: primaryCompany.id
         })
       });
       const json = await res.json();
