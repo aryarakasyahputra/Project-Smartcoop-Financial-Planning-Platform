@@ -56,8 +56,6 @@ class DatabaseSeeder extends Seeder
                 UserCompanyAccess::firstOrCreate([
                     'user_id' => $user->id,
                     'company_id' => $company->id
-                ], [
-                    'role_id' => $roleModels[$roleName]->id
                 ]);
             }
         }
