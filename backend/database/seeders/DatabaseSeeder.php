@@ -39,8 +39,30 @@ class DatabaseSeeder extends Seeder
             'name' => 'Proyeksi Keuangan Utama'
         ]);
 
-        // Create a user for each role for testing
-        foreach ($roles as $roleName) {
+        // Create Admin user from .env variables (secure admin credentials)
+        $adminEmail = env('ADMIN_EMAIL', 'admin@test.com');
+        $adminPassword = env('ADMIN_PASSWORD', 'password');
+        $adminName = env('ADMIN_NAME', 'Platform Admin');
+
+        $adminUser = User::firstOrCreate(
+            ['email' => $adminEmail],
+            [
+                'name' => $adminName,
+                'password' => Hash::make($adminPassword),
+                'role_id' => $roleModels['admin']->id,
+            ]
+        );
+        if (!$adminUser->wasRecentlyCreated) {
+            $adminUser->update([
+                'name' => $adminName,
+                'password' => Hash::make($adminPassword),
+                'role_id' => $roleModels['admin']->id,
+            ]);
+        }
+
+        // Create a user for each remaining role for testing
+        $testRoles = ['founder', 'finance', 'investor viewer'];
+        foreach ($testRoles as $roleName) {
             $emailPrefix = str_replace(' ', '', $roleName);
             $user = User::firstOrCreate(
                 ['email' => $emailPrefix . '@test.com'],
@@ -51,13 +73,10 @@ class DatabaseSeeder extends Seeder
                 ]
             );
 
-            // Link all non-admin users to the default company
-            if ($roleName !== 'admin') {
-                UserCompanyAccess::firstOrCreate([
-                    'user_id' => $user->id,
-                    'company_id' => $company->id
-                ]);
-            }
+            UserCompanyAccess::firstOrCreate([
+                'user_id' => $user->id,
+                'company_id' => $company->id
+            ]);
         }
 
         $this->call(ExcelFinancialModelSeeder::class);
