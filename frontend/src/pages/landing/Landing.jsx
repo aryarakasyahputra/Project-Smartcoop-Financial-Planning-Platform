@@ -254,6 +254,76 @@ const HeroMockup = () => {
 
 export default function Landing() {
   const [isAnnual, setIsAnnual] = useState(true);
+  const [modalData, setModalData] = useState(null);
+
+  const openModal = (type) => {
+    const info = {
+      security: {
+        title: "Keamanan Data (Security)",
+        content: (
+          <div className="space-y-4 text-sm text-[#414751]">
+            <p><strong>Smartcoop Financial</strong> menerapkan standar keamanan berkelas enterprise untuk melindungi data perencanaan keuangan dan proyeksi bisnis Anda.</p>
+            <ul className="list-disc pl-5 space-y-2">
+              <li><strong>Enkripsi End-to-End SSL 256-bit:</strong> Seluruh komunikasi data antara browser dan server dienkripsi menggunakan protokol HTTPS SSL.</li>
+              <li><strong>Autentikasi Token Sanctum:</strong> Setiap sesi pengguna menggunakan token terenkripsi yang aman dari serangan CSRF & XSS.</li>
+              <li><strong>Isolasi Database Tenant:</strong> Data proyeksi keuangan perusahaan Anda disimpan dengan proteksi hak akses terisolasi per perusahaan.</li>
+              <li><strong>Backup Otomatis:</strong> Database ter-backup secara berkala di cloud server Railway yang andal.</li>
+            </ul>
+          </div>
+        )
+      },
+      contact: {
+        title: "Hubungi Kami (Contact Us)",
+        content: (
+          <div className="space-y-4 text-sm text-[#414751]">
+            <p>Tim support & konsultan pemodelan keuangan kami siap membantu kebutuhan bisnis Anda:</p>
+            <div className="p-4 bg-gray-50 rounded-xl space-y-3 border border-gray-200">
+              <div className="flex items-center gap-3">
+                <span className="font-bold text-[#005fa4]">Email Support:</span>
+                <span>support@smartcoop.id</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="font-bold text-[#005fa4]">Hotline / WhatsApp:</span>
+                <span>+62 812-3456-7890</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="font-bold text-[#005fa4]">Jam Operasional:</span>
+                <span>Senin - Jumat (08:00 - 17:00 WIB)</span>
+              </div>
+            </div>
+          </div>
+        )
+      },
+      privacy: {
+        title: "Kebijakan Privasi (Privacy Policy)",
+        content: (
+          <div className="space-y-4 text-sm text-[#414751]">
+            <p>Kami sangat menghargai privasi informasi keuangan dan proyeksi bisnis perusahaan Anda.</p>
+            <ul className="list-disc pl-5 space-y-2">
+              <li><strong>Pengumpulan Data:</strong> Kami hanya mengumpulkan data yang Anda berikan saat mendaftar (nama, email) dan data asumsi keuangan yang Anda masukkan secara sukarela.</li>
+              <li><strong>Kerahasiaan Data:</strong> Data proyeksi bisnis Anda TIDAK AKAN PERNAH dijual, disewakan, atau dibagikan ke pihak ketiga mana pun tanpa persetujuan Anda.</li>
+              <li><strong>Hak Pengguna:</strong> Anda dapat mengunduh atau menghapus seluruh data proyeksi keuangan perusahaan Anda kapan saja dari dashboard.</li>
+            </ul>
+          </div>
+        )
+      },
+      terms: {
+        title: "Syarat & Ketentuan (Terms of Service)",
+        content: (
+          <div className="space-y-4 text-sm text-[#414751]">
+            <p>Dengan menggunakan platform Smartcoop Financial, Anda menyetujui ketentuan layanan berikut:</p>
+            <ul className="list-disc pl-5 space-y-2">
+              <li><strong>Penggunaan Layanan:</strong> Layanan ini ditujukan untuk perencanaan finansial, simulasi proyeksi, dan pembuatan laporan fundraising secara profesional.</li>
+              <li><strong>Tanggung Jawab Akun:</strong> Pengguna bertanggung jawab menjaga kerahasiaan password & lisensi akses tim yang diberikan.</li>
+              <li><strong>Langganan & Ketersediaan:</strong> Paket Professional beroperasi berbasis langganan bulanan/tahunan dengan jaminan uptime ketersediaan server 99.9%.</li>
+            </ul>
+          </div>
+        )
+      }
+    };
+
+    setModalData(info[type]);
+  };
 
   return (
     <div className="bg-[#faf8ff] text-[#131b2e] min-h-screen overflow-x-hidden" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -449,14 +519,11 @@ export default function Landing() {
 
             <div id="cta" className="mt-12 p-10 rounded-3xl border border-[#c1c7d3]/30 bg-white" style={{ boxShadow: "0 20px 50px -20px rgba(0, 0, 0, 0.05)" }}>
               <h3 className="font-display text-2xl md:text-3xl font-bold text-[#131b2e]">Siap membangun financial model Anda?</h3>
-              <p className="mt-3 text-muted-foreground">Jadwalkan demo dan lihat bagaimana Smartcoop mengubah spreadsheet menjadi keputusan.</p>
+              <p className="mt-3 text-muted-foreground">Mulai susun proyeksi keuangan dan strategi fundraising bisnis Anda sekarang.</p>
               <div className="mt-6 flex flex-wrap gap-3 justify-center">
-                <a href="#" className="inline-flex items-center justify-center rounded-full text-white px-6 py-3 text-sm font-semibold hover:opacity-90 transition-opacity animate-gradient"
+                <a href="#pricing" className="inline-flex items-center justify-center rounded-full text-white px-6 py-3 text-sm font-semibold hover:opacity-90 transition-opacity animate-gradient"
                   style={{ background: `linear-gradient(120deg, ${BRAND_BLUE}, ${BRAND_ORANGE}, ${BRAND_BLUE})`, boxShadow: "var(--shadow-glow)" }}>
-                  Request Demo
-                </a>
-                <a href="#" className="inline-flex items-center gap-2 rounded-full border border-[#c1c7d3]/30 bg-white px-6 py-3 text-sm font-semibold text-[#131b2e] hover:bg-[#faf8ff] transition-colors">
-                  Hubungi Tim
+                  Pilih Paket Langganan
                 </a>
               </div>
             </div>
@@ -668,19 +735,16 @@ export default function Landing() {
               <h2 className="text-[36px] md:text-[48px] font-bold text-[#ffffff] mb-6">Mulai Transformasi Finansial Bisnis Anda</h2>
               <p className="text-[20px] text-[#d2e4ff] mb-[3rem] max-w-2xl mx-auto">Bergabunglah dengan ratusan founder yang telah mengoptimalkan strategi fundraising mereka bersama smartcoop.</p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <button className="px-8 py-4 bg-white text-[#005fa4] rounded-xl text-[14px] font-bold shadow-xl hover:bg-[#d2e4ff] transition-colors active:scale-95">
+                <a href="#pricing" className="px-8 py-4 bg-white text-[#005fa4] rounded-xl text-[14px] font-bold shadow-xl hover:bg-[#d2e4ff] transition-colors active:scale-95">
                   Daftar Sekarang
-                </button>
-                <button className="px-8 py-4 bg-transparent border-2 border-[#d2e4ff] text-[#d2e4ff] rounded-xl text-[14px] font-bold hover:bg-white/10 transition-colors active:scale-95">
-                  Jadwalkan Demo
-                </button>
+                </a>
               </div>
             </div>
           </section>
 
           {/* Footer */}
           <footer className="bg-[#ffffff] border-t border-[#c1c7d3]/50">
-            <div className="py-[5rem] px-4 md:px-[1.5rem] max-w-[1280px] mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-[1.5rem]">
+            <div className="py-[5rem] px-4 md:px-[1.5rem] max-w-[1280px] mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-[1.5rem]">
               <div className="col-span-2">
                 <div className="flex flex-col leading-none mb-4">
                   <span className="text-[32px] font-bold text-[#005fa4]">smart<span className="text-[#FFD700]">coop</span></span>
@@ -692,31 +756,52 @@ export default function Landing() {
               </div>
               <div className="flex flex-col gap-4">
                 <span className="text-[14px] text-[#131b2e] font-bold uppercase tracking-wider">Product</span>
-                <a className="text-[#414751] text-[14px] hover:text-[#005fa4] transition-colors" href="#">Features</a>
-                <a className="text-[#414751] text-[14px] hover:text-[#005fa4] transition-colors" href="#">Pricing</a>
-                <a className="text-[#414751] text-[14px] hover:text-[#005fa4] transition-colors" href="#">Security</a>
+                <a className="text-[#414751] text-[14px] hover:text-[#005fa4] transition-colors cursor-pointer" href="#modules">Features</a>
+                <a className="text-[#414751] text-[14px] hover:text-[#005fa4] transition-colors cursor-pointer" href="#pricing">Pricing</a>
+                <button type="button" onClick={() => openModal("security")} className="text-left text-[#414751] text-[14px] hover:text-[#005fa4] transition-colors cursor-pointer">Security</button>
               </div>
               <div className="flex flex-col gap-4">
                 <span className="text-[14px] text-[#131b2e] font-bold uppercase tracking-wider">Company</span>
-                <a className="text-[#414751] text-[14px] hover:text-[#005fa4] transition-colors" href="#">Contact</a>
-                <a className="text-[#414751] text-[14px] hover:text-[#005fa4] transition-colors" href="#">Privacy Policy</a>
-                <a className="text-[#414751] text-[14px] hover:text-[#005fa4] transition-colors" href="#">Terms of Service</a>
-              </div>
-              <div className="flex flex-col gap-4 col-span-2">
-                <span className="text-[14px] text-[#131b2e] font-bold uppercase tracking-wider">Subscribe</span>
-                <p className="text-[#414751] text-[14px]">Dapatkan update terbaru mengenai strategi fundraising.</p>
-                <div className="flex gap-2">
-                  <input className="bg-[#faf8ff] border border-[#c1c7d3] rounded-lg px-4 py-2 flex-grow focus:outline-[#005fa4]" placeholder="Email Anda" type="email" />
-                  <button className="bg-[#005fa4] text-[#ffffff] p-2 rounded-lg material-symbols-outlined">send</button>
-                </div>
+                <button type="button" onClick={() => openModal("contact")} className="text-left text-[#414751] text-[14px] hover:text-[#005fa4] transition-colors cursor-pointer">Contact</button>
+                <button type="button" onClick={() => openModal("privacy")} className="text-left text-[#414751] text-[14px] hover:text-[#005fa4] transition-colors cursor-pointer">Privacy Policy</button>
+                <button type="button" onClick={() => openModal("terms")} className="text-left text-[#414751] text-[14px] hover:text-[#005fa4] transition-colors cursor-pointer">Terms of Service</button>
               </div>
             </div>
             <div className="max-w-[1280px] mx-auto px-4 md:px-[1.5rem] py-8 border-t border-[#c1c7d3]/30 text-center">
-              <span className="text-[#414751] text-[14px]">© 2024 Smartcoop Finance. Strategic Planning & Driver-Based Modeling.</span>
+              <span className="text-[#414751] text-[14px]">© 2026 Smartcoop Finance. Strategic Planning & Driver-Based Modeling.</span>
             </div>
           </footer>
         </div>
       </main>
+
+      {/* Info Popup Modal */}
+      {modalData && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden text-gray-800 animate-scale-up">
+            <div className="bg-[#005fa4] text-white p-5 flex items-center justify-between">
+              <h3 className="font-bold text-lg leading-tight">{modalData.title}</h3>
+              <button 
+                onClick={() => setModalData(null)}
+                className="text-white/80 hover:text-white transition-colors text-xl font-bold px-2"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              {modalData.content}
+            </div>
+            <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setModalData(null)}
+                className="px-6 py-2 bg-[#005fa4] text-white rounded-xl text-xs font-bold hover:opacity-90 transition-all"
+              >
+                Tutup Informasi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
