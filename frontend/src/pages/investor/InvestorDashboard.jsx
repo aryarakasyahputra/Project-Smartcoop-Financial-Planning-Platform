@@ -48,7 +48,7 @@ export default function InvestorDashboard({ userData, handleLogout }) {
         return;
       }
       try {
-        const response = await fetch(`http://localhost:8000/api/projects/${projectId}/assumptions`, {
+        const response = await fetch(`/api/projects/${projectId}/assumptions`, {
           headers: { 
             "Authorization": `Bearer ${token}`,
             "Accept": "application/json"

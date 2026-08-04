@@ -26,36 +26,59 @@ class DatabaseSeeder extends Seeder
 
         $roleModels = [];
         foreach ($roles as $roleName) {
-            $roleModels[$roleName] = Role::create(['name' => $roleName]);
+            $roleModels[$roleName] = Role::firstOrCreate(['name' => $roleName]);
         }
 
         // Create a default company and project for testing
-        $company = Company::create([
+        $company = Company::firstOrCreate([
             'name' => 'Smartcoop Corp'
         ]);
 
-        $project = Project::create([
+        $project = Project::firstOrCreate([
             'company_id' => $company->id,
             'name' => 'Proyeksi Keuangan Utama'
         ]);
 
-        // Create a user for each role for testing
-        foreach ($roles as $roleName) {
-            $emailPrefix = str_replace(' ', '', $roleName);
-            $user = User::create([
-                'name' => 'Test ' . ucfirst($roleName),
-                'email' => $emailPrefix . '@test.com',
-                'password' => Hash::make('password'),
-                'role_id' => $roleModels[$roleName]->id,
-            ]);
+        // Create Admin user from .env variables (secure admin credentials)
+        $adminEmail = env('ADMIN_EMAIL', 'admin@test.com');
+        $adminPassword = env('ADMIN_PASSWORD', 'password');
+        $adminName = env('ADMIN_NAME', 'Platform Admin');
 
-            // Link all non-admin users to the default company
-            if ($roleName !== 'admin') {
-                UserCompanyAccess::create([
-                    'user_id' => $user->id,
-                    'company_id' => $company->id
-                ]);
-            }
+        $adminUser = User::firstOrCreate(
+            ['email' => $adminEmail],
+            [
+                'name' => $adminName,
+                'password' => Hash::make($adminPassword),
+                'role_id' => $roleModels['admin']->id,
+            ]
+        );
+        if (!$adminUser->wasRecentlyCreated) {
+            $adminUser->update([
+                'name' => $adminName,
+                'password' => Hash::make($adminPassword),
+                'role_id' => $roleModels['admin']->id,
+            ]);
         }
+
+        // Create a user for each remaining role for testing
+        $testRoles = ['founder', 'finance', 'investor viewer'];
+        foreach ($testRoles as $roleName) {
+            $emailPrefix = str_replace(' ', '', $roleName);
+            $user = User::firstOrCreate(
+                ['email' => $emailPrefix . '@test.com'],
+                [
+                    'name' => 'Test ' . ucfirst($roleName),
+                    'password' => Hash::make('password'),
+                    'role_id' => $roleModels[$roleName]->id,
+                ]
+            );
+
+            UserCompanyAccess::firstOrCreate([
+                'user_id' => $user->id,
+                'company_id' => $company->id
+            ]);
+        }
+
+        $this->call(ExcelFinancialModelSeeder::class);
     }
 }

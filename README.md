@@ -4,47 +4,24 @@ Smartcoop Financial Planning Platform merupakan aplikasi SaaS perencanaan keuang
 
 ---
 
-## Panduan Folder Frontend (`/frontend`)
+## 📂 Struktur Folder Utama
 
-Untuk memudahkan navigasi dan pemeliharaan kode, seluruh halaman utama aplikasi frontend telah dikelompokkan ke dalam subdirektori berdasarkan peran dan fungsinya di `frontend/src/pages/`.
-
-Berikut adalah peta struktur folder frontend beserta kegunaannya:
-
-```text
-frontend/
-├── public/                     # Aset publik statis (favicon, logo, dll)
-├── src/
-│   ├── assets/                 # Aset gambar lokal React
-│   ├── components/             # Komponen UI global yang dapat digunakan kembali (reusable UI)
-│   ├── pages/                  # Halaman Utama Aplikasi (Utama & Alur SaaS)
-│   │   ├── admin/              # Panel Admin Console (Overview, Users, Billing, Audit Log)
-│   │   ├── authCallback/       # Callback Login Pihak Ketiga (OAuth Google)
-│   │   ├── cfo/                # Dashboard khusus peran CFO (Financial Analyst, Drivers, Proyeksi)
-│   │   ├── dashboard/          # Router Dashboard (Mengarahkan user ke dashboard sesuai Role)
-│   │   ├── founder/            # Dashboard khusus peran Founder (Manajemen Tim, Pengaturan Perusahaan)
-│   │   ├── investor/           # Dashboard khusus peran Investor (Akses read-only ke Proyeksi)
-│   │   ├── landing/            # Landing Page promosi dan modul
-│   │   ├── login/              # Halaman Masuk (Login)
-│   │   ├── onboarding/         # Halaman Pengisian Profil Perusahaan Baru (Hanya untuk Founder)
-│   │   └── register/           # Halaman Pendaftaran Akun Baru (Register)
-│   ├── App.css                 # Gaya CSS global tambahan
-│   ├── index.css               # Konfigurasi Tailwind & Animasi Custom
-│   └── main.jsx                # Entrypoint & Router Aplikasi
-```
+* **`/frontend`**: Aplikasi React + Vite (halaman di `src/pages/` dikelompokkan berdasarkan peran: `admin`, `cfo`, `founder`, `investor`, serta alur masuk/onboarding).
+* **`/backend`**: REST API berbasis Laravel 11 untuk melayani proses bisnis dan database.
 
 ---
 
-## Cara Menjalankan Aplikasi Secara Lokal
+## 💻 Cara Menjalankan Aplikasi Secara Lokal
 
-### 1. Menjalankan Backend (Laravel)
-Masuk ke terminal backend, kemudian jalankan:
+### 1. Backend (Laravel)
+Masuk to folder `backend` dan jalankan:
 ```bash
 php artisan serve
 ```
 Server backend akan berjalan di: `http://localhost:8000`
 
-### 2. Menjalankan Frontend (React + Vite)
-Masuk ke terminal frontend, kemudian jalankan:
+### 2. Frontend (React + Vite)
+Masuk to folder `frontend` dan jalankan:
 ```bash
 npm run dev
 ```
@@ -52,30 +29,64 @@ Server frontend akan berjalan di: `http://localhost:5173`
 
 ---
 
-## Alur Kerja Hak Akses Pengguna (Role-Based SaaS Flow)
+## 🚀 Panduan Deployment (Production)
 
-Aplikasi ini mendukung 4 peran (Role) utama yang memiliki antarmuka (UI) dan batas akses spesifik:
+Aplikasi ini dikonfigurasi untuk berjalan di arsitektur cloud terpisah: **Vercel** (Frontend) dan **Railway** (Backend & MySQL).
 
-1. **Founder**:
-   * Mendaftar pertama kali lewat `/register`.
-   * Diarahkan ke `/onboarding` untuk membuat perusahaan baru.
-   * Dialihkan ke **Founder Dashboard** untuk mengatur profil perusahaan dan mengundang anggota tim (CFO/Investor).
-2. **CFO & Finance**:
-   * Diundang oleh Founder ke dalam perusahaan.
-   * Jika mendaftar sebelum diundang, akan tertahan di **Waiting Room**.
-   * Dialihkan ke **CFO Dashboard** yang merupakan inti sistem perencanaan: memiliki akses ke *Financial Analyst Tab*, meracik *Assumption Drivers*, dan melihat *Proyeksi Laba Rugi*.
-3. **Investor Viewer**:
-   * Diundang oleh Founder atau CFO hanya untuk melihat proyeksi keuangan.
-   * Dialihkan ke **Investor Dashboard** dengan antarmuka yang disederhanakan dan akses hanya baca (*read-only*).
-4. **Platform Admin**:
-   * Bertindak sebagai Administrator Global platform SaaS.
-   * Langsung diarahkan ke **Platform Admin Console** di `/admin` untuk memantau server, mengelola paket langganan (Billing), memantau aktivitas pengguna (*Audit Log*), dan metrik analitik global.
+### 1. Backend & Database (Railway)
+Hubungkan repositori Git Anda ke Railway dan deploy folder `backend`.
+
+#### A. Konfigurasi Environment Variables (Variables Tab)
+Masukkan variabel-variabel berikut di panel variables backend Railway Anda:
+* **Database Connection (Reference Variables):**
+  * `DB_CONNECTION` = `mysql`
+  * `DB_HOST` = `${{MySQL.MYSQLHOST}}`
+  * `DB_PORT` = `${{MySQL.MYSQLPORT}}`
+  * `DB_DATABASE` = `${{MySQL.MYSQLDATABASE}}`
+  * `DB_USERNAME` = `${{MySQL.MYSQLUSER}}`
+  * `DB_PASSWORD` = `${{MySQL.MYSQLPASSWORD}}`
+* **Laravel System Configuration:**
+  * `APP_KEY` = *[Salin dari .env lokal Anda]*
+  * `APP_ENV` = `production`
+  * `APP_DEBUG` = `false`
+* **Google OAuth & Frontend Integration:**
+  * `FRONTEND_URL` = `https://project-smartcoop-financial-plannin.vercel.app` (URL Vercel Production Anda)
+  * `GOOGLE_CLIENT_ID` = *[Google Client ID Anda]*
+  * `GOOGLE_CLIENT_SECRET` = *[Google Client Secret Anda]*
+  * `GOOGLE_REDIRECT_URI` = `https://project-smartcoop-financial-planning-platform-production.up.railway.app/api/auth/google/callback`
+
+> [!NOTE]
+> Database akan otomatis ter-migrasi saat deployment karena start command di `nixpacks.toml` sudah di-set untuk menjalankan `php artisan migrate --force`.
+
+### 2. Frontend (Vercel)
+Deploy folder `frontend` ke Vercel. 
+
+#### A. Konfigurasi Routing Proxy (`vercel.json`)
+Pastikan file `frontend/vercel.json` menggunakan konfigurasi rewrite berikut agar mem-proxy request API ke backend tanpa kendala CORS:
+```json
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://project-smartcoop-financial-planning-platform-production.up.railway.app/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+```
+
+### 3. Konfigurasi Google Cloud Console (OAuth)
+Agar tombol Google Login berfungsi, daftarkan domain production Anda pada Google Developer Console:
+* **Authorized JavaScript origins:** `https://project-smartcoop-financial-planning-platform-production.up.railway.app`
+* **Authorized redirect URIs:** `https://project-smartcoop-financial-planning-platform-production.up.railway.app/api/auth/google/callback`
 
 ---
 
-## Fitur Utama
-
-- **Model Perhitungan Keuangan Dinamis**: Perhitungan Proforma Laba Rugi, Cash Flow, dan metrik SaaS (CAC, LTV, Churn, Rule of 40) yang otomatis disimulasikan dari input *Drivers* yang dimasukkan pengguna.
-- **Skenario Proyeksi & Penilaian (Valuation)**: Output ROI otomatis untuk skenario Konservatif, Base Case, dan Optimistik bagi Investor.
-- **Audit Logging**: Perekaman aktivitas krusial pengguna (seperti pengubahan paket langganan dan status pengguna) demi kepatuhan keamanan (*Compliance*).
-- **Arsitektur Berbasis Peran**: Pengalaman dan UI yang diisolasi antar peran untuk privasi data (misalnya Investor tidak bisa mengedit data asumsi).
+## 🔑 Hak Akses Pengguna (Role-Based SaaS Flow)
+1. **Founder**: Mendaftar lewat `/register`, mengisi profil di `/onboarding`, lalu mengelola tim & perusahaan di Founder Dashboard.
+2. **CFO & Finance**: Diundang oleh Founder, memiliki akses ke Financial Analyst Tab, meracik Assumption Drivers, dan melihat Proyeksi Laba Rugi.
+3. **Investor Viewer**: Diundang oleh Founder/CFO dengan akses baca-saja (*read-only*) untuk memantau performa keuangan.
+4. **Platform Admin**: Administrator global di `/admin` untuk memantau metrik global, audit log, dan mengelola paket langganan (Billing).

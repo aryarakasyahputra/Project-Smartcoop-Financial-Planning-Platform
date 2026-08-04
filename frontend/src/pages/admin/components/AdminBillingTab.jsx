@@ -13,7 +13,7 @@ export default function AdminBillingTab() {
   const fetchCompanies = async () => {
     try {
       const token = sessionStorage.getItem("token");
-      const res = await fetch("http://localhost:8000/api/admin/companies", {
+      const res = await fetch("/api/admin/companies", {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Accept": "application/json"
@@ -35,7 +35,7 @@ export default function AdminBillingTab() {
   const handleUpdateSubscription = async (companyId, newStatus) => {
     try {
       const token = sessionStorage.getItem("token");
-      const res = await fetch(`http://localhost:8000/api/admin/companies/${companyId}/subscription`, {
+      const res = await fetch(`/api/admin/companies/${companyId}/subscription`, {
         method: "PUT",
         headers: {
           "Authorization": `Bearer ${token}`,
