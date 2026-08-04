@@ -14,6 +14,7 @@ export default function Onboarding() {
   const [paymentDetails, setPaymentDetails] = useState(null);
   const [selectedMethod, setSelectedMethod] = useState("qris");
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [isPaymentCompleted, setIsPaymentCompleted] = useState(false);
 
   const [checkingRole, setCheckingRole] = useState(true);
   const navigate = useNavigate();
@@ -167,9 +168,13 @@ export default function Onboarding() {
     setProcessingPayment(true);
     setTimeout(() => {
       setProcessingPayment(false);
-      setShowPaymentModal(false);
-      navigate("/dashboard");
-    }, 1500);
+      setIsPaymentCompleted(true);
+    }, 1200);
+  };
+
+  const handleFinishPayment = () => {
+    setShowPaymentModal(false);
+    navigate("/dashboard");
   };
 
   if (checkingRole) {
@@ -301,106 +306,143 @@ export default function Onboarding() {
               </button>
             </div>
 
-            {/* Total Payment Info */}
-            <div className="p-5 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-              <div>
-                <span className="text-xs text-gray-500 uppercase font-semibold tracking-wider">Total Tagihan</span>
-                <p className="text-2xl font-extrabold text-[#005fa4]">Rp 499.000</p>
-              </div>
-              <span className="px-2.5 py-1 rounded-full bg-blue-50 text-[#005fa4] border border-blue-200 text-xs font-bold">
-                Paket Professional
-              </span>
-            </div>
-
-            {/* Payment Method Selector */}
-            <div className="p-5 space-y-4">
-              <label className="text-xs font-bold text-gray-600 uppercase tracking-wider block">Pilih Metode Pembayaran</label>
-              
-              <div className="space-y-2">
+            {/* Modal Body */}
+            {isPaymentCompleted ? (
+              <div className="p-8 text-center space-y-4 animate-scale-up">
+                <div className="mx-auto h-16 w-16 rounded-full bg-green-100 flex items-center justify-center text-green-600 shadow-inner">
+                  <CheckCircle2 className="h-10 w-10 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Pembayaran Berhasil!</h3>
+                  <p className="text-xs text-gray-500 mt-1">Transaksi Midtrans Sebesar <span className="font-bold text-gray-800">Rp 499.000</span> Telah Diverifikasi</p>
+                </div>
+                <div className="p-3.5 rounded-xl bg-green-50 border border-green-200 text-xs font-semibold text-green-800 text-left space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Status Langganan:</span>
+                    <span className="font-bold text-green-700">Aktif (Professional)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Metode Pembayaran:</span>
+                    <span className="font-bold text-gray-800 uppercase">{selectedMethod}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Order ID:</span>
+                    <span className="font-mono text-gray-700">{paymentDetails?.order_id || "TRX-10492"}</span>
+                  </div>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setSelectedMethod("qris")}
-                  className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
-                    selectedMethod === "qris" 
-                      ? "border-[#005fa4] bg-blue-50/50 ring-2 ring-[#005fa4]/20" 
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
+                  onClick={handleFinishPayment}
+                  className="w-full py-3.5 bg-green-600 text-white rounded-xl font-bold text-sm hover:bg-green-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-600/20"
                 >
-                  <div className="flex items-center gap-3">
-                    <QrCode className="h-5 w-5 text-[#005fa4]" />
-                    <div>
-                      <p className="text-sm font-bold text-gray-800">QRIS / GoPay / ShopeePay</p>
-                      <p className="text-xs text-gray-500">Scan QR Code instan dari aplikasi e-wallet</p>
-                    </div>
-                  </div>
-                  {selectedMethod === "qris" && <Check className="h-5 w-5 text-[#005fa4]" />}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedMethod("va")}
-                  className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
-                    selectedMethod === "va" 
-                      ? "border-[#005fa4] bg-blue-50/50 ring-2 ring-[#005fa4]/20" 
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Landmark className="h-5 w-5 text-[#005fa4]" />
-                    <div>
-                      <p className="text-sm font-bold text-gray-800">Transfer Virtual Account (VA)</p>
-                      <p className="text-xs text-gray-500">BCA, Mandiri, BNI, BRI, Permata</p>
-                    </div>
-                  </div>
-                  {selectedMethod === "va" && <Check className="h-5 w-5 text-[#005fa4]" />}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedMethod("cc")}
-                  className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
-                    selectedMethod === "cc" 
-                      ? "border-[#005fa4] bg-blue-50/50 ring-2 ring-[#005fa4]/20" 
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <CreditCard className="h-5 w-5 text-[#005fa4]" />
-                    <div>
-                      <p className="text-sm font-bold text-gray-800">Kartu Kredit / Debit</p>
-                      <p className="text-xs text-gray-500">Visa, Mastercard, JCB</p>
-                    </div>
-                  </div>
-                  {selectedMethod === "cc" && <Check className="h-5 w-5 text-[#005fa4]" />}
+                  <span>Masuk ke Dashboard Utama</span>
+                  <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
+            ) : (
+              <>
+                {/* Total Payment Info */}
+                <div className="p-5 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs text-gray-500 uppercase font-semibold tracking-wider">Total Tagihan</span>
+                    <p className="text-2xl font-extrabold text-[#005fa4]">Rp 499.000</p>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full bg-blue-50 text-[#005fa4] border border-blue-200 text-xs font-bold">
+                    Paket Professional
+                  </span>
+                </div>
 
-              {/* Security Badge */}
-              <div className="pt-2 flex items-center justify-center gap-2 text-xs text-gray-500">
-                <ShieldCheck className="h-4 w-4 text-green-600" />
-                <span>Transaksi Diamankan oleh Midtrans SSL 256-bit</span>
-              </div>
+                {/* Payment Method Selector */}
+                <div className="p-5 space-y-4">
+                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider block">Pilih Metode Pembayaran</label>
+                  
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMethod("qris")}
+                      className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
+                        selectedMethod === "qris" 
+                          ? "border-[#005fa4] bg-blue-50/50 ring-2 ring-[#005fa4]/20" 
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <QrCode className="h-5 w-5 text-[#005fa4]" />
+                        <div>
+                          <p className="text-sm font-bold text-gray-800">QRIS / GoPay / ShopeePay</p>
+                          <p className="text-xs text-gray-500">Scan QR Code instan dari aplikasi e-wallet</p>
+                        </div>
+                      </div>
+                      {selectedMethod === "qris" && <Check className="h-5 w-5 text-[#005fa4]" />}
+                    </button>
 
-              {/* Action Button */}
-              <button
-                type="button"
-                onClick={handleSimulatedPaymentSuccess}
-                disabled={processingPayment}
-                className="w-full mt-2 py-3.5 bg-[#005fa4] text-white rounded-xl font-bold text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#005fa4]/20 disabled:opacity-50"
-              >
-                {processingPayment ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                    <span>Memproses Pembayaran...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Bayar Sekarang (Simulasi Midtrans)</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-            </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMethod("va")}
+                      className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
+                        selectedMethod === "va" 
+                          ? "border-[#005fa4] bg-blue-50/50 ring-2 ring-[#005fa4]/20" 
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Landmark className="h-5 w-5 text-[#005fa4]" />
+                        <div>
+                          <p className="text-sm font-bold text-gray-800">Transfer Virtual Account (VA)</p>
+                          <p className="text-xs text-gray-500">BCA, Mandiri, BNI, BRI, Permata</p>
+                        </div>
+                      </div>
+                      {selectedMethod === "va" && <Check className="h-5 w-5 text-[#005fa4]" />}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMethod("cc")}
+                      className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
+                        selectedMethod === "cc" 
+                          ? "border-[#005fa4] bg-blue-50/50 ring-2 ring-[#005fa4]/20" 
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <CreditCard className="h-5 w-5 text-[#005fa4]" />
+                        <div>
+                          <p className="text-sm font-bold text-gray-800">Kartu Kredit / Debit</p>
+                          <p className="text-xs text-gray-500">Visa, Mastercard, JCB</p>
+                        </div>
+                      </div>
+                      {selectedMethod === "cc" && <Check className="h-5 w-5 text-[#005fa4]" />}
+                    </button>
+                  </div>
+
+                  {/* Security Badge */}
+                  <div className="pt-2 flex items-center justify-center gap-2 text-xs text-gray-500">
+                    <ShieldCheck className="h-4 w-4 text-green-600" />
+                    <span>Transaksi Diamankan oleh Midtrans SSL 256-bit</span>
+                  </div>
+
+                  {/* Action Button */}
+                  <button
+                    type="button"
+                    onClick={handleSimulatedPaymentSuccess}
+                    disabled={processingPayment}
+                    className="w-full mt-2 py-3.5 bg-[#005fa4] text-white rounded-xl font-bold text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#005fa4]/20 disabled:opacity-50"
+                  >
+                    {processingPayment ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                        <span>Memproses Pembayaran...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Bayar Sekarang (Simulasi Midtrans)</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
