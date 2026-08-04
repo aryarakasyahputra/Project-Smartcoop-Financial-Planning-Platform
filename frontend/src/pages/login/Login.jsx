@@ -112,7 +112,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-lg border border-border bg-background px-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-                placeholder="admin@test.com"
+                placeholder="email@example.com"
               />
             </div>
           </div>
@@ -163,13 +163,6 @@ export default function Login() {
             </svg>
             Lanjutkan dengan Google
           </a>
-        </div>
-
-        <div className="mt-8 border-t border-border pt-6 text-center text-sm text-muted-foreground">
-          <p>Test Accounts:</p>
-          <p className="mt-1">admin@test.com | founder@test.com</p>
-          <p>finance@test.com | investorviewer@test.com</p>
-          <p className="mt-1 font-mono text-xs">(password: password)</p>
         </div>
       </div>
     </div>
