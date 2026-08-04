@@ -59,5 +59,7 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
+
+        $this->call(ExcelFinancialModelSeeder::class);
     }
 }
