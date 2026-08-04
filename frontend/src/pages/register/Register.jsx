@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ArrowRight, Lock, Mail, User, AlertCircle, CheckCircle2 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -11,6 +11,8 @@ export default function Register() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const plan = searchParams.get("plan") || "starter";
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -43,9 +45,10 @@ export default function Register() {
 
       if (res.ok) {
         sessionStorage.setItem("token", data.access_token);
+        sessionStorage.setItem("selected_plan", plan);
         setSuccess("Pendaftaran berhasil! Mengalihkan ke onboarding...");
         setTimeout(() => {
-          navigate("/onboarding");
+          navigate(`/onboarding?plan=${plan}`);
         }, 1500);
       } else {
         // Handle validation errors from Laravel

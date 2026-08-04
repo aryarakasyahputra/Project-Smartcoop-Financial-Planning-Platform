@@ -1,15 +1,34 @@
 import React, { useState, useEffect } from "react";
-import { ArrowRight, Building2, AlertCircle, CheckCircle2 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, Building2, AlertCircle, CheckCircle2, CreditCard, ShieldCheck } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 export default function Onboarding() {
   const [companyName, setCompanyName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [snapLoading, setSnapLoading] = useState(false);
 
   const [checkingRole, setCheckingRole] = useState(true);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const planFromQuery = searchParams.get("plan");
+  const selectedPlan = planFromQuery || sessionStorage.getItem("selected_plan") || "starter";
+
+  // Load Midtrans Snap JS dynamically
+  useEffect(() => {
+    const snapScriptUrl = "https://app.sandbox.midtrans.com/snap/snap.js";
+    const clientKey = "SB-Mid-client-demo-key";
+
+    if (!document.querySelector(`script[src="${snapScriptUrl}"]`)) {
+      const script = document.createElement("script");
+      script.src = snapScriptUrl;
+      script.setAttribute("data-client-key", clientKey);
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
 
   useEffect(() => {
     const checkUserRole = async () => {
@@ -29,18 +48,14 @@ export default function Onboarding() {
 
         if (res.ok) {
           const data = await res.json();
-          // Only founder is allowed to perform onboarding
           if (data.role?.name !== "founder") {
             navigate("/dashboard");
             return;
           }
-          
-          // If they already have a company, go to dashboard
           if (data.company_accesses && data.company_accesses.length > 0) {
             navigate("/dashboard");
             return;
           }
-          
           setCheckingRole(false);
         } else {
           sessionStorage.removeItem("token");
@@ -69,6 +84,7 @@ export default function Onboarding() {
     }
 
     try {
+      // 1. Create company via Onboarding API
       const res = await fetch("/api/onboarding", {
         method: "POST",
         body: JSON.stringify({
@@ -83,20 +99,61 @@ export default function Onboarding() {
 
       const data = await res.json();
 
-      if (res.ok) {
-        setSuccess("Perusahaan berhasil dibuat! Mengalihkan ke Dashboard...");
-        
-        // Update user state if we need to locally or redirect
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 1500);
-      } else {
+      if (!res.ok) {
         setError(data.message || "Gagal menyimpan data onboarding");
+        setLoading(false);
+        return;
       }
+
+      setSuccess("Profil Perusahaan Berhasil Dibuat!");
+
+      // 2. Handle Payment Flow if Professional Plan selected
+      if (selectedPlan === "professional") {
+        setSnapLoading(true);
+        try {
+          const snapRes = await fetch("/api/payments/snap-token", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ plan: "professional" })
+          });
+          const snapData = await snapRes.json();
+
+          if (snapData.snap_token && window.snap) {
+            window.snap.pay(snapData.snap_token, {
+              onSuccess: function (result) {
+                navigate("/dashboard");
+              },
+              onPending: function (result) {
+                navigate("/dashboard");
+              },
+              onError: function (result) {
+                navigate("/dashboard");
+              },
+              onClose: function () {
+                navigate("/dashboard");
+              }
+            });
+            return;
+          }
+        } catch (paymentErr) {
+          console.warn("Midtrans Snap payment popup notice:", paymentErr);
+        }
+      }
+
+      // Fallback redirect to dashboard
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1200);
+
     } catch (err) {
       setError("Terjadi kesalahan koneksi saat memproses onboarding.");
     } finally {
       setLoading(false);
+      setSnapLoading(false);
     }
   };
 
@@ -125,6 +182,12 @@ export default function Onboarding() {
           </Link>
           <h1 className="text-2xl font-bold text-foreground">Satu langkah lagi...</h1>
           <p className="text-sm text-muted-foreground mt-2">Daftarkan profil perusahaan Anda untuk memulai pemodelan keuangan</p>
+          
+          {selectedPlan === "professional" && (
+            <div className="mt-4 p-3 rounded-lg bg-[#005fa4]/10 border border-[#005fa4]/20 flex items-center justify-center gap-2 text-xs font-semibold text-[#005fa4]">
+              <CreditCard className="h-4 w-4" /> Paket Terpilih: Professional (Rp 499k/bulan)
+            </div>
+          )}
         </div>
 
         {error && (
@@ -160,11 +223,11 @@ export default function Onboarding() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || snapLoading}
             className="w-full inline-flex justify-center items-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-3 text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-50"
             style={{ boxShadow: "var(--shadow-glow)" }}
           >
-            {loading ? "Menyimpan..." : "Lanjutkan ke Dashboard"} <ArrowRight className="h-4 w-4" />
+            {loading ? "Memproses..." : selectedPlan === "professional" ? "Lanjut ke Pembayaran Midtrans" : "Lanjutkan ke Dashboard"} <ArrowRight className="h-4 w-4" />
           </button>
         </form>
       </div>
