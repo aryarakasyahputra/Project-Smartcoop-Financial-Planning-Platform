@@ -552,7 +552,7 @@ export default function Landing() {
                   </button>
                   <div className="flex items-center gap-2">
                     <span className="text-[14px] font-semibold text-[#131b2e]">Tahunan</span>
-                    <span className="px-2 py-0.5 rounded-md bg-[#924c00] text-[#ffffff] text-[12px] font-semibold">Hemat 20%</span>
+                    <span className="px-2.5 py-0.5 rounded-md bg-amber-600 text-[#ffffff] text-[12px] font-bold">Hemat Rp 1,2 Juta/thn</span>
                   </div>
                 </div>
               </div>
@@ -608,14 +608,21 @@ export default function Landing() {
                   </div>
                   <div className="mb-8">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-[48px] font-bold text-[#131b2e] leading-[1.2]">
-                        {isAnnual ? 'Rp 499k' : 'Rp 599k'}
+                      <span className="text-[44px] font-bold text-[#131b2e] leading-[1.2]">
+                        {isAnnual ? 'Rp 499.000' : 'Rp 599.000'}
                       </span>
                       <span className="text-[#414751] text-[16px]">/bulan</span>
                     </div>
-                    <p className="text-[#414751] text-[14px] font-semibold mt-1">
-                      {isAnnual ? 'Ditagih tahunan (Hemat Rp 1,2jt)' : 'Ditagih per bulan'}
-                    </p>
+                    <div className="mt-2 text-[13px] font-bold text-[#005fa4] flex items-center flex-wrap gap-1.5">
+                      {isAnnual ? (
+                        <>
+                          <span>Ditagih Rp 5.988.000 / tahun</span>
+                          <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-[11px] font-extrabold">Hemat Rp 1,2 Juta</span>
+                        </>
+                      ) : (
+                        <span>Ditagih Rp 599.000 / bulan (Fleksibel)</span>
+                      )}
+                    </div>
                   </div>
                   <ul className="space-y-4 mb-10 flex-grow">
                     <li className="flex items-start gap-3">
