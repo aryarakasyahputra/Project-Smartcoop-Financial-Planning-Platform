@@ -16,13 +16,17 @@ import ValuationWaterfallChart from "../../components/charts/ValuationWaterfallC
 import { RevenueChart, ARRChart, EBITDAChart, CoopsChart } from "../../components/charts/FinancialMetricCharts";
 import { useLanguage } from "../../context/LanguageContext";
 
-const MetricTooltip = ({ label, textEn, textId, language }) => (
+const MetricTooltip = ({ label, textEn, textId, language, align = "left" }) => (
   <div className="relative group flex items-center gap-1 w-fit">
     <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{label}</span>
     <Info className="w-3 h-3 text-muted-foreground/60 cursor-pointer" />
-    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-2.5 bg-slate-800 dark:bg-slate-700 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-xl text-center font-normal normal-case tracking-normal leading-relaxed pointer-events-none">
+    <div className={`absolute bottom-full mb-2 w-64 p-2.5 bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-2xl font-normal normal-case tracking-normal leading-relaxed pointer-events-none ${
+      align === "right" ? "right-0 text-right" : align === "center" ? "left-1/2 -translate-x-1/2 text-center" : "left-0 text-left"
+    }`}>
       {language === "en" ? textEn : textId}
-      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-slate-800 dark:border-t-slate-700"></div>
+      <div className={`absolute top-full border-[5px] border-transparent border-t-slate-900 dark:border-t-slate-800 ${
+        align === "right" ? "right-4" : align === "center" ? "left-1/2 -translate-x-1/2" : "left-4"
+      }`}></div>
     </div>
   </div>
 );
