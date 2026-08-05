@@ -68,6 +68,7 @@ class FinancialModelService
                 'recruitment_training' => 0,
                 'other_ga' => 0,
                 'seed_investment' => 0,
+                'initial_opening_cash' => 0,
                 'pre_money_valuation' => 0,
                 'exit_revenue_multiple_conservative' => 0,
                 'exit_revenue_multiple_base' => 0,
@@ -202,6 +203,7 @@ class FinancialModelService
                         'recruitment_training' => $yearAssumptions['recruitment_training'] ?? null,
                         'other_ga' => $yearAssumptions['other_ga'] ?? null,
                         'seed_investment' => $yearAssumptions['seed_investment'] ?? null,
+                        'initial_opening_cash' => $yearAssumptions['initial_opening_cash'] ?? null,
                         'pre_money_valuation' => $yearAssumptions['pre_money_valuation'] ?? null,
                         'exit_revenue_multiple_conservative' => $yearAssumptions['exit_revenue_multiple_conservative'] ?? null,
                         'exit_revenue_multiple_base' => $yearAssumptions['exit_revenue_multiple_base'] ?? null,
@@ -389,7 +391,8 @@ class FinancialModelService
 
                 // Seed Inflow happens only in 2026
                 $seedInflow = ($year == 2026) ? $assumptions->seed_investment : 0;
-                $openingCash = ($year == 2025) ? 0 : $prevEndingCash;
+                $initialOpeningCash = (float) ($assumptions->initial_opening_cash ?? 0);
+                $openingCash = ($year == 2025) ? $initialOpeningCash : $prevEndingCash;
                 $endingCash = $openingCash + $seedInflow + $ebitda;
                 
                 $prevEndingCash = $endingCash;
