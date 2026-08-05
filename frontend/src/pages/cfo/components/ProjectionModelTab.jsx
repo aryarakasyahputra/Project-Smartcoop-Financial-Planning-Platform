@@ -519,8 +519,8 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation, onAs
       <a href="#section-cogs" className={getNavClass("section-cogs")}>COGS</a>
       <a href="#section-opex" className={getNavClass("section-opex")}>OPEX</a>
       <a href="#section-ebitda" className={getNavClass("section-ebitda")}>EBITDA</a>
-      <a href="#section-saas" className={getNavClass("section-saas")}>{language === "en" ? "SaaS Metrics" : "Metrik SaaS"}</a>
       <a href="#section-cashflow" className={getNavClass("section-cashflow")}>{language === "en" ? "Cash Flow" : "Arus Kas"}</a>
+      <a href="#section-saas" className={getNavClass("section-saas")}>{language === "en" ? "SaaS Metrics" : "Metrik SaaS"}</a>
       <a href="#section-valuation" className={getNavClass("section-valuation")}>{language === "en" ? "Valuation" : "Valuasi"}</a>
       <a href="#section-captable" className={getNavClass("section-captable")}>Cap Table</a>
     </div>
@@ -1545,11 +1545,130 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation, onAs
               </div>
             </div>
 
-            {/* 6. Metrik SaaS */}
+            {/* 6. Cash Flow & Runway Table */}
+            <div id="section-cashflow" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid">
+              <div className="p-4 border-b bg-muted/10">
+                <h3 className="text-lg font-bold flex items-center gap-2">
+                  <Wallet className="h-5 w-5 text-primary" /> {language === "en" ? "6. 5-Year Cash Flow Statement & Runway (Rp)" : "6. Laporan Arus Kas & Runway (Rp)"}
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b">
+                    <tr>
+                      <th className="px-4 py-4 font-bold min-w-[160px] md:min-w-[200px]">{language === "en" ? "Metric / Year" : "Metrik / Tahun"}</th>
+                      {data.map((col) => (
+                        <th
+                          key={col.year}
+                          className={`px-4 py-4 font-bold text-right w-[12%] min-w-[80px] md:min-w-[95px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
+                          onMouseEnter={() => setHoveredYear(col.year)}
+                          onMouseLeave={() => setHoveredYear(null)}
+                        >
+                          {col.year}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    <tr className="hover:bg-muted/10 transition-colors">
+                      <td className="px-4 py-3 font-medium"><MetricLabel label="Opening Cash" /></td>
+                      {data.map((c) => (
+                        <td
+                          key={c.year}
+                          className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                          onMouseEnter={() => setHoveredYear(c.year)}
+                          onMouseLeave={() => setHoveredYear(null)}
+                        >
+                          <ColoredNumber value={c.openingCash} format="rupiah" />
+                        </td>
+                      ))}
+                    </tr>
+                    <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
+                      <td className="px-4 py-3"><MetricLabel label="Seed Investment Inflow" /></td>
+                      {data.map((c) => (
+                        <td
+                          key={c.year}
+                          className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                          onMouseEnter={() => setHoveredYear(c.year)}
+                          onMouseLeave={() => setHoveredYear(null)}
+                        >
+                          <ColoredNumber value={c.seedInflow} format="rupiah" />
+                        </td>
+                      ))}
+                    </tr>
+                    <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
+                      <td className="px-4 py-3"><MetricLabel label="EBITDA" /></td>
+                      {data.map((c) => (
+                        <td
+                          key={c.year}
+                          className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)} ${c.ebitda >= 0 ? 'text-green-600' : 'text-red-500'}`}
+                          onMouseEnter={() => setHoveredYear(c.year)}
+                          onMouseLeave={() => setHoveredYear(null)}
+                        >
+                          <ColoredNumber value={c.ebitda} format="rupiah" />
+                        </td>
+                      ))}
+                    </tr>
+                    <tr className="hover:bg-muted/5 transition-colors font-bold text-slate-800 border-t border-b">
+                      <td className="px-4 py-4"><MetricLabel label="Ending Cash" /></td>
+                      {data.map((c, i) => (
+                        <td
+                          key={c.year}
+                          className={`px-4 py-4 whitespace-nowrap text-right font-mono font-black transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                          onMouseEnter={() => setHoveredYear(c.year)}
+                          onMouseLeave={() => setHoveredYear(null)}
+                        >
+                          <div className="flex justify-end items-center">
+                            <ColoredNumber value={c.endingCash} format="rupiah" />
+                            {i > 0 && renderTrend(c.endingCash, data[i - 1].endingCash)}
+                          </div>
+                        </td>
+                      ))}
+                    </tr>
+                    <tr className="hover:bg-muted/5 transition-colors text-muted-foreground">
+                      <td className="px-4 py-3 font-semibold text-xs"><MetricLabel label="Average Monthly Burn / Profit" /></td>
+                      {data.map((c) => (
+                        <td
+                          key={c.year}
+                          className={`px-4 py-3 whitespace-nowrap text-right font-mono text-xs font-semibold transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                          onMouseEnter={() => setHoveredYear(c.year)}
+                          onMouseLeave={() => setHoveredYear(null)}
+                        >
+                          {c.ebitda < 0 ? formatRupiah(Math.abs(c.ebitda / 12)) : "Rp 0"}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr className="hover:bg-muted/5 transition-colors text-muted-foreground border-b-2">
+                      <td className="px-4 py-3 font-semibold text-xs"><MetricLabel label="Runway (Months)" /></td>
+                      {data.map((c) => (
+                        <td
+                          key={c.year}
+                          className={`px-4 py-3 whitespace-nowrap text-right text-xs transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                          onMouseEnter={() => setHoveredYear(c.year)}
+                          onMouseLeave={() => setHoveredYear(null)}
+                        >
+                          {c.ebitda >= 0 ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800">
+                              {language === "en" ? "Profitable" : "Profitable"}
+                            </span>
+                          ) : (
+                            <span className="font-bold text-slate-700 font-mono">
+                              {c.runwayMonths ? (c.runwayMonths % 1 === 0 ? c.runwayMonths.toFixed(0) : c.runwayMonths.toFixed(1)) : '0'} {language === "en" ? "Months" : "Bulan"}
+                            </span>
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* 7. Metrik SaaS */}
             <div id="section-saas" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid">
               <div className="p-4 border-b bg-muted/10 flex items-center justify-between">
                 <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
-                  <BarChart3 className="h-5 w-5 text-indigo-600" /> {language === "en" ? "6. SaaS Unit Economics & Efficiency Metrics" : "6. Metrik SaaS (SaaS Metrics)"}
+                  <BarChart3 className="h-5 w-5 text-indigo-600" /> {language === "en" ? "7. SaaS Unit Economics & Efficiency Metrics" : "7. Metrik SaaS (SaaS Metrics)"}
                 </h3>
                 <button
                   onClick={() => toggleSection("saas")}
@@ -1725,125 +1844,6 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation, onAs
                           onMouseLeave={() => setHoveredYear(null)}
                         >
                           <ColoredNumber value={(c.ruleOf40 * 100)} format="percent" />
-                        </td>
-                      ))}
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Cash Flow & Runway Table */}
-            <div id="section-cashflow" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid">
-              <div className="p-4 border-b bg-muted/10">
-                <h3 className="text-lg font-bold flex items-center gap-2">
-                  <Wallet className="h-5 w-5 text-primary" /> {language === "en" ? "7. 5-Year Cash Flow Statement & Runway (Rp)" : "7. Laporan Arus Kas & Runway (Rp)"}
-                </h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs uppercase bg-muted/30 text-muted-foreground border-b">
-                    <tr>
-                      <th className="px-4 py-4 font-bold min-w-[160px] md:min-w-[200px]">{language === "en" ? "Metric / Year" : "Metrik / Tahun"}</th>
-                      {data.map((col) => (
-                        <th
-                          key={col.year}
-                          className={`px-4 py-4 font-bold text-right w-[12%] min-w-[80px] md:min-w-[95px] transition-colors duration-150 ${getColHighlightClass(col.year)}`}
-                          onMouseEnter={() => setHoveredYear(col.year)}
-                          onMouseLeave={() => setHoveredYear(null)}
-                        >
-                          {col.year}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    <tr className="hover:bg-muted/10 transition-colors">
-                      <td className="px-4 py-3 font-medium"><MetricLabel label="Opening Cash" /></td>
-                      {data.map((c) => (
-                        <td
-                          key={c.year}
-                          className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                          onMouseEnter={() => setHoveredYear(c.year)}
-                          onMouseLeave={() => setHoveredYear(null)}
-                        >
-                          <ColoredNumber value={c.openingCash} format="rupiah" />
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                      <td className="px-4 py-3"><MetricLabel label="Seed Investment Inflow" /></td>
-                      {data.map((c) => (
-                        <td
-                          key={c.year}
-                          className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                          onMouseEnter={() => setHoveredYear(c.year)}
-                          onMouseLeave={() => setHoveredYear(null)}
-                        >
-                          <ColoredNumber value={c.seedInflow} format="rupiah" />
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="hover:bg-muted/10 transition-colors text-muted-foreground">
-                      <td className="px-4 py-3"><MetricLabel label="EBITDA" /></td>
-                      {data.map((c) => (
-                        <td
-                          key={c.year}
-                          className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)} ${c.ebitda >= 0 ? 'text-green-600' : 'text-red-500'}`}
-                          onMouseEnter={() => setHoveredYear(c.year)}
-                          onMouseLeave={() => setHoveredYear(null)}
-                        >
-                          <ColoredNumber value={c.ebitda} format="rupiah" />
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="hover:bg-muted/5 transition-colors font-bold text-slate-800 border-t border-b">
-                      <td className="px-4 py-4"><MetricLabel label="Ending Cash" /></td>
-                      {data.map((c, i) => (
-                        <td
-                          key={c.year}
-                          className={`px-4 py-4 whitespace-nowrap text-right font-mono font-black transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                          onMouseEnter={() => setHoveredYear(c.year)}
-                          onMouseLeave={() => setHoveredYear(null)}
-                        >
-                          <div className="flex justify-end items-center">
-                            <ColoredNumber value={c.endingCash} format="rupiah" />
-                            {i > 0 && renderTrend(c.endingCash, data[i - 1].endingCash)}
-                          </div>
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="hover:bg-muted/5 transition-colors text-muted-foreground">
-                      <td className="px-4 py-3 font-semibold text-xs"><MetricLabel label="Average Monthly Burn / Profit" /></td>
-                      {data.map((c) => (
-                        <td
-                          key={c.year}
-                          className={`px-4 py-3 whitespace-nowrap text-right font-mono text-xs font-semibold transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                          onMouseEnter={() => setHoveredYear(c.year)}
-                          onMouseLeave={() => setHoveredYear(null)}
-                        >
-                          {c.ebitda < 0 ? formatRupiah(Math.abs(c.ebitda / 12)) : "Rp 0"}
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className="hover:bg-muted/5 transition-colors text-muted-foreground border-b-2">
-                      <td className="px-4 py-3 font-semibold text-xs"><MetricLabel label="Runway (Months)" /></td>
-                      {data.map((c) => (
-                        <td
-                          key={c.year}
-                          className={`px-4 py-3 whitespace-nowrap text-right text-xs transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                          onMouseEnter={() => setHoveredYear(c.year)}
-                          onMouseLeave={() => setHoveredYear(null)}
-                        >
-                          {c.ebitda >= 0 ? (
-                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800">
-                              {language === "en" ? "Profitable" : "Profitable"}
-                            </span>
-                          ) : (
-                            <span className="font-bold text-slate-700 font-mono">
-                              {c.runwayMonths ? (c.runwayMonths % 1 === 0 ? c.runwayMonths.toFixed(0) : c.runwayMonths.toFixed(1)) : '0'} {language === "en" ? "Months" : "Bulan"}
-                            </span>
-                          )}
                         </td>
                       ))}
                     </tr>
