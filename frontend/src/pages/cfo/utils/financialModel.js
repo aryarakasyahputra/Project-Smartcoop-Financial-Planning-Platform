@@ -154,7 +154,8 @@ export const simulateProjections = (assumptionsByYear) => {
     
     // Cash Flow
     const seedInflow = year === 2026 ? (a.seed_investment ?? 8250000000) : 0;
-    const openingCash = idx === 0 ? 0 : computedYears[years[idx - 1]].endingCash;
+    const initialOpeningCash = Number(a.initial_opening_cash ?? 0) || 0;
+    const openingCash = idx === 0 ? initialOpeningCash : computedYears[years[idx - 1]].endingCash;
     const endingCash = openingCash + seedInflow + ebitda;
     
     const monthlyBurn = Math.abs(Math.min(ebitda / 12, 0));

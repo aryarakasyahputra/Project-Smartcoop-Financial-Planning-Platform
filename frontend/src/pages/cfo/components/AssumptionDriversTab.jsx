@@ -65,6 +65,7 @@ const DRIVER_DEFINITIONS = {
 
   // Funding & Valuation
   "seed_investment": "Suntikan dana investasi yang diperoleh pada putaran pendanaan Seed.",
+  "initial_opening_cash": "Saldo kas awal perusahaan pada awal tahun 2025 sebelum pendapatan dan investasi.",
   "pre_money_valuation": "Valuasi perusahaan yang disepakati dengan investor sebelum dana investasi Seed masuk.",
   "exit_revenue_multiple_conservative": "Kelipatan (multiple) valuasi kasus konservatif untuk menghitung Exit Valuation.",
   "exit_revenue_multiple_base": "Kelipatan (multiple) valuasi kasus moderat (base) untuk menghitung Exit Valuation.",
@@ -124,6 +125,7 @@ const DRIVER_DEFINITIONS_EN = {
 
   // Funding & Valuation
   "seed_investment": "Equity investment capital injected during the Seed funding round.",
+  "initial_opening_cash": "Beginning company cash balance at start of year 2025 before revenue & investment.",
   "pre_money_valuation": "Agreed pre-money company valuation before Seed investment injection.",
   "exit_revenue_multiple_conservative": "Conservative case revenue multiple used to calculate Exit Valuation.",
   "exit_revenue_multiple_base": "Base case revenue multiple used to calculate Exit Valuation.",
@@ -389,6 +391,7 @@ export default function AssumptionDriversTab({
       icon: Shield, color: "#10b981",
       infoBox: language === "en" ? "These assumptions simulate cash flows for subsequent years and Investor ROI at exit." : "Asumsi ini digunakan khusus untuk mensimulasikan arus kas pada tahun berikutnya (2026) dan ROI Investor di akhir tahun proyeksi (2029).",
       fields: [
+        { label: language === "en" ? "Initial Opening Cash (2025)" : "Kas Awal Perusahaan (2025)", key: "initial_opening_cash", prefix: "Rp", parse: parseFloat },
         { label: language === "en" ? "Seed Funding Target" : "Target Pendanaan (Suntikan Dana)", key: "seed_investment", prefix: "Rp", parse: parseFloat },
         { label: language === "en" ? "Pre-Money Valuation" : "Valuasi Pre-Money", key: "pre_money_valuation", prefix: "Rp", parse: parseFloat },
         { label: language === "en" ? "Founders Pre-Seed Share (%)" : "Porsi Saham Pre-Seed Founders (%)", key: "founders_pre_seed_pct", suffix: "%", step: "0.1", parse: parseFloat },
@@ -512,7 +515,7 @@ export default function AssumptionDriversTab({
                             prefix={f.prefix}
                             suffix={f.suffix}
                             step={f.step}
-                            disabled={f.disabled || (f.key === "beginning_cooperatives" && selectedEditYear !== 2025)}
+                            disabled={f.disabled || (["beginning_cooperatives", "initial_opening_cash"].includes(f.key) && selectedEditYear !== 2025)}
                             definition={language === "en" ? DRIVER_DEFINITIONS_EN[f.key] : DRIVER_DEFINITIONS[f.key]}
                             onChange={(e) =>
                               handleInputChange(
