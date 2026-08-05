@@ -180,26 +180,6 @@ export default function InvestorDashboard({ userData, handleLogout }) {
               </div>
               {activeTab === "projections" && <div className="h-1.5 w-1.5 rounded-full bg-[#FFD700] shadow-2xs shrink-0 ml-1" />}
             </button>
-
-            <button 
-              onClick={() => { setActiveTab("overview"); setTimeout(() => window.location.hash = "valuations", 100); }}
-              className="group w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-blue-100/75 hover:bg-white/10 hover:text-white transition-all duration-200 cursor-pointer border-l-4 border-transparent"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <Wallet className="h-4 w-4 shrink-0 text-blue-200/60 group-hover:text-white" />
-                <span className="whitespace-nowrap truncate">Valuasi & Fundraising</span>
-              </div>
-            </button>
-
-            <button 
-              onClick={() => { setActiveTab("overview"); setTimeout(() => window.location.hash = "downloads", 100); }}
-              className="group w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-blue-100/75 hover:bg-white/10 hover:text-white transition-all duration-200 cursor-pointer border-l-4 border-transparent"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <FileText className="h-4 w-4 shrink-0 text-blue-200/60 group-hover:text-white" />
-                <span className="whitespace-nowrap truncate">Dokumen Pelaporan</span>
-              </div>
-            </button>
           </nav>
         </div>
 
