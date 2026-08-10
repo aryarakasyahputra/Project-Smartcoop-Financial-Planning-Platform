@@ -357,15 +357,13 @@ export default function CfoDashboard({ userData, handleLogout }) {
                 </p>
               </div>
 
-              {activeTab === "projection" && (
-                <button 
-                  onClick={() => window.print()}
-                  className="flex items-center gap-2 text-xs font-bold bg-[#005fa4] hover:bg-[#004b82] text-white px-4 py-2.5 rounded-xl shadow-md shadow-[#005fa4]/20 transition-all cursor-pointer shrink-0 print:hidden"
-                >
-                  <Printer className="h-4 w-4 text-[#FFD700]" />
-                  <span>{t("finance.projections.exportPdf", "Export PDF")}</span>
-                </button>
-              )}
+              <button 
+                onClick={() => window.print()}
+                className="flex items-center gap-2 text-xs font-bold bg-[#005fa4] hover:bg-[#004b82] text-white px-4 py-2.5 rounded-xl shadow-md shadow-[#005fa4]/20 transition-all cursor-pointer shrink-0 print:hidden"
+              >
+                <Printer className="h-4 w-4 text-[#FFD700]" />
+                <span>{t("finance.projections.exportPdf", "Export PDF")}</span>
+              </button>
             </div>
 
             {/* Render Active Component */}
