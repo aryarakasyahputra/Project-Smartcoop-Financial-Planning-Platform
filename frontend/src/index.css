@@ -217,7 +217,7 @@
 
   html, body {
     background: #ffffff !important;
-    color: #0f172a !important;
+    color: #334155 !important;
     font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif !important;
     font-size: 8pt !important;
     width: 100% !important;
@@ -242,7 +242,7 @@
     margin: 0 !important;
   }
 
-  /* Force Exactly 1 Landscape Page per Feature Section */
+  /* Force Exactly 1 Landscape Page per Feature Section - Title and Table Glued Together */
   .pdf-section-page,
   #section-chart,
   #section-growth,
@@ -253,7 +253,8 @@
   #section-cashflow,
   #section-saas,
   #section-valuation,
-  #section-captable-roi {
+  #section-captable,
+  #section-roi {
     page-break-before: always !important;
     break-before: page !important;
     page-break-after: always !important;
@@ -261,15 +262,19 @@
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     box-sizing: border-box !important;
-    margin: 0 0 0 0 !important;
-    padding: 8px 12px !important;
-    min-height: 92vh !important;
+    margin: 0 auto !important;
+    padding: 10px 0px !important;
+    min-height: 90vh !important;
+    height: auto !important;
     display: flex !important;
     flex-direction: column !important;
-    justify-content: flex-start !important;
+    justify-content: center !important;
+    align-items: stretch !important;
+    gap: 0 !important;
     background: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 8px !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
   }
 
   /* First feature section starts immediately on Page 1 */
@@ -278,51 +283,63 @@
     break-before: avoid !important;
   }
 
-  /* Professional Header on Top of Each Landscape Feature Page */
-  .pdf-print-header {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    border-bottom: 1.5px solid #005fa4 !important;
-    padding-bottom: 4px !important;
-    margin-bottom: 8px !important;
-  }
-
-  /* Clean up card border styles for print */
-  .bg-card, .bg-muted {
+  /* Remove ALL background color fills for clean pure white print */
+  .bg-card, .bg-muted,
+  .bg-indigo-50\/20, .bg-emerald-50\/20, .bg-red-50\/20, .bg-amber-50\/20, .bg-blue-50\/20,
+  .bg-blue-50\/80, .bg-muted\/10, .bg-muted\/30, .bg-amber-50\/10, thead {
     background-color: #ffffff !important;
     background: #ffffff !important;
-    border-radius: 6px !important;
+    border: none !important;
+    border-radius: 0 !important;
     box-shadow: none !important;
   }
-  
-  .bg-indigo-50\/20, .bg-emerald-50\/20, .bg-red-50\/20, .bg-amber-50\/20, .bg-blue-50\/20,
-  .bg-blue-50\/80, .bg-muted\/10, .bg-muted\/30 {
-    background-color: #f8fafc !important;
+
+  /* Remove all outer card border lines */
+  .border-border, .border, .border-t, .border-b, .border-l, .border-r {
+    border-color: #e2e8f0 !important;
   }
 
   /* Chart printing adjustments to fit within 1 landscape page */
   #section-chart {
-    padding-bottom: 16px !important;
+    padding-bottom: 12px !important;
+    border: none !important;
   }
   #section-chart .recharts-responsive-container {
     height: 380px !important;
     max-height: 380px !important;
   }
 
-  /* Typography formatting for print landscape fit */
+  /* Neutral Typography formatting for print landscape - Larger Legible Text */
   h1, h2, h3, h4 {
     color: #0f172a !important;
     margin-top: 0 !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    break-after: avoid-page !important;
   }
   h3 {
-    font-size: 11pt !important;
+    font-size: 13.5pt !important;
     font-weight: 700 !important;
-    margin-bottom: 4px !important;
+    margin-bottom: 6px !important;
+    color: #0f172a !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
   }
-  p {
-    font-size: 8pt !important;
-    color: #475569 !important;
+  p, span, div {
+    color: #334155 !important;
+  }
+  svg {
+    stroke: #475569 !important;
+  }
+
+  /* Ensure Section Header Title & Table Stay 100% Glued Together */
+  .pdf-section-page .p-4.border-b,
+  .pdf-section-page .border-b {
+    padding: 0 0 4px 0 !important;
+    margin: 0 0 4px 0 !important;
+    border-bottom: none !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
   }
 
   /* Make form inputs look like plain text in print */
@@ -332,33 +349,41 @@
     box-shadow: none !important;
     outline: none !important;
     padding: 0 !important;
+    color: #0f172a !important;
+    font-size: 10pt !important;
   }
 
-  /* Table styling inside PDF - Compact fit for landscape */
+  /* Table styling inside PDF - Pure White Background & Enlarged Dimensions */
   table {
     width: 100% !important;
     border-collapse: collapse !important;
     table-layout: auto !important;
-    margin-top: 4px !important;
-    margin-bottom: 4px !important;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
   }
   
   th {
-    padding: 4px 6px !important;
-    font-size: 8pt !important;
+    padding: 8px 10px !important;
+    font-size: 10pt !important;
     font-weight: 700 !important;
     border: 1px solid #cbd5e1 !important;
-    background-color: #f1f5f9 !important;
-    color: #1e293b !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
     text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
   }
 
   td {
-    padding: 3.5px 6px !important;
-    font-size: 7.5pt !important;
+    padding: 7px 10px !important;
+    font-size: 9.5pt !important;
     border: 1px solid #e2e8f0 !important;
-    color: #334155 !important;
-    line-height: 1.2 !important;
+    color: #0f172a !important;
+    line-height: 1.35 !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
   }
 
   tr {
@@ -366,18 +391,17 @@
     break-inside: avoid !important;
   }
 
-  /* Cap Table & Investor Return Side-by-Side on Page 10 */
-  #section-captable-roi {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 12px !important;
-  }
-
+  /* Cap Table (Table 9) & Investor Return (Table 10) on Separate Landscape Pages */
   #section-captable, #section-roi {
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 6px !important;
-    padding: 8px !important;
-    min-height: auto !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 4px 0px !important;
+    min-height: 92vh !important;
+    page-break-before: always !important;
+    break-before: page !important;
+    page-break-after: always !important;
+    break-after: page !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }

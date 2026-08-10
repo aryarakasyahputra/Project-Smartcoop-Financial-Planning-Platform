@@ -552,15 +552,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation, onAs
         {/* Main Content */}
         <div className="space-y-8 print:m-0 print:p-0 print:space-y-6">
           {/* Chart Section */}
-          <div id="section-chart" className="bg-card border border-border rounded-2xl p-6 shadow-sm scroll-mt-24 print:break-inside-avoid print:shadow-none print:border-none print:p-4 pdf-section-page">
-            <div className="pdf-print-header hidden print:flex items-center justify-between border-b border-[#005fa4] pb-2 mb-3">
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-[#005fa4] text-sm">smart<span className="text-[#FFD700]">coop</span></span>
-                <span className="text-slate-400 text-xs">|</span>
-                <span className="font-semibold text-slate-700 text-xs">{language === "en" ? "5-Year Financial Performance Projections" : "Proyeksi Kinerja Keuangan 5-Tahun"}</span>
-              </div>
-              <span className="text-[10px] text-slate-500 font-mono font-bold text-[#005fa4]">Fitur 1/10 • PDF Landscape</span>
-            </div>
+          <div id="section-chart" className="bg-card border border-border rounded-2xl p-6 shadow-sm scroll-mt-24 print:break-inside-avoid print:shadow-none print:border-none print:p-0 pdf-section-page">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
               <div>
                 <h3 className="text-lg font-bold flex items-center gap-2 print:text-xl print:text-black text-slate-800 dark:text-slate-100">
@@ -784,14 +776,6 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation, onAs
 
           {/* 1. Customer Growth Model */}
           <div id="section-growth" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid pdf-section-page">
-            <div className="pdf-print-header hidden print:flex items-center justify-between border-b border-[#005fa4] pb-2 mb-3 px-4 pt-2">
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-[#005fa4] text-sm">smart<span className="text-[#FFD700]">coop</span></span>
-                <span className="text-slate-400 text-xs">|</span>
-                <span className="font-semibold text-slate-700 text-xs">{language === "en" ? "1. Customer Growth Model" : "1. Model Pertumbuhan Koperasi"}</span>
-              </div>
-              <span className="text-[10px] text-slate-500 font-mono font-bold text-[#005fa4]">Fitur 2/10 • PDF Landscape</span>
-            </div>
             <div className="p-4 border-b bg-muted/10 flex items-center justify-between">
               <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
                 <Users className="h-5 w-5 text-slate-400" /> {language === "en" ? "1. Customer Growth Model" : "1. Model Pertumbuhan Koperasi"}
@@ -943,14 +927,6 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation, onAs
 
             {/* 2. Laporan Pendapatan (Revenue) */}
             <div id="section-revenue" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid pdf-section-page">
-              <div className="pdf-print-header hidden print:flex items-center justify-between border-b border-[#005fa4] pb-2 mb-3 px-4 pt-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-[#005fa4] text-sm">smart<span className="text-[#FFD700]">coop</span></span>
-                  <span className="text-slate-400 text-xs">|</span>
-                  <span className="font-semibold text-slate-700 text-xs">{language === "en" ? "2. SaaS Revenue Statement (Proforma P&L)" : "2. Laporan Pendapatan (Revenue)"}</span>
-                </div>
-                <span className="text-[10px] text-slate-500 font-mono font-bold text-[#005fa4]">Fitur 3/10 • PDF Landscape</span>
-              </div>
               <div className="p-4 border-b bg-muted/10 flex items-center justify-between">
                 <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
                   <Coins className="h-5 w-5 text-emerald-600" /> {language === "en" ? "2. SaaS Revenue Statement (Proforma P&L)" : "2. Laporan Pendapatan (Revenue)"}
@@ -1157,14 +1133,6 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation, onAs
 
             {/* 3. Harga Pokok Penjualan (HPP / COGS) */}
             <div id="section-cogs" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid pdf-section-page">
-              <div className="pdf-print-header hidden print:flex items-center justify-between border-b border-[#005fa4] pb-2 mb-3 px-4 pt-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-[#005fa4] text-sm">smart<span className="text-[#FFD700]">coop</span></span>
-                  <span className="text-slate-400 text-xs">|</span>
-                  <span className="font-semibold text-slate-700 text-xs">{language === "en" ? "3. Cost of Goods Sold (COGS)" : "3. Harga Pokok Penjualan (HPP / COGS)"}</span>
-                </div>
-                <span className="text-[10px] text-slate-500 font-mono font-bold text-[#005fa4]">Fitur 4/10 • PDF Landscape</span>
-              </div>
               <div className="p-4 border-b bg-muted/10 flex items-center justify-between">
                 <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
                   <Layers className="h-5 w-5 text-red-600" /> {language === "en" ? "3. Cost of Goods Sold (COGS)" : "3. Harga Pokok Penjualan (HPP / COGS)"}
@@ -1332,14 +1300,6 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation, onAs
 
             {/* 4. Beban Operasional (OPEX) */}
             <div id="section-opex" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid pdf-section-page">
-              <div className="pdf-print-header hidden print:flex items-center justify-between border-b border-[#005fa4] pb-2 mb-3 px-4 pt-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-[#005fa4] text-sm">smart<span className="text-[#FFD700]">coop</span></span>
-                  <span className="text-slate-400 text-xs">|</span>
-                  <span className="font-semibold text-slate-700 text-xs">{language === "en" ? "4. Operating Expenses (OPEX)" : "4. Beban Operasional (OPEX)"}</span>
-                </div>
-                <span className="text-[10px] text-slate-500 font-mono font-bold text-[#005fa4]">Fitur 5/10 • PDF Landscape</span>
-              </div>
               <div className="p-4 border-b bg-muted/10 flex items-center justify-between">
                 <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
                   <Activity className="h-5 w-5 text-orange-600" /> {language === "en" ? "4. Operating Expenses (OPEX)" : "4. Beban Operasional (OPEX)"}
@@ -1468,14 +1428,6 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation, onAs
 
             {/* 5. Ringkasan EBITDA */}
             <div id="section-ebitda" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid pdf-section-page">
-              <div className="pdf-print-header hidden print:flex items-center justify-between border-b border-[#005fa4] pb-2 mb-3 px-4 pt-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-[#005fa4] text-sm">smart<span className="text-[#FFD700]">coop</span></span>
-                  <span className="text-slate-400 text-xs">|</span>
-                  <span className="font-semibold text-slate-700 text-xs">{language === "en" ? "5. EBITDA & Operating Profitability" : "5. EBITDA & Profitabilitas Operasional"}</span>
-                </div>
-                <span className="text-[10px] text-slate-500 font-mono font-bold text-[#005fa4]">Fitur 6/10 • PDF Landscape</span>
-              </div>
               <div className="p-4 border-b bg-muted/10 flex items-center justify-between">
                 <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
                   <Calculator className="h-5 w-5 text-amber-600" /> {language === "en" ? "5. EBITDA & Profitability Summary" : "5. Ringkasan EBITDA (EBITDA Summary)"}
@@ -1612,14 +1564,6 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation, onAs
 
             {/* 6. Cash Flow & Runway Table */}
             <div id="section-cashflow" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid pdf-section-page">
-              <div className="pdf-print-header hidden print:flex items-center justify-between border-b border-[#005fa4] pb-2 mb-3 px-4 pt-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-[#005fa4] text-sm">smart<span className="text-[#FFD700]">coop</span></span>
-                  <span className="text-slate-400 text-xs">|</span>
-                  <span className="font-semibold text-slate-700 text-xs">{language === "en" ? "6. Cash Flow & Liquidity Projections" : "6. Proyeksi Arus Kas & Likuiditas"}</span>
-                </div>
-                <span className="text-[10px] text-slate-500 font-mono font-bold text-[#005fa4]">Fitur 7/10 • PDF Landscape</span>
-              </div>
               <div className="p-4 border-b bg-muted/10">
                 <h3 className="text-lg font-bold flex items-center gap-2">
                   <Wallet className="h-5 w-5 text-primary" /> {language === "en" ? "6. 5-Year Cash Flow Statement & Runway (Rp)" : "6. Laporan Arus Kas & Runway (Rp)"}
@@ -1739,14 +1683,6 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation, onAs
 
             {/* 7. Metrik SaaS */}
             <div id="section-saas" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid pdf-section-page">
-              <div className="pdf-print-header hidden print:flex items-center justify-between border-b border-[#005fa4] pb-2 mb-3 px-4 pt-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-[#005fa4] text-sm">smart<span className="text-[#FFD700]">coop</span></span>
-                  <span className="text-slate-400 text-xs">|</span>
-                  <span className="font-semibold text-slate-700 text-xs">{language === "en" ? "7. SaaS Operational & Unit Economics Metrics" : "7. Metrik Operasional & Unit Economics"}</span>
-                </div>
-                <span className="text-[10px] text-slate-500 font-mono font-bold text-[#005fa4]">Fitur 8/10 • PDF Landscape</span>
-              </div>
               <div className="p-4 border-b bg-muted/10 flex items-center justify-between">
                 <h3 className="text-lg font-bold flex items-center gap-2 text-slate-800">
                   <BarChart3 className="h-5 w-5 text-indigo-600" /> {language === "en" ? "7. SaaS Unit Economics & Efficiency Metrics" : "7. Metrik SaaS (SaaS Metrics)"}
@@ -1935,14 +1871,6 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation, onAs
 
             {/* 11. Simulasi Valuasi Perusahaan (Rp) */}
             <div id="section-valuation" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm scroll-mt-24 print:break-inside-avoid pdf-section-page">
-              <div className="pdf-print-header hidden print:flex items-center justify-between border-b border-[#005fa4] pb-2 mb-3 px-4 pt-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-[#005fa4] text-sm">smart<span className="text-[#FFD700]">coop</span></span>
-                  <span className="text-slate-400 text-xs">|</span>
-                  <span className="font-semibold text-slate-700 text-xs">{language === "en" ? "8. Financial Valuation Model" : "8. Model Valuasi Financial"}</span>
-                </div>
-                <span className="text-[10px] text-slate-500 font-mono font-bold text-[#005fa4]">Fitur 9/10 • PDF Landscape</span>
-              </div>
               <div className="p-4 border-b bg-muted/10">
                 <h3 className="text-lg font-bold flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-primary" /> {language === "en" ? "8. Company Valuation Simulation (Rp)" : "8. Simulasi Valuasi Perusahaan (Rp)"}
@@ -2117,18 +2045,10 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation, onAs
             </div>
 
             {/* 12. Cap Table & Potential Investor Return */}
-            <div id="section-captable-roi" className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 print:mt-0 print:gap-4 pdf-section-page">
-              <div className="pdf-print-header col-span-1 lg:col-span-2 hidden print:flex items-center justify-between border-b border-[#005fa4] pb-2 mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-[#005fa4] text-sm">smart<span className="text-[#FFD700]">coop</span></span>
-                  <span className="text-slate-400 text-xs">|</span>
-                  <span className="font-semibold text-slate-700 text-xs">{language === "en" ? "9. Cap Table & Investor Return Analysis" : "9. Cap Table & Analisis Imbal Hasil Investor"}</span>
-                </div>
-                <span className="text-[10px] text-slate-500 font-mono font-bold text-[#005fa4]">Fitur 10/10 • PDF Landscape</span>
-              </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 print:mt-0 print:grid-cols-1 print:gap-8">
 
               {/* Cap Table */}
-              <div id="section-captable" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm flex flex-col justify-between scroll-mt-24 print:break-inside-avoid">
+              <div id="section-captable" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm flex flex-col justify-between scroll-mt-24 print:break-inside-avoid pdf-section-page">
                 <div>
                   <div className="p-4 border-b bg-muted/10">
                     <h3 className="text-base font-bold flex items-center gap-2">
@@ -2216,7 +2136,7 @@ export default function ProjectionModelTab({ data, formatRupiah, valuation, onAs
               </div>
 
               {/* Potential Investor Return */}
-              <div id="section-roi" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm flex flex-col justify-between scroll-mt-24 print:break-inside-avoid">
+              <div id="section-roi" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm flex flex-col justify-between scroll-mt-24 print:break-inside-avoid pdf-section-page">
                 <div>
                   <div className="p-4 border-b bg-muted/10">
                     <h3 className="text-base font-bold flex items-center gap-2">
