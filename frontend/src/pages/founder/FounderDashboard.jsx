@@ -12,6 +12,9 @@ import { toast } from "sonner";
 import { simulateProjections, formatRupiah } from "../cfo/utils/financialModel";
 import { useValuationModel } from "../cfo/utils/valuationHelper";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../context/CurrencyContext";
+import CurrencySwitcher from "../../components/CurrencySwitcher";
+import LanguageSwitcher from "../../components/LanguageSwitcher";
 
 function getScenarioAssumptions(baseAssumptions, scenario) {
   if (scenario === "base") return baseAssumptions;
@@ -57,6 +60,8 @@ function getScenarioAssumptions(baseAssumptions, scenario) {
 
 export default function FounderDashboard({ userData, handleLogout }) {
   const { language, setLanguage, t } = useLanguage();
+  const { formatCurrency } = useCurrency();
+  const formatRupiah = formatCurrency;
   const [activeTab, setActiveTab] = useState("overview");
   const [activeScenario, setActiveScenario] = useState("base");
   const [chartMetric, setChartMetric] = useState("revenue");
@@ -427,6 +432,12 @@ export default function FounderDashboard({ userData, handleLogout }) {
 
         {/* Profile Info & Logout */}
         <div className="mt-8 pt-6 border-t border-white/15 space-y-4">
+          {/* Currency & Language Switcher */}
+          <div className="flex items-center gap-2">
+            <CurrencySwitcher variant="sidebar" />
+            <LanguageSwitcher variant="sidebar" />
+          </div>
+
           <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/10 border border-white/15 backdrop-blur-sm">
             <div className="h-10 w-10 rounded-xl bg-[#FFD700] text-[#003d6b] flex items-center justify-center font-extrabold text-sm shadow-md shrink-0">
               {userData?.name?.charAt(0).toUpperCase() || "F"}
@@ -479,31 +490,6 @@ export default function FounderDashboard({ userData, handleLogout }) {
                 <span className="text-sm font-semibold text-foreground">{primaryCompany.name}</span>
               </div>
             )}
-
-            {/* Language Switcher */}
-            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
-              <Globe className="h-4 w-4 text-slate-500 ml-1.5 mr-0.5" />
-              <button
-                onClick={() => setLanguage("id")}
-                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                  language === "id"
-                    ? "bg-white dark:bg-slate-700 text-[#005fa4] dark:text-blue-400 shadow-xs"
-                    : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
-                }`}
-              >
-                ID
-              </button>
-              <button
-                onClick={() => setLanguage("en")}
-                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                  language === "en"
-                    ? "bg-white dark:bg-slate-700 text-[#005fa4] dark:text-blue-400 shadow-xs"
-                    : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
-                }`}
-              >
-                EN
-              </button>
-            </div>
           </div>
         </header>
 
