@@ -3,7 +3,7 @@ import {
   LogOut, Building, ShieldCheck, Sparkles, Database, 
   LayoutDashboard, BarChart3, LineChart, Shield, Download,
   TrendingUp, Wallet, Award, ArrowUpRight, BarChart4, FileText,
-  Activity, Calculator, Users, Layers, Info
+  Activity, Calculator, Users, Layers, Info, ChevronLeft, ChevronRight, X, Eye
 } from "lucide-react";
 import { 
   ResponsiveContainer, BarChart, Bar, LineChart as ReLineChart, 
@@ -18,6 +18,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../context/CurrencyContext";
 import CurrencySwitcher from "../../components/CurrencySwitcher";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
+import { toast } from "sonner";
 
 const MetricTooltip = ({ label, textEn, textId, language, align = "left" }) => (
   <div className="relative group flex items-center gap-1 w-fit">
@@ -41,6 +42,8 @@ export default function InvestorDashboard({ userData, handleLogout }) {
   const [activeTab, setActiveTab] = useState("overview");
   const [downloadingDeck, setDownloadingDeck] = useState(false);
   const [downloadingReport, setDownloadingReport] = useState(false);
+  const [showDeckPreview, setShowDeckPreview] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [loadingProjections, setLoadingProjections] = useState(true);
   const [assumptionsByYear, setAssumptionsByYear] = useState({});
 
@@ -127,16 +130,124 @@ export default function InvestorDashboard({ userData, handleLogout }) {
     setDownloadingDeck(true);
     setTimeout(() => {
       setDownloadingDeck(false);
-      alert("Pitch Deck berhasil diunduh!");
-    }, 2000);
+      const companyName = primaryCompany?.name || "Koperasi Smartcoop";
+      
+      const printWindow = window.open("", "_blank");
+      if (!printWindow) return;
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Pitch Deck Executive Summary - ${companyName}</title>
+          <style>
+            @page { size: A4 portrait; margin: 20mm; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; margin: 0; padding: 0; background: #ffffff; }
+            .header { background: linear-gradient(135deg, #003d6b, #005fa4); color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px; }
+            .header h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+            .header p { margin: 6px 0 0 0; opacity: 0.85; font-size: 13px; font-weight: 600; }
+            .section { border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px; background: #f8fafc; }
+            .section-title { font-size: 14px; font-weight: 800; color: #005fa4; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; border-bottom: 2px solid #005fa4; padding-bottom: 6px; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+            .metric-card { background: white; border: 1px solid #cbd5e1; padding: 14px; border-radius: 10px; }
+            .metric-label { font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; margin-bottom: 4px; }
+            .metric-value { font-size: 18px; font-weight: 800; color: #0f172a; }
+            .gold-value { color: #d97706; font-weight: 800; }
+            .blue-value { color: #005fa4; font-weight: 800; }
+            .footer { margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 12px; font-size: 11px; color: #94a3b8; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>EXECUTIVE PITCH DECK SUMMARY</h1>
+            <p>${companyName.toUpperCase()} — Smartcoop Financial Planning Platform</p>
+          </div>
+
+          <div class="section">
+            <div class="section-title">1. Ringkasan Eksekutif & Profil Bisnis</div>
+            <p style="font-size: 13px; line-height: 1.5; color: #334155; margin: 0;">
+              Platform perencanaan keuangan enterprise & simulasi valuasi real-time otomatis untuk mempercepat digitalisasi 127,000+ koperasi & UMKM di Indonesia.
+            </p>
+          </div>
+
+          <div class="section">
+            <div class="section-title">2. Proyeksi Pendapatan 5-Tahun (2025 - 2029)</div>
+            <div class="grid">
+              <div class="metric-card">
+                <div class="metric-label">Pendapatan FY2025</div>
+                <div class="metric-value">${formatRupiah(detailedProjectionData[0]?.totalRevenue || 0)}</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Target Pendapatan FY2029</div>
+                <div class="metric-value blue-value">${formatRupiah(detailedProjectionData[4]?.totalRevenue || 0)}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">3. Unit Economics & EBITDA</div>
+            <div class="grid">
+              <div class="metric-card">
+                <div class="metric-label">ARPU Bulanan</div>
+                <div class="metric-value">${formatRupiah(detailedProjectionData[0]?.arpu || 0)}</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Estimasi CAC</div>
+                <div class="metric-value">${formatRupiah(detailedProjectionData[0]?.estimatedCac || 0)}</div>
+              </div>
+            </div>
+            <div class="metric-card" style="margin-top: 12px; background: #fef3c7; border-color: #fde68a;">
+              <div class="metric-label" style="color: #92400e;">Proyeksi EBITDA FY2029</div>
+              <div class="metric-value gold-value">${formatRupiah(detailedProjectionData[4]?.ebitda || 0)}</div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">4. Struktur Pendanaan & Target Exit 2029</div>
+            <div class="grid">
+              <div class="metric-card">
+                <div class="metric-label">Pre-Money Valuation</div>
+                <div class="metric-value">${formatRupiah(valuation?.preMoneyValuation || 0)}</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Target Investasi Seed</div>
+                <div class="metric-value gold-value">${formatRupiah(valuation?.seedInvestment || 0)}</div>
+              </div>
+            </div>
+            <div class="metric-card" style="margin-top: 12px; background: #e0f2fe; border-color: #bae6fd;">
+              <div class="metric-label" style="color: #0369a1;">Target Valuasi Exit 2029 (Base Case 5x)</div>
+              <div class="metric-value blue-value" style="font-size: 20px;">${formatRupiah((detailedProjectionData[4]?.totalRevenue * 5) || 0)}</div>
+            </div>
+          </div>
+
+          <div class="footer">
+            DOKUMEN RAHASIA (CONFIDENTIAL) — Diterbitkan oleh Investor Console Smartcoop Financial Platform.
+          </div>
+
+          <script>
+            window.onload = function() {
+              window.print();
+            };
+          </script>
+        </body>
+        </html>
+      `;
+
+      printWindow.document.open();
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+    }, 200);
   };
 
   const handleDownloadReport = () => {
     setDownloadingReport(true);
     setTimeout(() => {
       setDownloadingReport(false);
-      alert("Laporan Finansial Lengkap (PDF) berhasil diunduh!");
-    }, 2500);
+      setActiveTab("projections");
+      setTimeout(() => {
+        window.print();
+      }, 300);
+    }, 200);
   };
 
   return (
@@ -166,7 +277,7 @@ export default function InvestorDashboard({ userData, handleLogout }) {
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <LayoutDashboard className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "overview" ? "text-[#FFD700]" : "text-blue-200/60 group-hover:text-white"}`} />
-                <span className="whitespace-nowrap truncate">Portfolio Review</span>
+                <span className="whitespace-nowrap truncate">{language === "en" ? "Portfolio Review" : "Ulasan Portofolio"}</span>
               </div>
               {activeTab === "overview" && <div className="h-1.5 w-1.5 rounded-full bg-[#FFD700] shadow-2xs shrink-0 ml-1" />}
             </button>
@@ -181,7 +292,7 @@ export default function InvestorDashboard({ userData, handleLogout }) {
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <LineChart className={`h-4 w-4 shrink-0 transition-colors ${activeTab === "projections" ? "text-[#FFD700]" : "text-blue-200/60 group-hover:text-white"}`} />
-                <span className="whitespace-nowrap truncate">Model Proyeksi Keuangan</span>
+                <span className="whitespace-nowrap truncate">{language === "en" ? "Financial Projection Model" : "Model Proyeksi Keuangan"}</span>
               </div>
               {activeTab === "projections" && <div className="h-1.5 w-1.5 rounded-full bg-[#FFD700] shadow-2xs shrink-0 ml-1" />}
             </button>
@@ -213,7 +324,7 @@ export default function InvestorDashboard({ userData, handleLogout }) {
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold rounded-xl text-xs shadow-md shadow-black/20 transition-all duration-200 cursor-pointer border-none"
           >
             <LogOut className="h-4 w-4 text-white" /> 
-            <span>Keluar</span>
+            <span>{language === "en" ? "Logout" : "Keluar"}</span>
           </button>
         </div>
       </aside>
@@ -224,10 +335,16 @@ export default function InvestorDashboard({ userData, handleLogout }) {
         <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              {activeTab === "overview" ? "Investor Reporting Console" : "Model Proyeksi Keuangan"}
+              {activeTab === "overview" 
+                ? (language === "en" ? "Investor Reporting Console" : "Konsol Pelaporan Investor") 
+                : (language === "en" ? "Financial Projection Model" : "Model Proyeksi Keuangan")
+              }
             </h1>
             <p className="text-muted-foreground mt-1">
-              {activeTab === "overview" ? "Akses eksklusif read-only ke proyeksi model finansial, skenario, dan valuasi koperasi/SME." : "Proyeksi laba rugi komprehensif berdasarkan asumsi yang telah diatur oleh tim CFO."}
+              {activeTab === "overview" 
+                ? (language === "en" ? "Exclusive read-only access to financial projections, scenarios, and valuation." : "Akses eksklusif read-only ke proyeksi model finansial, skenario, dan valuasi koperasi/SME.") 
+                : (language === "en" ? "Comprehensive profit and loss projections based on assumptions set by the CFO team." : "Proyeksi laba rugi komprehensif berdasarkan asumsi yang telah diatur oleh tim CFO.")
+              }
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -252,7 +369,7 @@ export default function InvestorDashboard({ userData, handleLogout }) {
               </div>
             ) : (
               <div className="text-center p-12 text-muted-foreground bg-card border border-border rounded-2xl">
-                Data asumsi belum tersedia. Proyeksi tidak dapat ditampilkan.
+                {language === "en" ? "Assumption data is not available yet. Projections cannot be displayed." : "Data asumsi belum tersedia. Proyeksi tidak dapat ditampilkan."}
               </div>
             )}
           </section>
@@ -398,22 +515,40 @@ export default function InvestorDashboard({ userData, handleLogout }) {
             {/* Download reports and pitch deck */}
             <section id="downloads" className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6" style={{ boxShadow: "var(--shadow-card)" }}>
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <FileText className="h-5 w-5 text-emerald-500" /> Pusat Unduh Dokumen Pendukung
+                <FileText className="h-5 w-5 text-emerald-500" /> {language === "en" ? "Download Center & Supporting Documents" : "Pusat Unduh Dokumen Pendukung"}
               </h2>
-              <p className="text-sm text-muted-foreground">Unduh laporan audit model keuangan, slide pitch deck, dan lembar asumsi lengkap perusahaan.</p>
+              <p className="text-sm text-muted-foreground">
+                {language === "en" ? "Download financial model audit report, pitch deck slides, and full company assumption sheets." : "Unduh laporan audit model keuangan, slide pitch deck, dan lembar asumsi lengkap perusahaan."}
+              </p>
 
               <div className="grid md:grid-cols-2 gap-4">
-                <button
-                  onClick={handleDownloadDeck}
-                  disabled={downloadingDeck}
-                  className="flex items-center justify-between p-4 border border-border rounded-xl hover:bg-muted/30 transition-colors text-left disabled:opacity-50"
-                >
+                <div className="flex items-center justify-between p-4 border border-border rounded-xl hover:bg-muted/30 transition-colors text-left">
                   <div className="space-y-1">
-                    <h4 className="font-semibold text-sm">Pitch Deck Perusahaan</h4>
-                    <p className="text-xs text-muted-foreground">PPTX format - Rangkuman Model Bisnis & Rencana Fundraising.</p>
+                    <h4 className="font-semibold text-sm">{language === "en" ? "Company Pitch Deck" : "Pitch Deck Perusahaan"}</h4>
+                    <p className="text-xs text-muted-foreground">{language === "en" ? "PDF format - Business Model Summary & Fundraising Plan." : "PDF format - Rangkuman Model Bisnis & Rencana Fundraising."}</p>
                   </div>
-                  <Download className={`h-5 w-5 text-primary ${downloadingDeck ? "animate-pulse" : ""}`} />
-                </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setCurrentSlide(0);
+                        setShowDeckPreview(true);
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                      title={language === "en" ? "Preview Pitch Deck Slides" : "Preview Slide Pitch Deck"}
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                      <span>Preview</span>
+                    </button>
+                    <button
+                      onClick={handleDownloadDeck}
+                      disabled={downloadingDeck}
+                      className="p-2 text-muted-foreground hover:text-primary hover:bg-muted rounded-lg transition-all cursor-pointer disabled:opacity-50"
+                      title={language === "en" ? "Download Pitch Deck" : "Download Pitch Deck"}
+                    >
+                      <Download className={`h-4 w-4 ${downloadingDeck ? "animate-pulse" : ""}`} />
+                    </button>
+                  </div>
+                </div>
 
                 <button
                   onClick={handleDownloadReport}
@@ -421,8 +556,8 @@ export default function InvestorDashboard({ userData, handleLogout }) {
                   className="flex items-center justify-between p-4 border border-border rounded-xl hover:bg-muted/30 transition-colors text-left disabled:opacity-50"
                 >
                   <div className="space-y-1">
-                    <h4 className="font-semibold text-sm">Laporan Finansial Lengkap (5-Tahun)</h4>
-                    <p className="text-xs text-muted-foreground">PDF format - Proyeksi Laba Rugi, Neraca, & Arus Kas.</p>
+                    <h4 className="font-semibold text-sm">{language === "en" ? "Comprehensive Financial Report (5-Year)" : "Laporan Finansial Lengkap (5-Tahun)"}</h4>
+                    <p className="text-xs text-muted-foreground">{language === "en" ? "PDF format - P&L Projections, Balance Sheet & Cash Flow." : "PDF format - Proyeksi Laba Rugi, Neraca, & Arus Kas."}</p>
                   </div>
                   <Download className={`h-5 w-5 text-emerald-500 ${downloadingReport ? "animate-pulse" : ""}`} />
                 </button>
@@ -430,12 +565,164 @@ export default function InvestorDashboard({ userData, handleLogout }) {
 
               <div className="pt-4 border-t border-border flex items-center gap-2 text-xs text-muted-foreground">
                 <Shield className="h-4 w-4 text-emerald-500" />
-                <span>Sebagai Investor Viewer, semua data yang disajikan bersifat rahasia dan tidak dapat diubah (Read-Only).</span>
+                <span>{language === "en" ? "As an Investor Viewer, all presented data is confidential and read-only." : "Sebagai Investor Viewer, semua data yang disajikan bersifat rahasia dan tidak dapat diubah (Read-Only)."}</span>
               </div>
             </section>
           </>
         )}
       </main>
+
+      {/* Modal Pitch Deck Preview */}
+      {showDeckPreview && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/80">
+              <div className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-[#005fa4] dark:text-blue-400" />
+                <div>
+                  <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">Pitch Deck Preview</h3>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Slide {currentSlide + 1} of 4</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowDeckPreview(false)}
+                className="p-1.5 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Modal Body - Slide View */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              <div>
+                <span className="text-[10px] font-extrabold text-[#005fa4] dark:text-blue-400 uppercase tracking-widest">
+                  {currentSlide === 0 && (language === "en" ? "1. Executive Summary" : "1. Ringkasan Eksekutif")}
+                  {currentSlide === 1 && (language === "en" ? "2. Traction & Market Opportunity" : "2. Traksi & Peluang Pasar")}
+                  {currentSlide === 2 && (language === "en" ? "3. Unit Economics & EBITDA" : "3. Unit Economics & EBITDA")}
+                  {currentSlide === 3 && (language === "en" ? "4. Valuation & Seed Offer" : "4. Valuasi & Penawaran Seed")}
+                </span>
+                <h2 className="text-xl font-black text-slate-900 dark:text-white mt-1">
+                  {currentSlide === 0 && (primaryCompany?.name || "Koperasi Smartcoop")}
+                  {currentSlide === 1 && (language === "en" ? "Target Market: 127,000+ Cooperatives" : "Target Pasar 127.000+ Koperasi")}
+                  {currentSlide === 2 && (language === "en" ? "Profitability & Operating Margin" : "Profitabilitas & Margin Operasional")}
+                  {currentSlide === 3 && (language === "en" ? "Seed Funding Structure & 2029 Exit" : "Struktur Pendanaan Seed & Exit 2029")}
+                </h2>
+              </div>
+
+              {/* Slide Content Card */}
+              {currentSlide === 0 && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-2xl">
+                    <p className="text-xs font-extrabold text-[#005fa4] dark:text-blue-400 uppercase">{language === "en" ? "Enterprise Financial Planning" : "Perencanaan Keuangan Enterprise"}</p>
+                    <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 font-medium">
+                      {language === "en" ? "Automated real-time financial modeling and valuation platform for Indonesian cooperatives & SMEs." : "Platform proyeksi keuangan & valuasi real-time otomatis khusus untuk ekosistem koperasi dan UMKM di Indonesia."}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                      <p className="text-[10px] text-slate-400 uppercase font-bold">{language === "en" ? "FY2025 Revenue" : "Pendapatan FY2025"}</p>
+                      <p className="text-base font-extrabold text-slate-900 dark:text-white mt-0.5">{formatRupiah(detailedProjectionData[0]?.totalRevenue || 0)}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                      <p className="text-[10px] text-slate-400 uppercase font-bold">{language === "en" ? "FY2029 Target" : "Target FY2029"}</p>
+                      <p className="text-base font-extrabold text-[#005fa4] dark:text-blue-400 mt-0.5">{formatRupiah(detailedProjectionData[4]?.totalRevenue || 0)}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {currentSlide === 1 && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl space-y-1">
+                    <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">{language === "en" ? "Indonesian Cooperative Ecosystem" : "Ekosistem Koperasi Indonesia"}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">{language === "en" ? "PPOB Digitalization, SaaS Financial Management, White-Label Apps, & Enterprise Licensing." : "Digitalisasi PPOB, SaaS Manajemen Keuangan, White-Label Apps, & Lisensi Enterprise."}</p>
+                  </div>
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500 font-medium">{language === "en" ? "Active Cooperative Growth (2025 - 2029):" : "Pertumbuhan Koperasi Aktif (2025 - 2029):"}</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">50 ➔ 500 {language === "en" ? "Coops" : "Koperasi"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500 font-medium">{language === "en" ? "Revenue CAGR:" : "CAGR Pendapatan:"}</span>
+                      <span className="font-extrabold text-emerald-600">+85.4% / {language === "en" ? "Yr" : "Tahun"}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {currentSlide === 2 && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                      <p className="text-[10px] text-slate-400 uppercase font-bold">{language === "en" ? "Monthly ARPU" : "ARPU Bulanan"}</p>
+                      <p className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5">{formatRupiah(detailedProjectionData[0]?.arpu || 0)}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                      <p className="text-[10px] text-slate-400 uppercase font-bold">{language === "en" ? "Estimated CAC" : "Estimasi CAC"}</p>
+                      <p className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5">{formatRupiah(detailedProjectionData[0]?.estimatedCac || 0)}</p>
+                    </div>
+                  </div>
+                  <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl">
+                    <p className="text-xs font-bold text-amber-900 dark:text-amber-300">{language === "en" ? "EBITDA Projection FY2029:" : "Proyeksi EBITDA FY2029:"}</p>
+                    <p className="text-lg font-black text-amber-800 dark:text-amber-400 mt-0.5">{formatRupiah(detailedProjectionData[4]?.ebitda || 0)}</p>
+                  </div>
+                </div>
+              )}
+
+              {currentSlide === 3 && (
+                <div className="space-y-3">
+                  <div className="p-4 bg-gradient-to-br from-[#003d6b] to-[#005fa4] text-white rounded-2xl shadow-md space-y-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-blue-100 font-medium">Pre-Money Valuation:</span>
+                      <span className="font-extrabold text-white">{formatRupiah(valuation?.preMoneyValuation || 0)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-blue-100 font-medium">{language === "en" ? "Seed Investment Target:" : "Target Investasi Seed:"}</span>
+                      <span className="font-extrabold text-[#FFD700]">{formatRupiah(valuation?.seedInvestment || 0)}</span>
+                    </div>
+                    <div className="border-t border-white/20 pt-2 flex justify-between items-center text-xs font-bold">
+                      <span>{language === "en" ? "Target Exit Valuation 2029 (5x):" : "Target Valuasi Exit 2029 (5x):"}</span>
+                      <span className="text-sm text-[#FFD700]">{formatRupiah((detailedProjectionData[4]?.totalRevenue * 5) || 0)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer Controls */}
+            <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentSlide(prev => Math.max(0, prev - 1))}
+                  disabled={currentSlide === 0}
+                  className="p-2 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-white disabled:opacity-30 hover:bg-slate-100 transition-all cursor-pointer"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setCurrentSlide(prev => Math.min(3, prev + 1))}
+                  disabled={currentSlide === 3}
+                  className="p-2 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-white disabled:opacity-30 hover:bg-slate-100 transition-all cursor-pointer"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+
+              <button
+                onClick={() => {
+                  setShowDeckPreview(false);
+                  handleDownloadDeck();
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-[#005fa4] hover:bg-[#004b82] text-white font-bold rounded-xl text-xs shadow-md transition-all cursor-pointer"
+              >
+                <Download className="h-4 w-4 text-[#FFD700]" />
+                <span>{language === "en" ? "Download Pitch Deck" : "Unduh Pitch Deck"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
