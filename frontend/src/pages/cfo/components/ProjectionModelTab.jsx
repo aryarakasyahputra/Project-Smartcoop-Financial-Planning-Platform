@@ -406,12 +406,15 @@ export default function ProjectionModelTab({ data, formatRupiah: propFormatRupia
   const [activeSection, setActiveSection] = React.useState("section-chart");
   const [portalTarget, setPortalTarget] = React.useState(null);
   const [collapsedSections, setCollapsedSections] = React.useState({
-    growth: true,
-    revenue: true,
-    cogs: true,
-    opex: true,
-    ebitda: true,
-    saas: true
+    growth: false,
+    revenue: false,
+    cogs: false,
+    opex: false,
+    ebitda: false,
+    saas: false,
+    cashflow: false,
+    valuation: false,
+    captable: false
   });
 
   // Get unique custom assumptions by category
@@ -441,21 +444,33 @@ export default function ProjectionModelTab({ data, formatRupiah: propFormatRupia
   }, [data]);
 
   React.useEffect(() => {
+    let savedSections = null;
+
     const handleBeforePrint = () => {
-      setCollapsedSections({
-        growth: false,
-        revenue: false,
-        cogs: false,
-        opex: false,
-        ebitda: false,
-        saas: false,
-        cashflow: false,
-        valuation: false,
-        captable: false
+      setCollapsedSections(prev => {
+        savedSections = prev;
+        return {
+          growth: false,
+          revenue: false,
+          cogs: false,
+          opex: false,
+          ebitda: false,
+          saas: false,
+          cashflow: false,
+          valuation: false,
+          captable: false
+        };
       });
     };
 
+    const handleAfterPrint = () => {
+      if (savedSections) {
+        setCollapsedSections(savedSections);
+      }
+    };
+
     window.addEventListener("beforeprint", handleBeforePrint);
+    window.addEventListener("afterprint", handleAfterPrint);
 
     const target = document.getElementById("header-portal-target");
     if (target) setPortalTarget(target);
@@ -473,6 +488,7 @@ export default function ProjectionModelTab({ data, formatRupiah: propFormatRupia
 
     return () => {
       window.removeEventListener("beforeprint", handleBeforePrint);
+      window.removeEventListener("afterprint", handleAfterPrint);
       sections.forEach(section => observer.unobserve(section));
     };
   }, []);
@@ -732,44 +748,43 @@ export default function ProjectionModelTab({ data, formatRupiah: propFormatRupia
                         />
                         <Legend wrapperStyle={{ paddingTop: "15px" }} />
                         {(activeChartMetric === "all" || activeChartMetric === "revenue") && (
-                          <Line type="monotone" dataKey="revenue" name={language === "en" ? "Revenue" : "Pendapatan"} stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: "#fff" }} activeDot={{ r: 7 }} />
+                          <Line type="monotone" dataKey="revenue" name={language === "en" ? "Revenue" : "Pendapatan"} stroke="#10b981" strokeWidth={3.5} isAnimationActive={false} dot={{ r: 5, strokeWidth: 2, fill: "#10b981" }} activeDot={{ r: 7 }} />
                         )}
                         {(activeChartMetric === "all" || activeChartMetric === "expenses") && (
-                          <Line type="monotone" dataKey="expenses" name={language === "en" ? "Expenses (COGS+OPEX)" : "Beban (COGS+OPEX)"} stroke="#f43f5e" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: "#fff" }} activeDot={{ r: 7 }} />
+                          <Line type="monotone" dataKey="expenses" name={language === "en" ? "Expenses (COGS+OPEX)" : "Beban (COGS+OPEX)"} stroke="#f43f5e" strokeWidth={3.5} isAnimationActive={false} dot={{ r: 5, strokeWidth: 2, fill: "#f43f5e" }} activeDot={{ r: 7 }} />
                         )}
                         {(activeChartMetric === "all" || activeChartMetric === "ebitda") && (
-                          <Line type="monotone" dataKey="ebitdaM" name="EBITDA" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: "#fff" }} activeDot={{ r: 7 }} />
+                          <Line type="monotone" dataKey="ebitdaM" name="EBITDA" stroke="#f59e0b" strokeWidth={3.5} isAnimationActive={false} dot={{ r: 5, strokeWidth: 2, fill: "#f59e0b" }} activeDot={{ r: 7 }} />
                         )}
                         {activeChartMetric === "cash" && (
-                          <Line type="monotone" dataKey="endingCashM" name="Ending Cash" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: "#fff" }} activeDot={{ r: 7 }} />
+                          <Line type="monotone" dataKey="endingCashM" name="Ending Cash" stroke="#3b82f6" strokeWidth={3.5} isAnimationActive={false} dot={{ r: 5, strokeWidth: 2, fill: "#3b82f6" }} activeDot={{ r: 7 }} />
                         )}
                       </LineChart>
                     );
                   }
 
-                  // Default View Mode: "area" (Gradient Filled Area Chart)
+                  // Default View Mode: "area" (Filled Area Chart)
                   return (
                     <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 15, bottom: 5 }}>
-                      {commonGradients}
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
-                      <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} />
-                      <YAxis stroke="#64748b" fontSize={11} tickLine={false} tickFormatter={formatYAxisVal} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" opacity={0.8} />
+                      <XAxis dataKey="name" stroke="#475569" fontSize={12} tickLine={false} />
+                      <YAxis stroke="#475569" fontSize={11} tickLine={false} tickFormatter={formatYAxisVal} />
                       <Tooltip
                         formatter={tooltipFormatter}
                         contentStyle={{ backgroundColor: "rgba(255, 255, 255, 0.95)", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)" }}
                       />
                       <Legend wrapperStyle={{ paddingTop: "15px" }} />
                       {(activeChartMetric === "all" || activeChartMetric === "revenue") && (
-                        <Area type="monotone" dataKey="revenue" name={language === "en" ? "Revenue" : "Pendapatan"} stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRevGrad)" dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 6 }} />
+                        <Area type="monotone" dataKey="revenue" name={language === "en" ? "Revenue" : "Pendapatan"} stroke="#10b981" strokeWidth={3.5} fillOpacity={0.15} fill="#10b981" isAnimationActive={false} dot={{ r: 4, strokeWidth: 2, fill: "#10b981" }} activeDot={{ r: 7 }} />
                       )}
                       {(activeChartMetric === "all" || activeChartMetric === "expenses") && (
-                        <Area type="monotone" dataKey="expenses" name={language === "en" ? "Expenses (COGS+OPEX)" : "Beban (COGS+OPEX)"} stroke="#f43f5e" strokeWidth={2.5} fillOpacity={1} fill="url(#colorExpGrad)" dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 6 }} />
+                        <Area type="monotone" dataKey="expenses" name={language === "en" ? "Expenses (COGS+OPEX)" : "Beban (COGS+OPEX)"} stroke="#f43f5e" strokeWidth={3.5} fillOpacity={0.15} fill="#f43f5e" isAnimationActive={false} dot={{ r: 4, strokeWidth: 2, fill: "#f43f5e" }} activeDot={{ r: 7 }} />
                       )}
                       {(activeChartMetric === "all" || activeChartMetric === "ebitda") && (
-                        <Area type="monotone" dataKey="ebitdaM" name="EBITDA" stroke="#f59e0b" strokeWidth={2.5} fillOpacity={1} fill="url(#colorEbitdaGrad)" dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 6 }} />
+                        <Area type="monotone" dataKey="ebitdaM" name="EBITDA" stroke="#f59e0b" strokeWidth={3.5} fillOpacity={0.15} fill="#f59e0b" isAnimationActive={false} dot={{ r: 4, strokeWidth: 2, fill: "#f59e0b" }} activeDot={{ r: 7 }} />
                       )}
                       {activeChartMetric === "cash" && (
-                        <Area type="monotone" dataKey="endingCashM" name="Ending Cash" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCashGrad)" dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 6 }} />
+                        <Area type="monotone" dataKey="endingCashM" name="Ending Cash" stroke="#3b82f6" strokeWidth={3.5} fillOpacity={0.15} fill="#3b82f6" isAnimationActive={false} dot={{ r: 4, strokeWidth: 2, fill: "#3b82f6" }} activeDot={{ r: 7 }} />
                       )}
                     </AreaChart>
                   );
