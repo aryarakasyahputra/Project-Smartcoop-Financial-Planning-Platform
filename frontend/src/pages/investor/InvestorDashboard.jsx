@@ -15,6 +15,9 @@ import { useValuationModel } from "../cfo/utils/valuationHelper";
 import ValuationWaterfallChart from "../../components/charts/ValuationWaterfallChart";
 import { RevenueChart, ARRChart, EBITDAChart, CoopsChart } from "../../components/charts/FinancialMetricCharts";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../context/CurrencyContext";
+import CurrencySwitcher from "../../components/CurrencySwitcher";
+import LanguageSwitcher from "../../components/LanguageSwitcher";
 
 const MetricTooltip = ({ label, textEn, textId, language, align = "left" }) => (
   <div className="relative group flex items-center gap-1 w-fit">
@@ -33,6 +36,8 @@ const MetricTooltip = ({ label, textEn, textId, language, align = "left" }) => (
 
 export default function InvestorDashboard({ userData, handleLogout }) {
   const { language } = useLanguage();
+  const { formatCurrency } = useCurrency();
+  const formatRupiah = formatCurrency;
   const [activeTab, setActiveTab] = useState("overview");
   const [downloadingDeck, setDownloadingDeck] = useState(false);
   const [downloadingReport, setDownloadingReport] = useState(false);
@@ -185,6 +190,12 @@ export default function InvestorDashboard({ userData, handleLogout }) {
 
         {/* User Info & Logout */}
         <div className="mt-8 pt-6 border-t border-white/15 space-y-4">
+          {/* Currency & Language Switchers */}
+          <div className="flex items-center gap-2">
+            <CurrencySwitcher variant="sidebar" />
+            <LanguageSwitcher variant="sidebar" />
+          </div>
+
           <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/10 border border-white/15 backdrop-blur-sm">
             <div className="h-10 w-10 rounded-xl bg-[#FFD700] text-[#003d6b] flex items-center justify-center font-extrabold text-sm shadow-md shrink-0">
               {userData?.name?.charAt(0).toUpperCase() || "I"}
@@ -219,12 +230,14 @@ export default function InvestorDashboard({ userData, handleLogout }) {
               {activeTab === "overview" ? "Akses eksklusif read-only ke proyeksi model finansial, skenario, dan valuasi koperasi/SME." : "Proyeksi laba rugi komprehensif berdasarkan asumsi yang telah diatur oleh tim CFO."}
             </p>
           </div>
-          {primaryCompany && (
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl">
-              <Building className="h-4 w-4 text-emerald-500" />
-              <span className="text-sm font-semibold text-foreground">{primaryCompany.name}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {primaryCompany && (
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl">
+                <Building className="h-4 w-4 text-emerald-500" />
+                <span className="text-sm font-semibold text-foreground">{primaryCompany.name}</span>
+              </div>
+            )}
+          </div>
         </header>
 
         {activeTab === "projections" && (

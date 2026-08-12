@@ -19,6 +19,7 @@ import {
 import { useValuationModel } from "../utils/valuationHelper";
 import { Tooltip as UITooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "../../../components/ui/tooltip";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useCurrency } from "../../../context/CurrencyContext";
 
 const METRIC_DEFINITIONS = {
   // Growth
@@ -371,6 +372,7 @@ function MetricLabel({ label }) {
 
 
 const ColoredNumber = ({ value, format, prefix = '', suffix = '' }) => {
+  const { formatCurrency } = useCurrency();
   const num = Number(value);
   if (isNaN(num)) return <span>{value}</span>;
 
@@ -379,8 +381,8 @@ const ColoredNumber = ({ value, format, prefix = '', suffix = '' }) => {
   else if (num < 0) colorClass = "text-red-600 font-medium";
 
   let formatted = "";
-  if (format === 'rupiah') {
-    formatted = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(num);
+  if (format === 'rupiah' || format === 'currency') {
+    formatted = formatCurrency(num);
   } else if (format === 'number') {
     formatted = new Intl.NumberFormat("id-ID").format(num);
   } else if (format === 'percent') {
@@ -392,8 +394,10 @@ const ColoredNumber = ({ value, format, prefix = '', suffix = '' }) => {
   return <span className={colorClass}>{prefix}{formatted}{suffix}</span>;
 };
 
-export default function ProjectionModelTab({ data, formatRupiah, valuation, onAssumptionChange }) {
+export default function ProjectionModelTab({ data, formatRupiah: propFormatRupiah, valuation, onAssumptionChange }) {
   const { language, t } = useLanguage();
+  const { formatCurrency } = useCurrency();
+  const formatRupiah = propFormatRupiah || formatCurrency;
 
   // UI Interactive States
   const [activeChartMetric, setActiveChartMetric] = React.useState("all");

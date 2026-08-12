@@ -2,9 +2,12 @@ import React from "react";
 import { Activity, Wallet, TrendingUp, Flag, RefreshCw, Award, ShieldCheck } from "lucide-react";
 import { formatRupiah } from "../utils/financialModel";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useCurrency } from "../../../context/CurrencyContext";
 
 export default function FinancialAnalystTab({ insights, data, onRecalculateClick }) {
   const { language, t } = useLanguage();
+  const { currency, formatCurrency } = useCurrency();
+  const formatRupiah = formatCurrency;
 
   return (
     <div className="space-y-8 animate-fadeIn">

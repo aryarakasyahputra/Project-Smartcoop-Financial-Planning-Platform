@@ -8,6 +8,7 @@ import { formatRupiah } from "../utils/financialModel";
 import { Tooltip as UITooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "../../../components/ui/tooltip";
 import { Plus, X, Trash2 } from "lucide-react";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useCurrency } from "../../../context/CurrencyContext";
 
 const BRAND_BLUE = "#2b6cb8";
 const BRAND_ORANGE = "#f28c1f";
@@ -235,6 +236,7 @@ export default function AssumptionDriversTab({
   isDirty
 }) {
   const { language, t } = useLanguage();
+  const { formatCurrency, currencySymbol } = useCurrency();
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [customModalSection, setCustomModalSection] = useState(null);
 
@@ -291,7 +293,7 @@ export default function AssumptionDriversTab({
   const summaryMetrics = [
     { 
       label: language === "en" ? "ARR Target" : "Target ARR", 
-      value: currentYearData.arr ? formatRupiah(currentYearData.arr) : "—", 
+      value: currentYearData.arr ? formatCurrency(currentYearData.arr) : "—", 
       color: BRAND_BLUE 
     },
     { 

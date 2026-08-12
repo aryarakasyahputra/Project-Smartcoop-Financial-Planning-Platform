@@ -359,10 +359,34 @@ export const getAnalystInsights = (data, assumptionsByYear, language = "id") => 
   };
 };
 
-export const formatRupiah = (value) => {
-  return new Intl.NumberFormat("id-ID", {
+export const formatCurrency = (value, currencyCode = "IDR", options = {}) => {
+  if (value === null || value === undefined || isNaN(value)) return "—";
+  
+  const rates = {
+    IDR: { code: "IDR", symbol: "Rp", locale: "id-ID", rate: 1, frac: 0 },
+    USD: { code: "USD", symbol: "$", locale: "en-US", rate: 1 / 16000, frac: 0 },
+    EUR: { code: "EUR", symbol: "€", locale: "en-IE", rate: 1 / 17500, frac: 0 }
+  };
+
+  const config = rates[currencyCode] || rates.IDR;
+  const numValue = Number(value);
+  const converted = options.isConverted ? numValue : numValue * config.rate;
+
+  if (options.compact) {
+    const absVal = Math.abs(converted);
+    if (absVal >= 1_000_000_000) return `${config.symbol} ${(converted / 1_000_000_000).toFixed(1)}B`;
+    if (absVal >= 1_000_000) return `${config.symbol} ${(converted / 1_000_000).toFixed(1)}M`;
+    if (absVal >= 1_000) return `${config.symbol} ${(converted / 1_000).toFixed(0)}K`;
+  }
+
+  return new Intl.NumberFormat(config.locale, {
     style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0
-  }).format(value);
+    currency: config.code,
+    maximumFractionDigits: options.maximumFractionDigits !== undefined ? options.maximumFractionDigits : config.frac
+  }).format(converted);
 };
+
+export const formatRupiah = (value, currencyCode = "IDR") => {
+  return formatCurrency(value, currencyCode);
+};
+

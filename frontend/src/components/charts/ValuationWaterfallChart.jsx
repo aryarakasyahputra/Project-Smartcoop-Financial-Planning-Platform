@@ -2,11 +2,12 @@ import React from "react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from "recharts";
-import { formatRupiah } from "../../pages/cfo/utils/financialModel";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../context/CurrencyContext";
 
 export default function ValuationWaterfallChart({ valuation, activeExitVal }) {
   const { language } = useLanguage();
+  const { currencySymbol, formatCurrency, currencyConfig } = useCurrency();
 
   if (!valuation) return null;
 
@@ -18,25 +19,25 @@ export default function ValuationWaterfallChart({ valuation, activeExitVal }) {
 
   const data = [
     {
-      name: language === "en" ? "Pre-Money" : "Pre-Money",
+      name: "Pre-Money",
       start: 0,
       end: preMoney,
       value: preMoney,
-      color: "#94a3b8" // Slate
+      color: "#94a3b8"
     },
     {
       name: language === "en" ? "Seed Inv" : "Investasi Seed",
       start: preMoney,
       end: postMoney,
       value: seedInv,
-      color: "#10b981" // Emerald
+      color: "#10b981"
     },
     {
-      name: language === "en" ? "Post-Money" : "Post-Money",
+      name: "Post-Money",
       start: 0,
       end: postMoney,
       value: postMoney,
-      color: "#0f172a", // Dark Slate
+      color: "#0f172a",
       isTotal: true
     },
     {
@@ -44,23 +45,27 @@ export default function ValuationWaterfallChart({ valuation, activeExitVal }) {
       start: postMoney,
       end: exitVal,
       value: valueCreation,
-      color: "#3b82f6" // Blue
+      color: "#3b82f6"
     },
     {
       name: language === "en" ? "Exit Val (2029)" : "Valuasi Exit (2029)",
       start: 0,
       end: exitVal,
       value: exitVal,
-      color: "#005fa4", // Smartcoop Blue
+      color: "#005fa4",
       isTotal: true
     }
   ];
 
-  // Convert to Billions for display
+  // Convert to converted currency amounts
+  const rate = currencyConfig.rate || 1;
   const chartData = data.map(d => ({
     name: d.name,
-    range: [d.start / 1_000_000_000, d.end / 1_000_000_000],
-    valueB: d.value / 1_000_000_000,
+    rawStart: d.start,
+    rawEnd: d.end,
+    rawValue: d.value,
+    range: [ (d.start * rate) / 1_000_000_000, (d.end * rate) / 1_000_000_000 ],
+    valueConvertedB: (d.value * rate) / 1_000_000_000,
     color: d.color,
     isTotal: d.isTotal
   }));
@@ -72,7 +77,7 @@ export default function ValuationWaterfallChart({ valuation, activeExitVal }) {
         <div className="bg-white p-3 border border-slate-200 rounded-xl shadow-lg">
           <p className="font-bold text-slate-800 text-xs mb-1">{data.name}</p>
           <p className="text-[#005fa4] font-black text-sm">
-            {language === "en" ? "Rp" : "Rp"} {data.valueB.toFixed(2)} {language === "en" ? "Billion" : "Miliar"}
+            {formatCurrency(data.rawValue)}
           </p>
         </div>
       );
@@ -98,7 +103,7 @@ export default function ValuationWaterfallChart({ valuation, activeExitVal }) {
             tick={{ fontSize: 10, fill: '#64748b' }}
             axisLine={false}
             tickLine={false}
-            tickFormatter={(val) => `Rp${val}M`}
+            tickFormatter={(val) => `${currencySymbol}${val}B`}
           />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
           <Bar dataKey="range" radius={[4, 4, 4, 4]}>

@@ -6,8 +6,9 @@ import {
 import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area
 } from "recharts";
-import { formatRupiah } from "../../cfo/utils/financialModel";
+import { formatRupiah as origFormatRupiah } from "../../cfo/utils/financialModel";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useCurrency } from "../../../context/CurrencyContext";
 import ValuationWaterfallChart from "../../../components/charts/ValuationWaterfallChart";
 import { RevenueChart, ARRChart, EBITDAChart, CoopsChart } from "../../../components/charts/FinancialMetricCharts";
 
@@ -43,6 +44,8 @@ export default function FounderOverviewTab({
   getColHighlightClass
 }) {
   const { language } = useLanguage();
+  const { formatCurrency } = useCurrency();
+  const formatRupiah = formatCurrency;
 
   return (
     <div className="space-y-8 animate-fadeIn">

@@ -14,9 +14,14 @@ import { simulateProjections, formatRupiah, getAnalystInsights } from "./utils/f
 import { useValuationModel } from "./utils/valuationHelper";
 import { toast } from "sonner";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCurrency } from "../../context/CurrencyContext";
+import CurrencySwitcher from "../../components/CurrencySwitcher";
+import LanguageSwitcher from "../../components/LanguageSwitcher";
 
 export default function CfoDashboard({ userData, handleLogout }) {
   const { language, setLanguage, t } = useLanguage();
+  const { formatCurrency } = useCurrency();
+  const formatRupiah = formatCurrency;
   const [activeTab, setActiveTab] = useState("analyst");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -272,6 +277,12 @@ export default function CfoDashboard({ userData, handleLogout }) {
         </div>
 
         <div className="pt-6 border-t border-white/15 space-y-3">
+          {/* Currency & Language Switchers */}
+          <div className="flex items-center gap-2">
+            <CurrencySwitcher variant="sidebar" />
+            <LanguageSwitcher variant="sidebar" />
+          </div>
+
           <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/10 border border-white/15 backdrop-blur-sm">
             <div className="h-9 w-9 rounded-xl bg-[#FFD700] text-[#003d6b] flex items-center justify-center font-extrabold text-xs shadow-md shrink-0">
               <Users className="h-4 w-4" />
@@ -295,7 +306,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden print:h-auto print:overflow-visible">
-        {/* Header - Workspace & Company Info with Language Switcher Toggle */}
+        {/* Header - Workspace & Company Info */}
         <header className="h-16 bg-slate-50/60 dark:bg-slate-900/60 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800 flex items-center justify-between px-6 sticky top-0 z-10 print:hidden">
           <div className="flex items-center gap-3 text-sm font-semibold shrink-0 whitespace-nowrap">
             <div className="h-8 w-8 rounded-lg bg-[#005fa4]/10 dark:bg-blue-950/40 flex items-center justify-center text-[#005fa4] dark:text-blue-400 shrink-0 border border-[#005fa4]/15">
@@ -308,33 +319,9 @@ export default function CfoDashboard({ userData, handleLogout }) {
             </div>
           </div>
 
-          {/* Right Header Actions: Navigation Portal Target & Language Switcher */}
+          {/* Right Header Actions: Navigation Portal Target */}
           <div className="flex items-center justify-between flex-1 min-w-0 ml-4">
             <div id="header-portal-target" className="flex items-center justify-center overflow-hidden flex-1 mx-2 min-w-0"></div>
-
-            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs shrink-0">
-              <Globe className="h-3.5 w-3.5 text-slate-400 ml-1.5 shrink-0" />
-              <button
-                onClick={() => setLanguage("id")}
-                className={`px-3 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
-                  language === "id"
-                    ? "bg-[#005fa4] text-white shadow-xs"
-                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
-                }`}
-              >
-                ID
-              </button>
-              <button
-                onClick={() => setLanguage("en")}
-                className={`px-3 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
-                  language === "en"
-                    ? "bg-[#005fa4] text-white shadow-xs"
-                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
-                }`}
-              >
-                EN
-              </button>
-            </div>
           </div>
         </header>
 
@@ -357,13 +344,15 @@ export default function CfoDashboard({ userData, handleLogout }) {
                 </p>
               </div>
 
-              <button 
-                onClick={() => window.print()}
-                className="flex items-center gap-2 text-xs font-bold bg-[#005fa4] hover:bg-[#004b82] text-white px-4 py-2.5 rounded-xl shadow-md shadow-[#005fa4]/20 transition-all cursor-pointer shrink-0 print:hidden"
-              >
-                <Printer className="h-4 w-4 text-[#FFD700]" />
-                <span>{t("finance.projections.exportPdf", "Export PDF")}</span>
-              </button>
+              {activeTab === "projection" && (
+                <button 
+                  onClick={() => window.print()}
+                  className="flex items-center gap-2 text-xs font-bold bg-[#005fa4] hover:bg-[#004b82] text-white px-4 py-2.5 rounded-xl shadow-md shadow-[#005fa4]/20 transition-all cursor-pointer shrink-0 print:hidden"
+                >
+                  <Printer className="h-4 w-4 text-[#FFD700]" />
+                  <span>{t("finance.projections.exportPdf", "Export PDF")}</span>
+                </button>
+              )}
             </div>
 
             {/* Render Active Component */}
