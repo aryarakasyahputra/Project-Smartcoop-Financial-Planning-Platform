@@ -2064,7 +2064,7 @@ export default function ProjectionModelTab({ data, formatRupiah: propFormatRupia
             </div>
 
             {/* 12. Cap Table & Potential Investor Return */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 print:mt-0 print:grid-cols-1 print:gap-8">
+            <div className="grid grid-cols-1 gap-8 mt-8 print:mt-0 print:gap-8">
 
               {/* Cap Table */}
               <div id="section-captable" className="bg-card border border-border rounded-xl overflow-hidden shadow-sm flex flex-col justify-between scroll-mt-24 print:break-inside-avoid pdf-section-page">
