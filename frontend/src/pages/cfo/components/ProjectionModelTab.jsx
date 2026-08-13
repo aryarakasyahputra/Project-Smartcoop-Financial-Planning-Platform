@@ -504,9 +504,10 @@ export default function ProjectionModelTab({ data, formatRupiah: propFormatRupia
     return "";
   };
 
-  // 5-Year Chart Data Preparation
+  // Chart Data Preparation
   const chartData = (data || []).map(item => ({
     year: item.year,
+    name: String(item.year),
     Revenue: Math.round(item.totalRevenue / 1000000),
     ARR: Math.round(item.arr / 1000000),
     EBITDA: Math.round(item.ebitda / 1000000),
@@ -2174,7 +2175,7 @@ export default function ProjectionModelTab({ data, formatRupiah: propFormatRupia
                       </thead>
                       <tbody className="divide-y divide-border">
                         <tr>
-                          <td className="px-4 py-3 font-semibold text-slate-700"><MetricLabel label="Projected Revenue (2029)" /></td>
+                          <td className="px-4 py-3 font-semibold text-slate-700"><MetricLabel label={language === "en" ? `Projected Revenue (${data[data.length - 1]?.year || 2029})` : `Proyeksi Pendapatan (${data[data.length - 1]?.year || 2029})`} /></td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono"><ColoredNumber value={valuation.revCons} format="rupiah" /></td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-bold text-slate-800"><ColoredNumber value={valuation.revBase} format="rupiah" /></td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono"><ColoredNumber value={valuation.revOpt} format="rupiah" /></td>
@@ -2216,7 +2217,7 @@ export default function ProjectionModelTab({ data, formatRupiah: propFormatRupia
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-green-900">{valuation.moicOpt.toFixed(2)}x</td>
                         </tr>
                         <tr className="font-bold hover:bg-muted/5 transition-colors text-slate-800">
-                          <td className="px-4 py-3 text-slate-800"><MetricLabel label="Estimated IRR (5 Years)" /></td>
+                          <td className="px-4 py-3 text-slate-800"><MetricLabel label={language === "en" ? `Estimated IRR (${data.length} Years)` : `Estimasi IRR (${data.length} Tahun)`} /></td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-amber-700"><ColoredNumber value={(valuation.irrCons * 100)} format="percent" /></td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-green-700"><ColoredNumber value={(valuation.irrBase * 100)} format="percent" /></td>
                           <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-green-900"><ColoredNumber value={(valuation.irrOpt * 100)} format="percent" /></td>
@@ -2229,8 +2230,8 @@ export default function ProjectionModelTab({ data, formatRupiah: propFormatRupia
                   <ShieldAlert className="h-3.5 w-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
                   <span>
                     {language === "en"
-                      ? "MOIC (Multiple on Invested Capital) & IRR (Internal Rate of Return) simulated based on Year 5 (2029) exit assumptions."
-                      : "MOIC (Multiple on Invested Capital) & IRR (Internal Rate of Return) disimulasikan berdasarkan asumsi exit tahun ke-5 (2029)."
+                      ? `MOIC (Multiple on Invested Capital) & IRR (Internal Rate of Return) simulated based on Year ${data.length} (${data[data.length - 1]?.year || 2029}) exit assumptions.`
+                      : `MOIC (Multiple on Invested Capital) & IRR (Internal Rate of Return) disimulasikan berdasarkan asumsi exit tahun ke-${data.length} (${data[data.length - 1]?.year || 2029}).`
                     }
                   </span>
                 </div>

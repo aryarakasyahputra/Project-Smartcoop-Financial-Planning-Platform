@@ -123,7 +123,8 @@ export default function CfoDashboard({ userData, handleLogout }) {
   };
 
   const availableYears = useMemo(() => {
-    return Object.keys(assumptionsByYear).map(Number).sort((a, b) => a - b);
+    const yrs = Object.keys(assumptionsByYear).map(Number).sort((a, b) => a - b);
+    return yrs.length > 0 ? yrs : [2025, 2026, 2027, 2028, 2029];
   }, [assumptionsByYear]);
 
   const handleAddYear = () => {
@@ -189,6 +190,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
       if (!res.ok) throw new Error("Failed to save");
       toast.success("Asumsi berhasil disimpan dan sekarang dapat dilihat oleh Founder!");
       setIsDirty(false);
+      await fetchData();
     } catch (err) {
       console.error("Gagal menyimpan asumsi:", err);
       toast.error("Gagal menyimpan data ke server.");

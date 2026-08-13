@@ -58,7 +58,7 @@ export default function FinancialAnalystTab({ insights, data, onRecalculateClick
         {/* Metric 1 */}
         <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-[#005fa4]/30 transition-all duration-300 group">
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center justify-between">
-            <span>{language === "en" ? "Revenue CAGR (5-Year)" : "CAGR Pendapatan (5-Tahun)"}</span>
+            <span>{language === "en" ? `Revenue CAGR (${data.length}-Year)` : `CAGR Pendapatan (${data.length}-Tahun)`}</span>
             <span className="h-1.5 w-1.5 rounded-full bg-[#005fa4]" />
           </p>
           <div className="flex items-baseline gap-2 mb-2">
@@ -66,7 +66,9 @@ export default function FinancialAnalystTab({ insights, data, onRecalculateClick
             <TrendingUp className="h-6 w-6 text-emerald-500" />
           </div>
           <p className="text-xs text-slate-500 font-medium">
-            {language === "en" ? "Compound annual growth rate (2025–2029)." : "Laju pertumbuhan tahunan majemuk (2025–2029)."}
+            {language === "en" 
+              ? `Compound annual growth rate (${data[0]?.year || 2025}–${data[data.length - 1]?.year || 2029}).` 
+              : `Laju pertumbuhan tahunan majemuk (${data[0]?.year || 2025}–${data[data.length - 1]?.year || 2029}).`}
           </p>
         </div>
         
