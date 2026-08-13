@@ -62,17 +62,25 @@ export function CurrencyProvider({ children }) {
 
     if (compact) {
       const absVal = Math.abs(convertedValue);
+      const isId = (options.lang || "id") === "id" || activeConfig.locale === "id-ID";
+      
       if (absVal >= 1_000_000_000) {
         const valInB = convertedValue / 1_000_000_000;
-        return `${activeConfig.symbol} ${valInB.toFixed(1)}B`;
+        const formattedNum = valInB % 1 === 0 ? valInB.toFixed(0) : valInB.toFixed(1).replace(".", isId ? "," : ".");
+        const suffix = isId ? "Miliar" : "Billion";
+        return `${activeConfig.symbol} ${formattedNum} ${suffix}`;
       }
       if (absVal >= 1_000_000) {
         const valInM = convertedValue / 1_000_000;
-        return `${activeConfig.symbol} ${valInM.toFixed(1)}M`;
+        const formattedNum = valInM % 1 === 0 ? valInM.toFixed(0) : valInM.toFixed(1).replace(".", isId ? "," : ".");
+        const suffix = isId ? "Juta" : "Million";
+        return `${activeConfig.symbol} ${formattedNum} ${suffix}`;
       }
       if (absVal >= 1_000) {
         const valInK = convertedValue / 1_000;
-        return `${activeConfig.symbol} ${valInK.toFixed(0)}K`;
+        const formattedNum = valInK % 1 === 0 ? valInK.toFixed(0) : valInK.toFixed(1).replace(".", isId ? "," : ".");
+        const suffix = isId ? "Ribu" : "Thousand";
+        return `${activeConfig.symbol} ${formattedNum} ${suffix}`;
       }
     }
 
