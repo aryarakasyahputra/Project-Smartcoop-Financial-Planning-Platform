@@ -233,7 +233,10 @@ export default function AssumptionDriversTab({
   handleResetData,
   saving,
   data,
-  isDirty
+  isDirty,
+  availableYears = [2025, 2026, 2027, 2028, 2029],
+  handleAddYear,
+  handleRemoveYear
 }) {
   const { language, t } = useLanguage();
   const { formatCurrency, currencySymbol } = useCurrency();
@@ -433,21 +436,38 @@ export default function AssumptionDriversTab({
         )}
 
         {/* Year Selector */}
-        <div className="bg-white rounded-xl border border-slate-200 p-1.5 flex gap-1 shadow-sm">
-          {[2025, 2026, 2027, 2028, 2029].map((yr) => (
-            <button
-              key={yr}
-              onClick={() => setSelectedEditYear(yr)}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${
-                selectedEditYear === yr
-                  ? "text-white shadow-md"
-                  : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
-              }`}
-              style={selectedEditYear === yr ? { background: BRAND_BLUE } : {}}
-            >
-              {yr}
-            </button>
+        <div className="bg-white rounded-xl border border-slate-200 p-1.5 flex gap-1 shadow-sm overflow-x-auto">
+          {availableYears.map((yr) => (
+            <div key={yr} className="flex-1 min-w-[80px] flex group relative">
+              <button
+                onClick={() => setSelectedEditYear(yr)}
+                className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                  selectedEditYear === yr
+                    ? "text-white shadow-md"
+                    : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
+                }`}
+                style={selectedEditYear === yr ? { background: BRAND_BLUE } : {}}
+              >
+                {yr}
+              </button>
+              {yr !== 2025 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); if(handleRemoveYear) handleRemoveYear(yr); }}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 rounded-full p-0.5 shadow-sm"
+                  title={language === "en" ? "Remove year" : "Hapus tahun"}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </div>
           ))}
+          <button
+            onClick={handleAddYear}
+            className="flex-none px-4 py-2.5 rounded-lg text-sm font-bold text-[#005fa4] bg-[#005fa4]/10 hover:bg-[#005fa4]/20 transition-all shadow-sm flex items-center justify-center"
+            title={language === "en" ? "Add Year" : "Tambah Tahun"}
+          >
+            +
+          </button>
         </div>
 
         {/* Summary Strip */}

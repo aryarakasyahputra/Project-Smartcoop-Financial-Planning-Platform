@@ -122,6 +122,44 @@ export default function CfoDashboard({ userData, handleLogout }) {
     }));
   };
 
+  const availableYears = useMemo(() => {
+    return Object.keys(assumptionsByYear).map(Number).sort((a, b) => a - b);
+  }, [assumptionsByYear]);
+
+  const handleAddYear = () => {
+    setAssumptionsByYear(prev => {
+      const years = Object.keys(prev).map(Number);
+      const maxYear = years.length > 0 ? Math.max(...years) : 2024;
+      const newYear = maxYear + 1;
+      
+      const newAssumptions = { ...prev };
+      // Copy data from maxYear if available, otherwise empty object with year
+      newAssumptions[newYear] = maxYear ? { ...prev[maxYear], year: newYear } : { year: newYear };
+      
+      return newAssumptions;
+    });
+    setIsDirty(true);
+  };
+
+  const handleRemoveYear = (yearToRemove) => {
+    if (yearToRemove === 2025) return; // Cannot remove base year
+    
+    setAssumptionsByYear(prev => {
+      const newAssumptions = { ...prev };
+      delete newAssumptions[yearToRemove];
+      return newAssumptions;
+    });
+    
+    // Also change selected edit year if it was the one removed
+    if (selectedEditYear === yearToRemove) {
+      const remainingYears = availableYears.filter(y => y !== yearToRemove);
+      const maxYear = remainingYears.length > 0 ? Math.max(...remainingYears) : 2025;
+      setSelectedEditYear(maxYear);
+    }
+    
+    setIsDirty(true);
+  };
+
   const sanitizedAssumptions = useMemo(() => {
     const sanitized = {};
     for (const yr in assumptionsByYear) {
@@ -377,6 +415,9 @@ export default function CfoDashboard({ userData, handleLogout }) {
                 saving={saving}
                 data={data}
                 isDirty={isDirty}
+                availableYears={availableYears}
+                handleAddYear={handleAddYear}
+                handleRemoveYear={handleRemoveYear}
               />
             )}
 

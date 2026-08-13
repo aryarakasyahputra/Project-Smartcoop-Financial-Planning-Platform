@@ -77,12 +77,16 @@ class FinancialModelService
             ];
         }
 
-        // Ensure assumptions exist for each year
-        foreach ($years as $year) {
-            AssumptionValue::firstOrCreate(
-                ['project_id' => $project->id, 'year' => $year],
-                $defaultAssumptions[$year]
-            );
+        // Fetch existing assumptions first
+        $existingAssumptionsCount = AssumptionValue::where('project_id', $project->id)->count();
+        if ($existingAssumptionsCount === 0) {
+            // Seed defaults if nothing exists
+            foreach ($years as $year) {
+                AssumptionValue::firstOrCreate(
+                    ['project_id' => $project->id, 'year' => $year],
+                    $defaultAssumptions[$year]
+                );
+            }
         }
 
         // Fetch assumptions ordered by year
@@ -127,16 +131,24 @@ class FinancialModelService
         $project = Project::findOrFail($projectId);
 
         return DB::transaction(function () use ($project, $newAssumptions) {
-            $years = [2025, 2026, 2027, 2028, 2029];
+            $years = array_keys($newAssumptions);
+            sort($years);
+            if (empty($years)) {
+                $years = [2025, 2026, 2027, 2028, 2029];
+            }
             $summaries = [];
             
             // Delete existing projections first (Single Source of Truth paradigm)
             RevenueProjection::where('project_id', $project->id)->delete();
             CostProjection::where('project_id', $project->id)->delete();
             FinancialSummary::where('project_id', $project->id)->delete();
+            
+            // Remove assumption values for years that are not in the payload
+            AssumptionValue::where('project_id', $project->id)->whereNotIn('year', $years)->delete();
 
-            // Baseline active cooperatives before 2025 is read from the 2025 assumptions input (default: 215)
-            $firstYearAssumptions = $newAssumptions[2025] ?? [];
+            // Baseline active cooperatives before first year is read from the first year assumptions input (default: 215)
+            $firstYear = $years[0];
+            $firstYearAssumptions = $newAssumptions[$firstYear] ?? [];
             $prevEndingActiveCoops = isset($firstYearAssumptions['beginning_cooperatives']) ? (int)$firstYearAssumptions['beginning_cooperatives'] : 215;
             $prevTotalRevenue = 0;
             $prevEndingCash = 0;

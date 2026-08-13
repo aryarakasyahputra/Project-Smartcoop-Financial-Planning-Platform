@@ -28,18 +28,18 @@ export function useValuationModel(data) {
   const dynamicEsopEquityFrac = (esopPreSeed / 100) + (postMoneyVal > 0 ? esopSeedInv / postMoneyVal : 0);
   const dynamicFoundersEquityFrac = ((foundersPreSeed / 100) * (1 - dynamicInvestorEquityFrac)) + (postMoneyVal > 0 ? foundersSeedInv / postMoneyVal : 0);
 
-  // Year 2029 projected data for exit ROI
-  const data2029 = data?.find(y => y.year === 2029) || data?.[data.length - 1];
-  const rev2029 = data2029?.totalRevenue ?? 0;
+  // Last year projected data for exit ROI
+  const dataLastYear = data?.[data.length - 1];
+  const revLastYear = dataLastYear?.totalRevenue ?? 0;
   
   // Scenario-based revenues
-  const revCons = rev2029 * 0.875;
-  const revBase = rev2029;
-  const revOpt = rev2029 * 1.1875;
+  const revCons = revLastYear * 0.875;
+  const revBase = revLastYear;
+  const revOpt = revLastYear * 1.1875;
 
-  const multCons = data2029?.exitMultipleConservative ?? 0;
-  const multBase = data2029?.exitMultipleBase ?? 0;
-  const multOpt = data2029?.exitMultipleOptimistic ?? 0;
+  const multCons = dataLastYear?.exitMultipleConservative ?? 0;
+  const multBase = dataLastYear?.exitMultipleBase ?? 0;
+  const multOpt = dataLastYear?.exitMultipleOptimistic ?? 0;
 
   // Exit Valuation Calculations
   const exitValCons = revCons * multCons;
@@ -56,10 +56,11 @@ export function useValuationModel(data) {
   const moicBase = seedInv > 0 ? invValBase / seedInv : 0;
   const moicOpt = seedInv > 0 ? invValOpt / seedInv : 0;
 
-  // IRR Calculations (5 Years)
-  const irrCons = moicCons > 0 ? Math.pow(moicCons, 1 / 5) - 1 : 0;
-  const irrBase = moicBase > 0 ? Math.pow(moicBase, 1 / 5) - 1 : 0;
-  const irrOpt = moicOpt > 0 ? Math.pow(moicOpt, 1 / 5) - 1 : 0;
+  // IRR Calculations (dynamic years)
+  const numYears = data?.length || 5;
+  const irrCons = moicCons > 0 ? Math.pow(moicCons, 1 / numYears) - 1 : 0;
+  const irrBase = moicBase > 0 ? Math.pow(moicBase, 1 / numYears) - 1 : 0;
+  const irrOpt = moicOpt > 0 ? Math.pow(moicOpt, 1 / numYears) - 1 : 0;
 
   return {
     foundersPreSeed, setFoundersPreSeed: () => {},
@@ -73,7 +74,7 @@ export function useValuationModel(data) {
     dynamicInvestorEquityFrac,
     dynamicFoundersEquityFrac,
     dynamicEsopEquityFrac,
-    rev2029,
+    revLastYear,
     revCons,
     revBase,
     revOpt,

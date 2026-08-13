@@ -20,7 +20,8 @@ function getScenarioAssumptions(baseAssumptions, scenario) {
   if (scenario === "base") return baseAssumptions;
   
   const modified = {};
-  const years = [2025, 2026, 2027, 2028, 2029];
+  const years = Object.keys(baseAssumptions).map(Number);
+  if (years.length === 0) return baseAssumptions;
   
   years.forEach(year => {
     const a = baseAssumptions[year] || {};

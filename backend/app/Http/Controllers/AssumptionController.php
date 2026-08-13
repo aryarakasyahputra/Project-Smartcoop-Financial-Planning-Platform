@@ -67,10 +67,10 @@ class AssumptionController extends Controller
         $this->checkProjectAccess($projectId);
         $data = $request->all();
         
-        // Cek apakah payload merupakan data terstruktur per-tahun (2025-2029)
+        // Cek apakah payload merupakan data terstruktur per-tahun (memiliki key berupa angka/tahun)
         $hasYears = false;
-        foreach ([2025, 2026, 2027, 2028, 2029] as $y) {
-            if (isset($data[$y])) {
+        foreach (array_keys($data) as $key) {
+            if (is_numeric($key)) {
                 $hasYears = true;
                 break;
             }
@@ -81,7 +81,7 @@ class AssumptionController extends Controller
                 // Update terstruktur per tahun
                 $summaries = $this->service->recalculate($projectId, $data);
             } else {
-                // Update flat (duplikat nilai ke semua tahun) untuk backward compatibility
+                // Update flat (duplikat nilai ke semua tahun default) untuk backward compatibility
                 $allYearsPayload = [];
                 foreach ([2025, 2026, 2027, 2028, 2029] as $y) {
                     $allYearsPayload[$y] = $data;

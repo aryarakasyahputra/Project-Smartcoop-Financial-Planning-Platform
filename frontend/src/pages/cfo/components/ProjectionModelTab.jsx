@@ -577,7 +577,7 @@ export default function ProjectionModelTab({ data, formatRupiah: propFormatRupia
               <div>
                 <h3 className="text-lg font-bold flex items-center gap-2 print:text-xl print:text-black text-slate-800 dark:text-slate-100">
                   <TrendingUp className="h-5 w-5 text-[#005fa4] print:text-black" />
-                  {language === "en" ? "5-Year Financial Performance Projections" : "Proyeksi Kinerja Keuangan 5-Tahun"}
+                  {language === "en" ? `${data.length}-Year Financial Performance Projections` : `Proyeksi Kinerja Keuangan ${data.length}-Tahun`}
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {language === "en" ? "Interactive visualization of Revenue, Expenses, EBITDA & Cash Balance" : "Visualisasi interaktif Pendapatan, Beban, EBITDA & Saldo Kas"}

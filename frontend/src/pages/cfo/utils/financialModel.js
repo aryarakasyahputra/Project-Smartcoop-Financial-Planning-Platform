@@ -1,8 +1,8 @@
 export const simulateProjections = (assumptionsByYear) => {
   const projections = [];
-  const years = [2025, 2026, 2027, 2028, 2029];
-  const computedYears = {};
-  
+  const years = Object.keys(assumptionsByYear).map(Number).sort((a, b) => a - b);
+  if (years.length === 0) return projections;
+  const computedYears = {};  
   for (let idx = 0; idx < years.length; idx++) {
     const year = years[idx];
     const a = assumptionsByYear[year] || {};
@@ -153,7 +153,7 @@ export const simulateProjections = (assumptionsByYear) => {
     const ebitdaMargin = totalRevenue > 0 ? (ebitda / totalRevenue) * 100 : 0;
     
     // Cash Flow
-    const seedInflow = year === 2026 ? (a.seed_investment ?? 8250000000) : 0;
+    const seedInflow = idx === 1 ? (a.seed_investment ?? 8250000000) : 0;
     const initialOpeningCash = Number(a.initial_opening_cash ?? 0) || 0;
     const openingCash = idx === 0 ? initialOpeningCash : computedYears[years[idx - 1]].endingCash;
     const endingCash = openingCash + seedInflow + ebitda;
@@ -266,23 +266,24 @@ export const simulateProjections = (assumptionsByYear) => {
     };
   }
   
-  // Second pass for Exit valuations & Returns (using 2029 exit target)
-  const y2029 = computedYears[2029] || {};
-  const rev2029 = y2029.totalRevenue || 0;
+  // Second pass for Exit valuations & Returns (using last year as exit target)
+  const lastYear = years[years.length - 1];
+  const yLast = computedYears[lastYear] || {};
+  const revLast = yLast.totalRevenue || 0;
   
-  const a2029 = assumptionsByYear[2029] || {};
-  const multCons = a2029.exit_revenue_multiple_conservative ?? 0;
-  const multBase = a2029.exit_revenue_multiple_base ?? 0;
-  const multOpt = a2029.exit_revenue_multiple_optimistic ?? 0;
-  const seedInvestment = a2029.seed_investment ?? 0;
-  const preMoneyVal = a2029.pre_money_valuation ?? 0;
+  const aLast = assumptionsByYear[lastYear] || {};
+  const multCons = aLast.exit_revenue_multiple_conservative ?? 0;
+  const multBase = aLast.exit_revenue_multiple_base ?? 0;
+  const multOpt = aLast.exit_revenue_multiple_optimistic ?? 0;
+  const seedInvestment = aLast.seed_investment ?? 0;
+  const preMoneyVal = aLast.pre_money_valuation ?? 0;
   
   const postMoneyVal = preMoneyVal + seedInvestment;
   const equityFrac = postMoneyVal > 0 ? seedInvestment / postMoneyVal : 0;
   
-  const exitValCons = (rev2029 * 0.875) * multCons;
-  const exitValBase = rev2029 * multBase;
-  const exitValOpt = (rev2029 * 1.1875) * multOpt;
+  const exitValCons = (revLast * 0.875) * multCons;
+  const exitValBase = revLast * multBase;
+  const exitValOpt = (revLast * 1.1875) * multOpt;
   
   const eqValCons = exitValCons * equityFrac;
   const eqValBase = exitValBase * equityFrac;
@@ -292,9 +293,10 @@ export const simulateProjections = (assumptionsByYear) => {
   const moicBase = seedInvestment > 0 ? eqValBase / seedInvestment : 0;
   const moicOpt = seedInvestment > 0 ? eqValOpt / seedInvestment : 0;
   
-  const irrCons = moicCons > 0 ? Math.pow(moicCons, 1/5) - 1 : 0;
-  const irrBase = moicBase > 0 ? Math.pow(moicBase, 1/5) - 1 : 0;
-  const irrOpt = moicOpt > 0 ? Math.pow(moicOpt, 1/5) - 1 : 0;
+  const numYears = years.length;
+  const irrCons = moicCons > 0 ? Math.pow(moicCons, 1/numYears) - 1 : 0;
+  const irrBase = moicBase > 0 ? Math.pow(moicBase, 1/numYears) - 1 : 0;
+  const irrOpt = moicOpt > 0 ? Math.pow(moicOpt, 1/numYears) - 1 : 0;
   
   for (let idx = 0; idx < years.length; idx++) {
     const year = years[idx];
@@ -332,7 +334,7 @@ export const getAnalystInsights = (data, assumptionsByYear, language = "id") => 
   const breakEvenYear = rawBreakEven ? rawBreakEven : (language === "en" ? "Not Reached" : "Belum Tercapai");
   
   const totalEbitda5Y = data.reduce((sum, row) => sum + row.ebitda, 0);
-  const avgChurn = data.reduce((sum, row) => sum + (assumptionsByYear[row.year]?.monthly_churn_rate ?? 2.0), 0) / 5;
+  const avgChurn = data.reduce((sum, row) => sum + (assumptionsByYear[row.year]?.monthly_churn_rate ?? 2.0), 0) / data.length;
 
   let healthRating = language === "en" ? "Very Healthy" : "Sangat Sehat";
   let healthAdvice = language === "en" 
