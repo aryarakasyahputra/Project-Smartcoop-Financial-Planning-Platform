@@ -328,18 +328,20 @@ export const getAnalystInsights = (data, assumptionsByYear, language = "id") => 
   
   const rev1 = data[0].totalRevenue;
   const rev5 = data[data.length - 1].totalRevenue;
-  const cagr = rev1 > 0 ? (((rev5 / rev1) ** (1 / 4)) - 1) * 100 : 0;
+  const numYears = data.length;
+  const cagr = rev1 > 0 && numYears > 1 ? (((rev5 / rev1) ** (1 / (numYears - 1))) - 1) * 100 : 0;
   
   const rawBreakEven = data.find(row => row.ebitda > 0)?.year;
   const breakEvenYear = rawBreakEven ? rawBreakEven : (language === "en" ? "Not Reached" : "Belum Tercapai");
   
   const totalEbitda5Y = data.reduce((sum, row) => sum + row.ebitda, 0);
   const avgChurn = data.reduce((sum, row) => sum + (assumptionsByYear[row.year]?.monthly_churn_rate ?? 2.0), 0) / data.length;
+  const lastYear = data[data.length - 1]?.year || 2029;
 
   let healthRating = language === "en" ? "Very Healthy" : "Sangat Sehat";
   let healthAdvice = language === "en" 
-    ? "The financial model demonstrates very strong top-line SaaS growth with good economies of scale on EBITDA margin by 2029."
-    : "Model finansial menunjukkan pertumbuhan top-line SaaS yang sangat kuat dengan skala ekonomis yang baik pada EBITDA margin di tahun 2029.";
+    ? `The financial model demonstrates very strong top-line SaaS growth with good economies of scale on EBITDA margin by ${lastYear}.`
+    : `Model finansial menunjukkan pertumbuhan top-line SaaS yang sangat kuat dengan skala ekonomis yang baik pada EBITDA margin di tahun ${lastYear}.`;
   
   if (avgChurn > 2.0) {
     healthRating = language === "en" ? "Retention Warning" : "Peringatan Retensi";
@@ -349,8 +351,8 @@ export const getAnalystInsights = (data, assumptionsByYear, language = "id") => 
   } else if (totalEbitda5Y < 0) {
     healthRating = language === "en" ? "EBITDA Deficit" : "Defisit EBITDA";
     healthAdvice = language === "en"
-      ? "EBITDA deficit continues into Year 5. Recommended to increase ARPU or reduce fixed operating expenses."
-      : "Defisit EBITDA berlanjut hingga tahun 5. Direkomendasikan untuk meningkatkan ARPU atau menurunkan biaya operasional tetap.";
+      ? `EBITDA deficit continues into Year ${numYears}. Recommended to increase ARPU or reduce fixed operating expenses.`
+      : `Defisit EBITDA berlanjut hingga tahun ${numYears}. Direkomendasikan untuk meningkatkan ARPU atau menurunkan biaya operasional tetap.`;
   }
 
   return {
