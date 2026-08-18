@@ -401,6 +401,11 @@ class FinancialModelService
                 $ebitda = $grossProfit - $totalOpex;
                 $ebitdaMargin = $totalRevenue > 0 ? ($ebitda / $totalRevenue) * 100 : 0;
 
+                // Net Profit Calculation (22% Tax Rate for positive EBITDA)
+                $taxAmount = $ebitda > 0 ? $ebitda * 0.22 : 0;
+                $netProfit = $ebitda - $taxAmount;
+                $netMargin = $totalRevenue > 0 ? ($netProfit / $totalRevenue) * 100 : 0;
+
                 // Seed Inflow happens only in 2026
                 $seedInflow = ($year == 2026) ? $assumptions->seed_investment : 0;
                 $initialOpeningCash = (float) ($assumptions->initial_opening_cash ?? 0);
@@ -450,6 +455,8 @@ class FinancialModelService
                     'opex' => $totalOpex,
                     'ebitda' => $ebitda,
                     'ebitda_margin' => $ebitdaMargin,
+                    'net_profit' => $netProfit,
+                    'net_margin' => $netMargin,
                     'ending_cash' => $endingCash,
                     'runway_months' => $runwayMonths,
                     'mrr' => $mrr,

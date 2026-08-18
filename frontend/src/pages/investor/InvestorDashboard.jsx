@@ -631,6 +631,30 @@ export default function InvestorDashboard({ userData, handleLogout }) {
                           </td>
                         ))}
                       </tr>
+
+                      {/* Net Profit */}
+                      <tr className="bg-[#e8f0fe] dark:bg-slate-800/40 font-bold text-slate-900 dark:text-white border-t border-slate-200 dark:border-slate-700">
+                        <td className="px-4 py-3 font-bold border-r border-slate-300 dark:border-slate-700">
+                          {language === "en" ? "Net Profit" : "Laba Bersih"}
+                        </td>
+                        {detailedProjectionData.map((c) => (
+                          <td key={c.year} className="px-4 py-3 whitespace-nowrap text-right font-mono font-bold">
+                            {formatCurrency(c.netProfit || 0, { maximumFractionDigits: 0 })}
+                          </td>
+                        ))}
+                      </tr>
+
+                      {/* Net Margin */}
+                      <tr className="hover:bg-muted/5 transition-colors text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                        <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800">
+                          {language === "en" ? "Net Margin" : "Margin Laba Bersih"}
+                        </td>
+                        {detailedProjectionData.map((c) => (
+                          <td key={c.year} className="px-4 py-3 whitespace-nowrap text-right font-mono">
+                            {(c.netMargin > 1 ? c.netMargin : (c.netMargin || 0) * 100).toFixed(1).replace(".", ",")}%
+                          </td>
+                        ))}
+                      </tr>
                     </tbody>
                   </table>
                 </div>

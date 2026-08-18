@@ -1577,6 +1577,37 @@ export default function ProjectionModelTab({ data, formatRupiah: propFormatRupia
                         </td>
                       ))}
                     </tr>
+                    {/* Net Profit */}
+                    <tr className="hover:bg-muted/5 transition-colors font-bold text-slate-800 border-t-2 border-slate-200">
+                      <td className="px-4 py-5 pl-6"><MetricLabel label="Net Profit (Laba Bersih)" /></td>
+                      {data.map((c, i) => (
+                        <td
+                          key={c.year}
+                          className={`px-4 py-5 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                          onMouseEnter={() => setHoveredYear(c.year)}
+                          onMouseLeave={() => setHoveredYear(null)}
+                        >
+                          <div className="flex justify-end items-center">
+                            <ColoredNumber value={c.netProfit || 0} format="rupiah" />
+                            {i > 0 && renderTrend(c.netProfit || 0, data[i - 1].netProfit || 0)}
+                          </div>
+                        </td>
+                      ))}
+                    </tr>
+                    {/* Net Margin */}
+                    <tr className="hover:bg-muted/5 transition-colors font-medium text-slate-800 border-b">
+                      <td className="px-4 py-3 pl-6 text-xs"><MetricLabel label="Net Margin (%)" /></td>
+                      {data.map((c) => (
+                        <td
+                          key={c.year}
+                          className={`px-4 py-3 whitespace-nowrap text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                          onMouseEnter={() => setHoveredYear(c.year)}
+                          onMouseLeave={() => setHoveredYear(null)}
+                        >
+                          <ColoredNumber value={c.netMargin || 0} format="percent" />
+                        </td>
+                      ))}
+                    </tr>
                   </tbody>
                 </table>
               </div>

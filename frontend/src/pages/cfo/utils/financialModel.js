@@ -152,6 +152,11 @@ export const simulateProjections = (assumptionsByYear) => {
     const ebitda = grossProfit - totalOpex;
     const ebitdaMargin = totalRevenue > 0 ? (ebitda / totalRevenue) * 100 : 0;
     
+    // Net Profit Calculation (22% Tax Rate for positive EBITDA)
+    const taxAmount = ebitda > 0 ? ebitda * 0.22 : 0;
+    const netProfit = ebitda - taxAmount;
+    const netMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+    
     // Cash Flow
     const seedInflow = idx === 1 ? (a.seed_investment ?? 8250000000) : 0;
     const initialOpeningCash = Number(a.initial_opening_cash ?? 0) || 0;
@@ -204,6 +209,8 @@ export const simulateProjections = (assumptionsByYear) => {
       totalOpex,
       ebitda,
       ebitdaMargin,
+      netProfit,
+      netMargin,
       openingCash,
       seedInflow,
       endingCash,
