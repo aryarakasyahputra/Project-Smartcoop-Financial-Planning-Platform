@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { 
   TrendingUp, DollarSign, Activity, Calculator, Shield,
-  ChevronDown, Save, RotateCcw, Users, Info, ShieldAlert
+  ChevronDown, Save, RotateCcw, Users, Info, ShieldAlert, FileSpreadsheet
 } from "lucide-react";
 import { formatRupiah } from "../utils/financialModel";
 import { Tooltip as UITooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "../../../components/ui/tooltip";
@@ -236,7 +236,8 @@ export default function AssumptionDriversTab({
   isDirty,
   availableYears = [2025, 2026, 2027, 2028, 2029],
   handleAddYear,
-  handleRemoveYear
+  handleRemoveYear,
+  onOpenExcelImport
 }) {
   const { language, t } = useLanguage();
   const { formatCurrency, currencySymbol } = useCurrency();
@@ -614,6 +615,17 @@ export default function AssumptionDriversTab({
             {language === "en" ? "Changes are automatically recalculated across all reports after saving." : "Perubahan otomatis terhitung ke seluruh laporan setelah disimpan."}
           </div>
           <div className="flex gap-3">
+            {onOpenExcelImport && (
+              <button
+                type="button"
+                onClick={onOpenExcelImport}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-sm font-semibold transition-all cursor-pointer flex-1 md:flex-none"
+                title={language === "en" ? "Import assumptions from Excel (.xlsx)" : "Impor data asumsi dari file Excel (.xlsx)"}
+              >
+                <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                <span>{language === "en" ? "Upload Excel (.xlsx)" : "Upload Excel (.xlsx)"}</span>
+              </button>
+            )}
             <button
               onClick={handleResetData}
               className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 transition-all flex-1 md:flex-none"
