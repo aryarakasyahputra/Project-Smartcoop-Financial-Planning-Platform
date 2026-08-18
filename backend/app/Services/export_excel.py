@@ -1,6 +1,7 @@
 import sys
 import json
 import copy
+import os
 import openpyxl
 from openpyxl.formula.translate import Translator
 from openpyxl.utils import get_column_letter
@@ -63,7 +64,20 @@ def export_financial_model(json_data_path, template_path, output_path):
     if not payload_years:
         payload_years = [2025, 2026, 2027, 2028, 2029]
 
-    wb = openpyxl.load_workbook(template_path, data_only=False)
+    if os.path.exists(template_path):
+        wb = openpyxl.load_workbook(template_path, data_only=False)
+    else:
+        # Dynamic Pure Code Generation Mode (No template file required!)
+        wb = openpyxl.Workbook()
+        default_sheet = wb.active
+        default_sheet.title = '01_Cover'
+        sheets_to_create = [
+            '02_Assumptions', '03_Customer_Growth', '04_Revenue_Engine', '05_COGS',
+            '06_HR_Planning', '07_OPEX', '08_EBITDA', '09_Cash_Flow', '10_SaaS_Metrics',
+            '11_Valuation', '14_Dashboard'
+        ]
+        for sname in sheets_to_create:
+            wb.create_sheet(sname)
 
     # 1. Update Cover Title & Subtitles according to Language & Currency
     if '01_Cover' in wb.sheetnames:
