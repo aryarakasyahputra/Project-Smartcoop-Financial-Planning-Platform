@@ -92,7 +92,7 @@ export default function FinancialAnalystTab({ insights, data, onRecalculateClick
         {/* Metric 3 */}
         <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-[#005fa4]/30 transition-all duration-300 group">
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center justify-between">
-            <span>{language === "en" ? "LTV / CAC (Avg 2025)" : "LTV / CAC (Rata-rata 2025)"}</span>
+            <span>{language === "en" ? `LTV / CAC (Avg ${data[0]?.year || 2025})` : `LTV / CAC (Rata-rata ${data[0]?.year || 2025})`}</span>
             <span className="h-1.5 w-1.5 rounded-full bg-[#005fa4]" />
           </p>
           <div className="flex items-baseline gap-2 mb-2 text-slate-900">
@@ -269,10 +269,10 @@ export default function FinancialAnalystTab({ insights, data, onRecalculateClick
                       {language === "en" ? "Driver Name" : "Nama Driver"}
                     </th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">
-                      {language === "en" ? "Value (FY2025)" : "Nilai (FY2025)"}
+                      {language === "en" ? `Value (FY${data[0]?.year || 2025})` : `Nilai (FY${data[0]?.year || 2025})`}
                     </th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">
-                      {language === "en" ? "Growth (thru 2029)" : "Pertumbuhan (s.d 2029)"}
+                      {language === "en" ? `Growth (thru ${data[data.length - 1]?.year || 2029})` : `Pertumbuhan (s.d ${data[data.length - 1]?.year || 2029})`}
                     </th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">
                       {language === "en" ? "ROI Impact" : "Dampak ROI"}

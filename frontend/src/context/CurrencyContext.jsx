@@ -14,7 +14,7 @@ export const CURRENCY_CONFIG = {
     symbol: "$",
     label: "USD ($)",
     locale: "en-US",
-    rate: 1 / 16000,
+    rate: 1 / 17000,
     fractionDigits: 0
   },
   EUR: {
@@ -22,7 +22,7 @@ export const CURRENCY_CONFIG = {
     symbol: "€",
     label: "EUR (€)",
     locale: "en-IE",
-    rate: 1 / 17500,
+    rate: 1 / 20000,
     fractionDigits: 0
   }
 };
