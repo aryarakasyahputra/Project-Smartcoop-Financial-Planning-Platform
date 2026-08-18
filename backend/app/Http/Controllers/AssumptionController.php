@@ -16,8 +16,12 @@ class AssumptionController extends Controller
         $this->service = $service;
     }
 
-    protected function checkProjectAccess($projectId)
+    /**
+     * @param int|string $projectId
+     */
+    protected function checkProjectAccess(int|string $projectId): bool
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         if ($user->role->name === 'admin') {
             return true;
@@ -37,10 +41,10 @@ class AssumptionController extends Controller
      * GET /api/projects/:projectId/assumptions
      * Mengambil data asumsi aktif beserta hasil proyeksi keuangannya (Tahun 2025-2029).
      * 
-     * @param mixed $projectId
+     * @param int|string $projectId
      * @return \Illuminate\Http\JsonResponse
      */
-    public function get($projectId)
+    public function get(int|string $projectId)
     {
         $this->checkProjectAccess($projectId);
 
@@ -59,10 +63,10 @@ class AssumptionController extends Controller
      * Menyimpan perubahan nilai asumsi dan memicu perhitungan ulang (Auto-Recalculation).
      * 
      * @param Request $request
-     * @param mixed $projectId
+     * @param int|string $projectId
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $projectId)
+    public function update(Request $request, int|string $projectId)
     {
         $this->checkProjectAccess($projectId);
         $data = $request->all();
@@ -100,7 +104,11 @@ class AssumptionController extends Controller
         }
     }
 
-    public function reset($projectId)
+    /**
+     * @param int|string $projectId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function reset(int|string $projectId)
     {
         $this->checkProjectAccess($projectId);
         try {
@@ -120,8 +128,12 @@ class AssumptionController extends Controller
     /**
      * GET /api/projects/:projectId/export-excel
      * Mengunduh file Excel model (Smartcoop_Financial_Model_v2.xlsx) beserta rumus aktif (live formulas).
+     * 
+     * @param Request $request
+     * @param int|string $projectId
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Illuminate\Http\JsonResponse
      */
-    public function exportExcel(\Illuminate\Http\Request $request, $projectId)
+    public function exportExcel(Request $request, int|string $projectId)
     {
         $this->checkProjectAccess($projectId);
         $project = Project::with('company')->findOrFail($projectId);
