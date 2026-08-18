@@ -388,6 +388,40 @@ export default function FounderOverviewTab({
                 ))}
               </tr>
 
+              {/* Net Profit */}
+              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                <td className="px-6 py-3.5 font-bold text-slate-900 dark:text-white">
+                  {language === "en" ? "Net Profit" : "Laba Bersih"}
+                </td>
+                {projectionData.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3.5 text-right font-mono font-bold transition-colors duration-150 ${getColHighlightClass(c.year)} ${c.netProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {formatRupiah(c.netProfit || 0)}
+                  </td>
+                ))}
+              </tr>
+
+              {/* Net Margin */}
+              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
+                <td className="px-6 py-3.5">
+                  {language === "en" ? "Net Margin %" : "Margin Laba Bersih (%)"}
+                </td>
+                {projectionData.map((c) => (
+                  <td 
+                    key={c.year} 
+                    className={`px-6 py-3.5 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                    onMouseEnter={() => setHoveredYear(c.year)}
+                    onMouseLeave={() => setHoveredYear(null)}
+                  >
+                    {(c.netMargin || 0).toFixed(1)}%
+                  </td>
+                ))}
+              </tr>
+
               {/* Ending Cash */}
               <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors font-medium">
                 <td className="px-6 py-3.5 font-bold text-slate-900 dark:text-white">
