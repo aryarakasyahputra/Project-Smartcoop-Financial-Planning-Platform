@@ -127,23 +127,45 @@ export default function CfoDashboard({ userData, handleLogout }) {
     return yrs.length > 0 ? yrs : [2025, 2026, 2027, 2028, 2029];
   }, [assumptionsByYear]);
 
-  const handleAddYear = () => {
+  const handleAddYear = (yearToAdd) => {
     setAssumptionsByYear(prev => {
-      const years = Object.keys(prev).map(Number);
-      const maxYear = years.length > 0 ? Math.max(...years) : 2024;
-      const newYear = maxYear + 1;
+      const years = Object.keys(prev).map(Number).sort((a, b) => a - b);
+      let newYear;
+      if (yearToAdd !== undefined && yearToAdd !== null && !isNaN(yearToAdd) && Number(yearToAdd) > 0) {
+        newYear = Number(yearToAdd);
+      } else {
+        const maxYear = years.length > 0 ? Math.max(...years) : 2024;
+        newYear = maxYear + 1;
+      }
+      
+      if (prev[newYear]) {
+        toast.error(language === "en" ? `Year ${newYear} already exists.` : `Tahun ${newYear} sudah ada.`);
+        return prev;
+      }
       
       const newAssumptions = { ...prev };
-      // Copy data from maxYear if available, otherwise empty object with year
-      newAssumptions[newYear] = maxYear ? { ...prev[maxYear], year: newYear } : { year: newYear };
-      
+      const minYear = years.length > 0 ? Math.min(...years) : 2025;
+      const sourceYear = newYear < minYear ? minYear : (years.length > 0 ? Math.max(...years) : 2025);
+      const sourceData = prev[sourceYear] ? { ...prev[sourceYear] } : {};
+
+      newAssumptions[newYear] = {
+        ...sourceData,
+        year: newYear
+      };
+
+      setSelectedEditYear(newYear);
+      toast.success(language === "en" ? `Year ${newYear} added successfully.` : `Tahun ${newYear} berhasil ditambahkan.`);
       return newAssumptions;
     });
     setIsDirty(true);
   };
 
   const handleRemoveYear = (yearToRemove) => {
-    if (yearToRemove === 2025) return; // Cannot remove base year
+    const years = Object.keys(assumptionsByYear).map(Number);
+    if (years.length <= 1) {
+      toast.error(language === "en" ? "Cannot remove the only remaining year." : "Tidak dapat menghapus satu-satunya tahun yang tersisa.");
+      return;
+    }
     
     setAssumptionsByYear(prev => {
       const newAssumptions = { ...prev };
@@ -151,14 +173,14 @@ export default function CfoDashboard({ userData, handleLogout }) {
       return newAssumptions;
     });
     
-    // Also change selected edit year if it was the one removed
     if (selectedEditYear === yearToRemove) {
       const remainingYears = availableYears.filter(y => y !== yearToRemove);
-      const maxYear = remainingYears.length > 0 ? Math.max(...remainingYears) : 2025;
-      setSelectedEditYear(maxYear);
+      const minYear = remainingYears.length > 0 ? Math.min(...remainingYears) : 2025;
+      setSelectedEditYear(minYear);
     }
     
     setIsDirty(true);
+    toast.success(language === "en" ? `Year ${yearToRemove} removed.` : `Tahun ${yearToRemove} berhasil dihapus.`);
   };
 
   const sanitizedAssumptions = useMemo(() => {

@@ -242,6 +242,11 @@ export default function AssumptionDriversTab({
   const { formatCurrency, currencySymbol } = useCurrency();
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [customModalSection, setCustomModalSection] = useState(null);
+  const [showAddYearModal, setShowAddYearModal] = useState(false);
+  const [inputYearToAdd, setInputYearToAdd] = useState("");
+
+  const minYear = availableYears.length > 0 ? Math.min(...availableYears) : 2025;
+  const maxYear = availableYears.length > 0 ? Math.max(...availableYears) : 2029;
 
   const getDriverDef = (key, fallback) => {
     return t(`finance.drivers.fields.${key}`, fallback);
@@ -396,7 +401,7 @@ export default function AssumptionDriversTab({
       icon: Shield, color: "#10b981",
       infoBox: language === "en" ? "These assumptions simulate cash flows for subsequent years and Investor ROI at exit." : "Asumsi ini digunakan khusus untuk mensimulasikan arus kas pada tahun berikutnya (2026) dan ROI Investor di akhir tahun proyeksi (2029).",
       fields: [
-        { label: language === "en" ? "Initial Opening Cash (2025)" : "Kas Awal Perusahaan (2025)", key: "initial_opening_cash", prefix: "Rp", parse: parseFloat },
+        { label: language === "en" ? `Initial Opening Cash (${minYear})` : `Kas Awal Perusahaan (${minYear})`, key: "initial_opening_cash", prefix: "Rp", parse: parseFloat },
         { label: language === "en" ? "Seed Funding Target" : "Target Pendanaan (Suntikan Dana)", key: "seed_investment", prefix: "Rp", parse: parseFloat },
         { label: language === "en" ? "Pre-Money Valuation" : "Valuasi Pre-Money", key: "pre_money_valuation", prefix: "Rp", parse: parseFloat },
         { label: language === "en" ? "Founders Pre-Seed Share (%)" : "Porsi Saham Pre-Seed Founders (%)", key: "founders_pre_seed_pct", suffix: "%", step: "0.1", parse: parseFloat },
@@ -450,7 +455,7 @@ export default function AssumptionDriversTab({
               >
                 {yr}
               </button>
-              {yr !== 2025 && (
+              {availableYears.length > 1 && (
                 <button
                   onClick={(e) => { e.stopPropagation(); if(handleRemoveYear) handleRemoveYear(yr); }}
                   className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 rounded-full p-0.5 shadow-sm"
@@ -462,11 +467,14 @@ export default function AssumptionDriversTab({
             </div>
           ))}
           <button
-            onClick={handleAddYear}
-            className="flex-none px-4 py-2.5 rounded-lg text-sm font-bold text-[#005fa4] bg-[#005fa4]/10 hover:bg-[#005fa4]/20 transition-all shadow-sm flex items-center justify-center"
+            onClick={() => setShowAddYearModal(true)}
+            className="group flex-none h-10 px-3 hover:px-4 rounded-lg text-sm font-bold text-[#005fa4] bg-[#005fa4]/10 hover:bg-[#005fa4]/20 transition-all duration-300 shadow-sm flex items-center justify-center whitespace-nowrap"
             title={language === "en" ? "Add Year" : "Tambah Tahun"}
           >
-            +
+            <Plus className="h-4 w-4 shrink-0" />
+            <span className="max-w-0 opacity-0 overflow-hidden group-hover:max-w-[120px] group-hover:opacity-100 group-hover:ml-1.5 transition-all duration-300 ease-in-out">
+              {language === "en" ? "Add Year" : "Tambah Tahun"}
+            </span>
           </button>
         </div>
 
@@ -516,7 +524,7 @@ export default function AssumptionDriversTab({
                     <div className="grid md:grid-cols-2 gap-4 pt-2">
                       {s.fields.map((f) => {
                         let val = activeAssumptions[f.key] ?? 0;
-                        if (f.key === "beginning_cooperatives" && selectedEditYear !== 2025) {
+                        if (f.key === "beginning_cooperatives" && selectedEditYear !== minYear) {
                           const prevYearData = data?.find(d => d.year === selectedEditYear - 1);
                           val = prevYearData?.endingCoops ?? 0;
                         } else if (f.key === "payroll_cost") {
@@ -537,7 +545,7 @@ export default function AssumptionDriversTab({
                             prefix={f.prefix}
                             suffix={f.suffix}
                             step={f.step}
-                            disabled={f.disabled || (["beginning_cooperatives", "initial_opening_cash"].includes(f.key) && selectedEditYear !== 2025)}
+                            disabled={f.disabled || (["beginning_cooperatives", "initial_opening_cash"].includes(f.key) && selectedEditYear !== minYear)}
                             definition={language === "en" ? DRIVER_DEFINITIONS_EN[f.key] : DRIVER_DEFINITIONS[f.key]}
                             onChange={(e) =>
                               handleInputChange(
@@ -724,6 +732,106 @@ export default function AssumptionDriversTab({
                   className="flex-1 px-4 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-all shadow-sm disabled:opacity-50"
                 >
                   {language === "en" ? "Add Assumption" : "Tambah Asumsi"}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+        {/* Add Year Modal */}
+        {showAddYearModal && createPortal(
+          <div className="fixed inset-0 z-[100] flex items-center justify-center">
+            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setShowAddYearModal(false)} />
+            <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md mx-4 p-6 animate-in zoom-in-95">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-slate-900">
+                  {language === "en" ? "Add Assumption Year" : "Tambah Tahun Asumsi"}
+                </h3>
+                <button onClick={() => setShowAddYearModal(false)} className="text-slate-400 hover:text-slate-600">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <p className="text-xs text-slate-500 mb-5 leading-relaxed">
+                {language === "en" 
+                  ? "You can add prior historical years (e.g. 2023, 2024) or future projection years (e.g. 2030)."
+                  : "Anda dapat menambahkan tahun historis sebelumnya (misal 2023, 2024) atau tahun proyeksi berikutnya (misal 2030)."}
+              </p>
+
+              {/* Quick Select Buttons */}
+              <div className="mb-5">
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                  {language === "en" ? "Quick Select" : "Pilihan Cepat"}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {minYear > 2000 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const yr = minYear - 1;
+                        if (handleAddYear) handleAddYear(yr);
+                        setShowAddYearModal(false);
+                      }}
+                      className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-[#005fa4] border border-blue-200 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1"
+                    >
+                      {language === "en" ? `Prior Year (${minYear - 1})` : `Tahun Sebelumnya (${minYear - 1})`}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const yr = maxYear + 1;
+                      if (handleAddYear) handleAddYear(yr);
+                      setShowAddYearModal(false);
+                    }}
+                    className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 rounded-lg text-xs font-bold transition-all shadow-sm"
+                  >
+                    {language === "en" ? `Next Year (${maxYear + 1})` : `Tahun Berikutnya (${maxYear + 1})`}
+                  </button>
+                </div>
+              </div>
+
+              {/* Manual Input */}
+              <div className="mb-6">
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                  {language === "en" ? "Or Enter Custom Year" : "Atau Masukkan Tahun Custom"}
+                </label>
+                <input
+                  type="number"
+                  min="2000"
+                  max="2100"
+                  value={inputYearToAdd}
+                  onChange={(e) => setInputYearToAdd(e.target.value)}
+                  placeholder={`Contoh: ${minYear - 1 > 2000 ? minYear - 1 : 2023}`}
+                  className="w-full h-11 px-4 rounded-lg text-sm font-semibold bg-slate-50 border border-slate-200 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddYearModal(false)}
+                  className="flex-1 px-4 py-2.5 rounded-lg border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-all"
+                >
+                  {language === "en" ? "Cancel" : "Batal"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const yr = Number(inputYearToAdd || (maxYear + 1));
+                    if (!yr || yr < 2000 || yr > 2100) {
+                      toast.error(language === "en" ? "Please enter a valid year." : "Masukkan tahun yang valid.");
+                      return;
+                    }
+                    if (handleAddYear) handleAddYear(yr);
+                    setInputYearToAdd("");
+                    setShowAddYearModal(false);
+                  }}
+                  className="flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-bold shadow-md hover:opacity-90 transition-all"
+                  style={{ background: BRAND_BLUE }}
+                >
+                  {language === "en" ? "Add Year" : "Tambah Tahun"}
                 </button>
               </div>
             </div>

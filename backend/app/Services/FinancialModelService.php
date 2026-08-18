@@ -17,7 +17,7 @@ class FinancialModelService
      * 
      * @param mixed $projectId
      */
-    public function getProjectData($projectId)
+    public function getProjectData(mixed $projectId)
     {
         $project = Project::findOrFail($projectId);
 
@@ -519,7 +519,10 @@ class FinancialModelService
     public function resetToZero(mixed $projectId)
     {
         $project = Project::findOrFail($projectId);
-        $years = [2025, 2026, 2027, 2028, 2029];
+        $years = AssumptionValue::where('project_id', $project->id)->pluck('year')->toArray();
+        if (empty($years)) {
+            $years = [2025, 2026, 2027, 2028, 2029];
+        }
         
         DB::transaction(function () use ($project, $years) {
             foreach ($years as $year) {

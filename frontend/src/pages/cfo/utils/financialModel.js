@@ -368,8 +368,8 @@ export const formatCurrency = (value, currencyCode = "IDR", options = {}) => {
   
   const rates = {
     IDR: { code: "IDR", symbol: "Rp", locale: "id-ID", rate: 1, frac: 0 },
-    USD: { code: "USD", symbol: "$", locale: "en-US", rate: 1 / 16000, frac: 0 },
-    EUR: { code: "EUR", symbol: "€", locale: "en-IE", rate: 1 / 17500, frac: 0 }
+    USD: { code: "USD", symbol: "$", locale: "en-US", rate: 1 / 17000, frac: 0 },
+    EUR: { code: "EUR", symbol: "€", locale: "en-IE", rate: 1 / 20000, frac: 0 }
   };
 
   const config = rates[currencyCode] || rates.IDR;
