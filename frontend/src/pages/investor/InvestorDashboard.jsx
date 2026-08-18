@@ -3,13 +3,14 @@ import {
   LogOut, Building, ShieldCheck, Sparkles, Database, 
   LayoutDashboard, BarChart3, LineChart, Shield, Download,
   TrendingUp, Wallet, Award, ArrowUpRight, BarChart4, FileText,
-  Activity, Calculator, Users, Layers, Info, ChevronLeft, ChevronRight, X, Eye
+  Activity, Calculator, Users, Layers, Info, ChevronLeft, ChevronRight, X, Eye, FileSpreadsheet
 } from "lucide-react";
 import { 
   ResponsiveContainer, BarChart, Bar, LineChart as ReLineChart, 
   Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend 
 } from "recharts";
 import ProjectionModelTab from "../cfo/components/ProjectionModelTab";
+import ExcelPreviewModal from "../cfo/components/ExcelPreviewModal";
 import { simulateProjections, formatRupiah } from "../cfo/utils/financialModel";
 import { useValuationModel } from "../cfo/utils/valuationHelper";
 import ValuationWaterfallChart from "../../components/charts/ValuationWaterfallChart";
@@ -37,7 +38,7 @@ const MetricTooltip = ({ label, textEn, textId, language, align = "left" }) => (
 
 export default function InvestorDashboard({ userData, handleLogout }) {
   const { language } = useLanguage();
-  const { formatCurrency } = useCurrency();
+  const { currency, formatCurrency } = useCurrency();
   const formatRupiah = formatCurrency;
   const [activeTab, setActiveTab] = useState("overview");
   const [downloadingDeck, setDownloadingDeck] = useState(false);
@@ -96,6 +97,48 @@ export default function InvestorDashboard({ userData, handleLogout }) {
   }, [projectId]);
 
   const detailedProjectionData = useMemo(() => simulateProjections(assumptionsByYear), [assumptionsByYear]);
+  const [exportingExcel, setExportingExcel] = useState(false);
+  const [showExcelPreview, setShowExcelPreview] = useState(false);
+
+  const handleExportExcel = async () => {
+    try {
+      setExportingExcel(true);
+      toast.loading(language === "en" ? "Generating Excel Model with formulas..." : "Membuat file Excel Financial Model beserta rumus...", { id: "excel-export" });
+      
+      const targetProjectId = projectId || 1;
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const response = await fetch(`/api/projects/${targetProjectId}/export-excel?currency=${encodeURIComponent(currency || 'IDR')}&lang=${encodeURIComponent(language || 'en')}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/json',
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.error || 'Export failed');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const compName = primaryCompany?.name || 'Smartcoop';
+      link.download = `Smartcoop_Financial_Model_${compName.replace(/[^A-Za-z0-9_]/g, '_')}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(language === "en" ? "Excel Financial Model exported successfully!" : "Berhasil mengunduh Excel Financial Model!", { id: "excel-export" });
+    } catch (err) {
+      console.error(err);
+      toast.error((language === "en" ? "Failed to export Excel model: " : "Gagal mengunduh Excel model: ") + (err.message || ""), { id: "excel-export" });
+    } finally {
+      setExportingExcel(false);
+    }
+  };
+
   const valuation = useValuationModel(detailedProjectionData);
 
   const data2029 = useMemo(() => {
@@ -318,195 +361,10 @@ export default function InvestorDashboard({ userData, handleLogout }) {
   };
 
   const handleDownloadReport = () => {
-    setDownloadingReport(true);
+    setActiveTab("projections");
     setTimeout(() => {
-      setDownloadingReport(false);
-      const companyName = primaryCompany?.name || "Koperasi Smartcoop";
-      const exitYear = data2029.year || 2029;
-      const numYears = detailedProjectionData.length || 5;
-      const seedInvFormatted = formatCurrency(valuation.seedInv || 10_000_000_000, { lang: language });
-      const seedInvShort = formatCurrency(valuation.seedInv || 10_000_000_000, { compact: true, lang: language });
-      const equityPct = ((valuation.dynamicInvestorEquityFrac || 0.23) * 100).toFixed(0);
-      const ebitdaMarginPct = (data2029.ebitdaMargin > 1 ? data2029.ebitdaMargin : (data2029.ebitdaMargin || 0.606) * 100).toFixed(1).replace(".", ",");
-      const irrPct = ((valuation.irrBase || 0.223) * 100).toFixed(1).replace(".", ",");
-      const exitValShort = formatCurrency(valuation.exitValBase || 117_900_000_000, { compact: true, lang: language });
-      const invValShort = formatCurrency(valuation.invValBase || 27_400_000_000, { compact: true, lang: language });
-      const moicVal = (valuation.moicBase || 2.7).toFixed(1);
-
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) return;
-
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Comprehensive Financial Report (5-Year) - ${companyName}</title>
-          <style>
-            @media print {
-              body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-              th { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background-color: #1d4370 !important; color: #ffffff !important; }
-              tr.highlight-row td { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background-color: #dce6f2 !important; }
-              tr.section-header-row td { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background-color: #d9e2ec !important; }
-            }
-            body { 
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-              color: #0f172a; 
-              margin: 0; 
-              padding: 0; 
-              background: #ffffff; 
-              line-height: 1.5; 
-              -webkit-print-color-adjust: exact !important; 
-              print-color-adjust: exact !important; 
-            }
-            .header { background: linear-gradient(135deg, #003d6b, #005fa4) !important; color: white !important; padding: 24px; border-radius: 12px; margin-bottom: 20px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .header h1 { margin: 0; font-size: 22px; font-weight: 800; color: white !important; }
-            .header p { margin: 4px 0 0 0; opacity: 0.9; font-size: 13px; font-weight: 600; color: white !important; }
-            
-            .section-title { font-size: 13px; font-weight: 800; color: #005fa4; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; border-bottom: 2px solid #005fa4; padding-bottom: 4px; }
-            
-            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; margin-bottom: 20px; }
-            .card { border: 2px solid #fbbf24; border-radius: 12px; padding: 16px; background: #fffdf5 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .card-pill { background: #fef3c7 !important; border: 1px solid #fde68a; padding: 12px; border-radius: 10px; text-align: center; margin-bottom: 12px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .card-pill .big-val { font-size: 22px; font-weight: 900; color: #0f172a; }
-            .card-pill .sub-txt { font-size: 10px; font-weight: 800; color: #b45309; text-transform: uppercase; }
-            
-            .table-details { width: 100%; border-collapse: collapse; font-size: 11px; }
-            .table-details tr { border-bottom: 1px solid #cbd5e1; }
-            .table-details td { padding: 5px 4px; }
-            .table-details td.label { color: #64748b; font-weight: 500; }
-            .table-details td.val { font-weight: 800; color: #0f172a; text-align: right; }
-            
-            .table-projections { width: 100%; border-collapse: collapse; font-size: 10.5px; margin-top: 10px; border: 1.5px solid #64748b; }
-            .table-projections th { background-color: #1d4370 !important; color: #ffffff !important; padding: 7px 9px; text-align: right; font-weight: 800; border: 1px solid #475569; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .table-projections th:first-child { text-align: left; }
-            .table-projections td { padding: 6px 9px; border: 1px solid #94a3b8; text-align: right; color: #0f172a; }
-            .table-projections td:first-child { text-align: left; font-weight: 600; color: #0f172a; background-color: #f8fafc !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .table-projections tr.highlight-row td { background-color: #dce6f2 !important; font-weight: 800; color: #0f172a !important; border-top: 1.5px solid #64748b; border-bottom: 1.5px solid #64748b; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .table-projections tr.section-header-row td { background-color: #d9e2ec !important; font-weight: 900; text-transform: uppercase; text-align: left; color: #0f172a !important; padding: 7px 9px; border-top: 1.5px solid #64748b; border-bottom: 1.5px solid #64748b; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-
-            .footer { margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 12px; font-size: 10px; color: #94a3b8; text-align: center; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>COMPREHENSIVE FINANCIAL & VALUATION REPORT (${numYears}-YEAR)</h1>
-            <p>${companyName.toUpperCase()} — Smartcoop Financial Planning Platform</p>
-          </div>
-
-          <div class="section-title">Proyeksi Keuangan & Operasional Multi-Tahun</div>
-          <table class="table-projections">
-            <thead>
-              <tr>
-                <th>Metric / Driver</th>
-                ${detailedProjectionData.map(d => `<th>${d.year}</th>`).join('')}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Active Cooperatives</td>
-                ${detailedProjectionData.map(d => `<td>${new Intl.NumberFormat('id-ID').format(Math.round(d.endingCoops || 0))}</td>`).join('')}
-              </tr>
-              <tr>
-                <td>Members</td>
-                ${detailedProjectionData.map(d => `<td>${new Intl.NumberFormat('id-ID').format(Math.round(d.totalMembers || 0))}</td>`).join('')}
-              </tr>
-              <tr class="section-header-row">
-                <td colspan="${detailedProjectionData.length + 1}">EBITDA</td>
-              </tr>
-              <tr>
-                <td style="font-weight: 800;">Total Revenue</td>
-                ${detailedProjectionData.map(d => `<td style="font-weight: 800;">${formatCurrency(d.totalRevenue || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
-              </tr>
-              <tr>
-                <td>Annual Recurring Revenue (ARR)</td>
-                ${detailedProjectionData.map(d => `<td>${formatCurrency(d.arr || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
-              </tr>
-              <tr>
-                <td>COGS</td>
-                ${detailedProjectionData.map(d => `<td>${formatCurrency(d.totalCogs || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
-              </tr>
-              <tr class="highlight-row">
-                <td style="font-weight: 800;">Gross Profit</td>
-                ${detailedProjectionData.map(d => `<td style="font-weight: 800;">${formatCurrency(d.grossProfit || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
-              </tr>
-              <tr>
-                <td>Gross Margin</td>
-                ${detailedProjectionData.map(d => `<td>${(d.grossMargin > 1 ? d.grossMargin : (d.grossMargin || 0) * 100).toFixed(1).replace(".", ",")}%</td>`).join('')}
-              </tr>
-              <tr>
-                <td>OPEX</td>
-                ${detailedProjectionData.map(d => `<td>${formatCurrency(d.totalOpex || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
-              </tr>
-              <tr class="highlight-row">
-                <td style="font-weight: 900;">EBITDA</td>
-                ${detailedProjectionData.map(d => `<td style="font-weight: 900;">${formatCurrency(d.ebitda || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
-              </tr>
-              <tr>
-                <td>EBITDA Margin</td>
-                ${detailedProjectionData.map(d => `<td>${(d.ebitdaMargin > 1 ? d.ebitdaMargin : (d.ebitdaMargin || 0) * 100).toFixed(1).replace(".", ",")}%</td>`).join('')}
-              </tr>
-              <tr class="highlight-row">
-                <td style="font-weight: 900;">Net Profit</td>
-                ${detailedProjectionData.map(d => `<td style="font-weight: 900;">${formatCurrency(d.netProfit || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
-              </tr>
-              <tr>
-                <td>Net Margin</td>
-                ${detailedProjectionData.map(d => `<td>${(d.netMargin > 1 ? d.netMargin : (d.netMargin || 0) * 100).toFixed(1).replace(".", ",")}%</td>`).join('')}
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="section-title" style="margin-top: 24px;">Struktur Pendanaan & Return Investor</div>
-          <div class="grid">
-            <div class="card">
-              <div class="card-pill">
-                <div class="big-val">${seedInvShort}</div>
-                <div class="sub-txt">Required Investment</div>
-              </div>
-              <table class="table-details">
-                <tr><td class="label">Investment Stage</td><td class="val">Seed Round</td></tr>
-                <tr><td class="label">Investment Sought</td><td class="val">${seedInvFormatted}</td></tr>
-                <tr><td class="label">Investment Instrument</td><td class="val">Preferred Equity (Seed Preferred Shares)</td></tr>
-                <tr><td class="label">Growth Target (${exitYear})</td><td class="val">${new Intl.NumberFormat("id-ID").format(data2029.endingCoops || 1400)} Active Cooperatives</td></tr>
-                <tr><td class="label">Coop Members (${exitYear})</td><td class="val">${new Intl.NumberFormat("id-ID").format(data2029.totalMembers || 1050000)} Members</td></tr>
-                <tr><td class="label">Projected ARR (${exitYear})</td><td class="val">${formatCurrency(data2029.arr || 0, { compact: true, lang: language })}</td></tr>
-                <tr><td class="label">Projected Revenue (${exitYear})</td><td class="val">${formatCurrency(data2029.totalRevenue || 0, { compact: true, lang: language })}</td></tr>
-              </table>
-            </div>
-
-            <div class="card">
-              <div class="card-pill">
-                <div class="big-val">${equityPct}%</div>
-                <div class="sub-txt">Equity Offered</div>
-              </div>
-              <table class="table-details">
-                <tr><td class="label">Target Equity Offering</td><td class="val">${equityPct} – ${Number(equityPct) + 2}%</td></tr>
-                <tr><td class="label">Projected EBITDA Margin (${exitYear})</td><td class="val">${ebitdaMarginPct}%</td></tr>
-                <tr><td class="label">Estimated IRR (${numYears} years)</td><td class="val">${irrPct}%</td></tr>
-                <tr><td class="label">Estimated Exit Valuation (${exitYear})</td><td class="val">${exitValShort}</td></tr>
-                <tr><td class="label">Investor Equity Value</td><td class="val">${invValShort}</td></tr>
-                <tr><td class="label">MOIC Multiple Assumption</td><td class="val">${moicVal}x</td></tr>
-              </table>
-            </div>
-          </div>
-
-          <div class="footer">
-            DOKUMEN RAHASIA (CONFIDENTIAL) — Diterbitkan oleh Investor Console Smartcoop Financial Platform.
-          </div>
-
-          <script>
-            window.onload = function() {
-              window.print();
-            };
-          </script>
-        </body>
-        </html>
-      `;
-
-      printWindow.document.open();
-      printWindow.document.write(htmlContent);
-      printWindow.document.close();
-    }, 200);
+      window.print();
+    }, 150);
   };
 
   return (
@@ -1056,17 +914,32 @@ export default function InvestorDashboard({ userData, handleLogout }) {
                   </div>
                 </div>
 
-                <button
-                  onClick={handleDownloadReport}
-                  disabled={downloadingReport}
-                  className="flex items-center justify-between p-4 border border-border rounded-xl hover:bg-muted/30 transition-colors text-left disabled:opacity-50"
-                >
+                <div className="flex items-center justify-between p-4 border border-border rounded-xl hover:bg-muted/30 transition-colors text-left">
                   <div className="space-y-1">
                     <h4 className="font-semibold text-sm">{language === "en" ? "Comprehensive Financial Report (5-Year)" : "Laporan Finansial Lengkap (5-Tahun)"}</h4>
-                    <p className="text-xs text-muted-foreground">{language === "en" ? "PDF format - P&L Projections, Balance Sheet & Cash Flow." : "PDF format - Proyeksi Laba Rugi, Neraca, & Arus Kas."}</p>
+                    <p className="text-xs text-muted-foreground">{language === "en" ? "PDF format & Excel Model with live formulas." : "Format PDF & Model Excel dengan rumus aktif."}</p>
                   </div>
-                  <Download className={`h-5 w-5 text-emerald-500 ${downloadingReport ? "animate-pulse" : ""}`} />
-                </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowExcelPreview(true)}
+                      disabled={exportingExcel}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 rounded-lg text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                      title={language === "en" ? "Preview / Export Excel" : "Preview / Export Excel"}
+                    >
+                      <FileSpreadsheet className="h-3.5 w-3.5" />
+                      <span>Excel</span>
+                    </button>
+                    <button
+                      onClick={handleDownloadReport}
+                      disabled={downloadingReport}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                      title={language === "en" ? "Download PDF Report" : "Download PDF Laporan"}
+                    >
+                      <Download className={`h-3.5 w-3.5 ${downloadingReport ? "animate-pulse" : ""}`} />
+                      <span>PDF</span>
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className="pt-4 border-t border-border flex items-center gap-2 text-xs text-muted-foreground">
@@ -1361,6 +1234,20 @@ export default function InvestorDashboard({ userData, handleLogout }) {
           </div>
         </div>
       )}
+
+      {/* Excel Model Interactive Preview Modal for Investors */}
+      <ExcelPreviewModal
+        show={showExcelPreview}
+        onClose={() => setShowExcelPreview(false)}
+        onDownload={async () => {
+          await handleExportExcel();
+        }}
+        downloading={exportingExcel}
+        assumptionsByYear={assumptionsByYear}
+        currency={currency}
+        language={language}
+        companyName={primaryCompany?.name || "Smartcoop"}
+      />
     </div>
   );
 }
