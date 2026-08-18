@@ -131,7 +131,17 @@ export default function InvestorDashboard({ userData, handleLogout }) {
     setTimeout(() => {
       setDownloadingDeck(false);
       const companyName = primaryCompany?.name || "Koperasi Smartcoop";
-      
+      const exitYear = data2029.year || 2029;
+      const numYears = detailedProjectionData.length || 5;
+      const seedInvFormatted = formatCurrency(valuation.seedInv || 10_000_000_000, { lang: language });
+      const seedInvShort = formatCurrency(valuation.seedInv || 10_000_000_000, { compact: true, lang: language });
+      const equityPct = ((valuation.dynamicInvestorEquityFrac || 0.23) * 100).toFixed(0);
+      const ebitdaMarginPct = (data2029.ebitdaMargin > 1 ? data2029.ebitdaMargin : (data2029.ebitdaMargin || 0.606) * 100).toFixed(1).replace(".", ",");
+      const irrPct = ((valuation.irrBase || 0.223) * 100).toFixed(1).replace(".", ",");
+      const exitValShort = formatCurrency(valuation.exitValBase || 117_900_000_000, { compact: true, lang: language });
+      const invValShort = formatCurrency(valuation.invValBase || 27_400_000_000, { compact: true, lang: language });
+      const moicVal = (valuation.moicBase || 2.7).toFixed(1);
+
       const printWindow = window.open("", "_blank");
       if (!printWindow) return;
 
@@ -139,84 +149,152 @@ export default function InvestorDashboard({ userData, handleLogout }) {
         <!DOCTYPE html>
         <html>
         <head>
-          <title>Pitch Deck Executive Summary - ${companyName}</title>
+          <title>Executive Pitch Deck Summary - ${companyName}</title>
           <style>
-            @page { size: A4 portrait; margin: 20mm; }
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; margin: 0; padding: 0; background: #ffffff; }
-            .header { background: linear-gradient(135deg, #003d6b, #005fa4); color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px; }
-            .header h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
-            .header p { margin: 6px 0 0 0; opacity: 0.85; font-size: 13px; font-weight: 600; }
-            .section { border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px; background: #f8fafc; }
-            .section-title { font-size: 14px; font-weight: 800; color: #005fa4; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; border-bottom: 2px solid #005fa4; padding-bottom: 6px; }
-            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
-            .metric-card { background: white; border: 1px solid #cbd5e1; padding: 14px; border-radius: 10px; }
-            .metric-label { font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; margin-bottom: 4px; }
-            .metric-value { font-size: 18px; font-weight: 800; color: #0f172a; }
-            .gold-value { color: #d97706; font-weight: 800; }
-            .blue-value { color: #005fa4; font-weight: 800; }
-            .footer { margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 12px; font-size: 11px; color: #94a3b8; text-align: center; }
+            @media print {
+              body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+              th { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background-color: #1d4370 !important; color: #ffffff !important; }
+              tr.highlight-row td { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background-color: #dce6f2 !important; }
+              tr.section-header-row td { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background-color: #d9e2ec !important; }
+            }
+            body { 
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+              color: #0f172a; 
+              margin: 0; 
+              padding: 0; 
+              background: #ffffff; 
+              line-height: 1.5; 
+              -webkit-print-color-adjust: exact !important; 
+              print-color-adjust: exact !important; 
+            }
+            .header { background: linear-gradient(135deg, #003d6b, #005fa4) !important; color: white !important; padding: 24px; border-radius: 12px; margin-bottom: 20px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .header h1 { margin: 0; font-size: 22px; font-weight: 800; color: white !important; }
+            .header p { margin: 4px 0 0 0; opacity: 0.9; font-size: 13px; font-weight: 600; color: white !important; }
+            
+            .section-title { font-size: 13px; font-weight: 800; color: #005fa4; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; border-bottom: 2px solid #005fa4; padding-bottom: 4px; }
+            
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; margin-bottom: 20px; }
+            .card { border: 2px solid #fbbf24; border-radius: 12px; padding: 16px; background: #fffdf5 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .card-pill { background: #fef3c7 !important; border: 1px solid #fde68a; padding: 12px; border-radius: 10px; text-align: center; margin-bottom: 12px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .card-pill .big-val { font-size: 22px; font-weight: 900; color: #0f172a; }
+            .card-pill .sub-txt { font-size: 10px; font-weight: 800; color: #b45309; text-transform: uppercase; }
+            
+            .table-details { width: 100%; border-collapse: collapse; font-size: 11px; }
+            .table-details tr { border-bottom: 1px solid #cbd5e1; }
+            .table-details td { padding: 5px 4px; }
+            .table-details td.label { color: #64748b; font-weight: 500; }
+            .table-details td.val { font-weight: 800; color: #0f172a; text-align: right; }
+            
+            .table-projections { width: 100%; border-collapse: collapse; font-size: 10.5px; margin-top: 10px; border: 1.5px solid #64748b; }
+            .table-projections th { background-color: #1d4370 !important; color: #ffffff !important; padding: 7px 9px; text-align: right; font-weight: 800; border: 1px solid #475569; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .table-projections th:first-child { text-align: left; }
+            .table-projections td { padding: 6px 9px; border: 1px solid #94a3b8; text-align: right; color: #0f172a; }
+            .table-projections td:first-child { text-align: left; font-weight: 600; color: #0f172a; background-color: #f8fafc !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .table-projections tr.highlight-row td { background-color: #dce6f2 !important; font-weight: 800; color: #0f172a !important; border-top: 1.5px solid #64748b; border-bottom: 1.5px solid #64748b; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .table-projections tr.section-header-row td { background-color: #d9e2ec !important; font-weight: 900; text-transform: uppercase; text-align: left; color: #0f172a !important; padding: 7px 9px; border-top: 1.5px solid #64748b; border-bottom: 1.5px solid #64748b; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+            .footer { margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 12px; font-size: 10px; color: #94a3b8; text-align: center; }
           </style>
         </head>
         <body>
           <div class="header">
-            <h1>EXECUTIVE PITCH DECK SUMMARY</h1>
+            <h1>EXECUTIVE PITCH DECK & FINANCIAL PROJECTION</h1>
             <p>${companyName.toUpperCase()} — Smartcoop Financial Planning Platform</p>
           </div>
+          <div class="section-title">Ringkasan Proyeksi Keuangan ${numYears}-Tahun</div>
+          <table class="table-projections">
+            <thead>
+              <tr>
+                <th>Metric / Driver</th>
+                ${detailedProjectionData.map(d => `<th>${d.year}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Active Cooperatives</td>
+                ${detailedProjectionData.map(d => `<td>${new Intl.NumberFormat('id-ID').format(Math.round(d.endingCoops || 0))}</td>`).join('')}
+              </tr>
+              <tr>
+                <td>Members</td>
+                ${detailedProjectionData.map(d => `<td>${new Intl.NumberFormat('id-ID').format(Math.round(d.totalMembers || 0))}</td>`).join('')}
+              </tr>
+              <tr class="section-header-row">
+                <td colspan="${detailedProjectionData.length + 1}">EBITDA</td>
+              </tr>
+              <tr>
+                <td style="font-weight: 800;">Total Revenue</td>
+                ${detailedProjectionData.map(d => `<td style="font-weight: 800;">${formatCurrency(d.totalRevenue || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
+              </tr>
+              <tr>
+                <td>Annual Recurring Revenue (ARR)</td>
+                ${detailedProjectionData.map(d => `<td>${formatCurrency(d.arr || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
+              </tr>
+              <tr>
+                <td>COGS</td>
+                ${detailedProjectionData.map(d => `<td>${formatCurrency(d.totalCogs || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
+              </tr>
+              <tr class="highlight-row">
+                <td style="font-weight: 800;">Gross Profit</td>
+                ${detailedProjectionData.map(d => `<td style="font-weight: 800;">${formatCurrency(d.grossProfit || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
+              </tr>
+              <tr>
+                <td>Gross Margin</td>
+                ${detailedProjectionData.map(d => `<td>${(d.grossMargin > 1 ? d.grossMargin : (d.grossMargin || 0) * 100).toFixed(1).replace(".", ",")}%</td>`).join('')}
+              </tr>
+              <tr>
+                <td>OPEX</td>
+                ${detailedProjectionData.map(d => `<td>${formatCurrency(d.totalOpex || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
+              </tr>
+              <tr class="highlight-row">
+                <td style="font-weight: 900;">EBITDA</td>
+                ${detailedProjectionData.map(d => `<td style="font-weight: 900;">${formatCurrency(d.ebitda || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
+              </tr>
+              <tr>
+                <td>EBITDA Margin</td>
+                ${detailedProjectionData.map(d => `<td>${(d.ebitdaMargin > 1 ? d.ebitdaMargin : (d.ebitdaMargin || 0) * 100).toFixed(1).replace(".", ",")}%</td>`).join('')}
+              </tr>
+              <tr class="highlight-row">
+                <td style="font-weight: 900;">Net Profit</td>
+                ${detailedProjectionData.map(d => `<td style="font-weight: 900;">${formatCurrency(d.netProfit || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
+              </tr>
+              <tr>
+                <td>Net Margin</td>
+                ${detailedProjectionData.map(d => `<td>${(d.netMargin > 1 ? d.netMargin : (d.netMargin || 0) * 100).toFixed(1).replace(".", ",")}%</td>`).join('')}
+              </tr>
+            </tbody>
+          </table>
 
-          <div class="section">
-            <div class="section-title">1. Ringkasan Eksekutif & Profil Bisnis</div>
-            <p style="font-size: 13px; line-height: 1.5; color: #334155; margin: 0;">
-              Platform perencanaan keuangan enterprise & simulasi valuasi real-time otomatis untuk mempercepat digitalisasi 127,000+ koperasi & UMKM di Indonesia.
-            </p>
-          </div>
+          <div class="section-title" style="margin-top: 24px;">Struktur Pendanaan & Target Return Investor</div>
+          <div class="grid">
+            <div class="card">
+              <div class="card-pill">
+                <div class="big-val">${seedInvShort}</div>
+                <div class="sub-txt">Required Investment</div>
+              </div>
+              <table class="table-details">
+                <tr><td class="label">Investment Stage</td><td class="val">Seed Round</td></tr>
+                <tr><td class="label">Investment Sought</td><td class="val">${seedInvFormatted}</td></tr>
+                <tr><td class="label">Investment Instrument</td><td class="val">Preferred Equity (Seed Preferred Shares)</td></tr>
+                <tr><td class="label">Growth Target (${exitYear})</td><td class="val">${new Intl.NumberFormat("id-ID").format(data2029.endingCoops || 1400)} Active Cooperatives</td></tr>
+                <tr><td class="label">Coop Members (${exitYear})</td><td class="val">${new Intl.NumberFormat("id-ID").format(data2029.totalMembers || 1050000)} Members</td></tr>
+                <tr><td class="label">Projected ARR (${exitYear})</td><td class="val">${formatCurrency(data2029.arr || 0, { compact: true, lang: language })}</td></tr>
+                <tr><td class="label">Projected Revenue (${exitYear})</td><td class="val">${formatCurrency(data2029.totalRevenue || 0, { compact: true, lang: language })}</td></tr>
+              </table>
+            </div>
 
-          <div class="section">
-            <div class="section-title">2. Proyeksi Pendapatan 5-Tahun (2025 - 2029)</div>
-            <div class="grid">
-              <div class="metric-card">
-                <div class="metric-label">Pendapatan FY2025</div>
-                <div class="metric-value">${formatRupiah(detailedProjectionData[0]?.totalRevenue || 0)}</div>
+            <div class="card">
+              <div class="card-pill">
+                <div class="big-val">${equityPct}%</div>
+                <div class="sub-txt">Equity Offered</div>
               </div>
-              <div class="metric-card">
-                <div class="metric-label">Target Pendapatan FY2029</div>
-                <div class="metric-value blue-value">${formatRupiah(detailedProjectionData[4]?.totalRevenue || 0)}</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="section">
-            <div class="section-title">3. Unit Economics & EBITDA</div>
-            <div class="grid">
-              <div class="metric-card">
-                <div class="metric-label">ARPU Bulanan</div>
-                <div class="metric-value">${formatRupiah(detailedProjectionData[0]?.arpu || 0)}</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-label">Estimasi CAC</div>
-                <div class="metric-value">${formatRupiah(detailedProjectionData[0]?.estimatedCac || 0)}</div>
-              </div>
-            </div>
-            <div class="metric-card" style="margin-top: 12px; background: #fef3c7; border-color: #fde68a;">
-              <div class="metric-label" style="color: #92400e;">Proyeksi EBITDA FY2029</div>
-              <div class="metric-value gold-value">${formatRupiah(detailedProjectionData[4]?.ebitda || 0)}</div>
-            </div>
-          </div>
-
-          <div class="section">
-            <div class="section-title">4. Struktur Pendanaan & Target Exit 2029</div>
-            <div class="grid">
-              <div class="metric-card">
-                <div class="metric-label">Pre-Money Valuation</div>
-                <div class="metric-value">${formatRupiah(valuation?.preMoneyValuation || 0)}</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-label">Target Investasi Seed</div>
-                <div class="metric-value gold-value">${formatRupiah(valuation?.seedInvestment || 0)}</div>
-              </div>
-            </div>
-            <div class="metric-card" style="margin-top: 12px; background: #e0f2fe; border-color: #bae6fd;">
-              <div class="metric-label" style="color: #0369a1;">Target Valuasi Exit 2029 (Base Case 5x)</div>
-              <div class="metric-value blue-value" style="font-size: 20px;">${formatRupiah((detailedProjectionData[4]?.totalRevenue * 5) || 0)}</div>
+              <table class="table-details">
+                <tr><td class="label">Target Equity Offering</td><td class="val">${equityPct} – ${Number(equityPct) + 2}%</td></tr>
+                <tr><td class="label">Projected EBITDA Margin (${exitYear})</td><td class="val">${ebitdaMarginPct}%</td></tr>
+                <tr><td class="label">Estimated IRR (${numYears} years)</td><td class="val">${irrPct}%</td></tr>
+                <tr><td class="label">Estimated Exit Valuation (${exitYear})</td><td class="val">${exitValShort}</td></tr>
+                <tr><td class="label">Investor Equity Value</td><td class="val">${invValShort}</td></tr>
+                <tr><td class="label">MOIC Multiple Assumption</td><td class="val">${moicVal}x</td></tr>
+              </table>
             </div>
           </div>
 
@@ -243,10 +321,191 @@ export default function InvestorDashboard({ userData, handleLogout }) {
     setDownloadingReport(true);
     setTimeout(() => {
       setDownloadingReport(false);
-      setActiveTab("projections");
-      setTimeout(() => {
-        window.print();
-      }, 300);
+      const companyName = primaryCompany?.name || "Koperasi Smartcoop";
+      const exitYear = data2029.year || 2029;
+      const numYears = detailedProjectionData.length || 5;
+      const seedInvFormatted = formatCurrency(valuation.seedInv || 10_000_000_000, { lang: language });
+      const seedInvShort = formatCurrency(valuation.seedInv || 10_000_000_000, { compact: true, lang: language });
+      const equityPct = ((valuation.dynamicInvestorEquityFrac || 0.23) * 100).toFixed(0);
+      const ebitdaMarginPct = (data2029.ebitdaMargin > 1 ? data2029.ebitdaMargin : (data2029.ebitdaMargin || 0.606) * 100).toFixed(1).replace(".", ",");
+      const irrPct = ((valuation.irrBase || 0.223) * 100).toFixed(1).replace(".", ",");
+      const exitValShort = formatCurrency(valuation.exitValBase || 117_900_000_000, { compact: true, lang: language });
+      const invValShort = formatCurrency(valuation.invValBase || 27_400_000_000, { compact: true, lang: language });
+      const moicVal = (valuation.moicBase || 2.7).toFixed(1);
+
+      const printWindow = window.open("", "_blank");
+      if (!printWindow) return;
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Comprehensive Financial Report (5-Year) - ${companyName}</title>
+          <style>
+            @media print {
+              body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+              th { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background-color: #1d4370 !important; color: #ffffff !important; }
+              tr.highlight-row td { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background-color: #dce6f2 !important; }
+              tr.section-header-row td { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background-color: #d9e2ec !important; }
+            }
+            body { 
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+              color: #0f172a; 
+              margin: 0; 
+              padding: 0; 
+              background: #ffffff; 
+              line-height: 1.5; 
+              -webkit-print-color-adjust: exact !important; 
+              print-color-adjust: exact !important; 
+            }
+            .header { background: linear-gradient(135deg, #003d6b, #005fa4) !important; color: white !important; padding: 24px; border-radius: 12px; margin-bottom: 20px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .header h1 { margin: 0; font-size: 22px; font-weight: 800; color: white !important; }
+            .header p { margin: 4px 0 0 0; opacity: 0.9; font-size: 13px; font-weight: 600; color: white !important; }
+            
+            .section-title { font-size: 13px; font-weight: 800; color: #005fa4; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; border-bottom: 2px solid #005fa4; padding-bottom: 4px; }
+            
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; margin-bottom: 20px; }
+            .card { border: 2px solid #fbbf24; border-radius: 12px; padding: 16px; background: #fffdf5 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .card-pill { background: #fef3c7 !important; border: 1px solid #fde68a; padding: 12px; border-radius: 10px; text-align: center; margin-bottom: 12px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .card-pill .big-val { font-size: 22px; font-weight: 900; color: #0f172a; }
+            .card-pill .sub-txt { font-size: 10px; font-weight: 800; color: #b45309; text-transform: uppercase; }
+            
+            .table-details { width: 100%; border-collapse: collapse; font-size: 11px; }
+            .table-details tr { border-bottom: 1px solid #cbd5e1; }
+            .table-details td { padding: 5px 4px; }
+            .table-details td.label { color: #64748b; font-weight: 500; }
+            .table-details td.val { font-weight: 800; color: #0f172a; text-align: right; }
+            
+            .table-projections { width: 100%; border-collapse: collapse; font-size: 10.5px; margin-top: 10px; border: 1.5px solid #64748b; }
+            .table-projections th { background-color: #1d4370 !important; color: #ffffff !important; padding: 7px 9px; text-align: right; font-weight: 800; border: 1px solid #475569; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .table-projections th:first-child { text-align: left; }
+            .table-projections td { padding: 6px 9px; border: 1px solid #94a3b8; text-align: right; color: #0f172a; }
+            .table-projections td:first-child { text-align: left; font-weight: 600; color: #0f172a; background-color: #f8fafc !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .table-projections tr.highlight-row td { background-color: #dce6f2 !important; font-weight: 800; color: #0f172a !important; border-top: 1.5px solid #64748b; border-bottom: 1.5px solid #64748b; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .table-projections tr.section-header-row td { background-color: #d9e2ec !important; font-weight: 900; text-transform: uppercase; text-align: left; color: #0f172a !important; padding: 7px 9px; border-top: 1.5px solid #64748b; border-bottom: 1.5px solid #64748b; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+            .footer { margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 12px; font-size: 10px; color: #94a3b8; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>COMPREHENSIVE FINANCIAL & VALUATION REPORT (${numYears}-YEAR)</h1>
+            <p>${companyName.toUpperCase()} — Smartcoop Financial Planning Platform</p>
+          </div>
+
+          <div class="section-title">Proyeksi Keuangan & Operasional Multi-Tahun</div>
+          <table class="table-projections">
+            <thead>
+              <tr>
+                <th>Metric / Driver</th>
+                ${detailedProjectionData.map(d => `<th>${d.year}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Active Cooperatives</td>
+                ${detailedProjectionData.map(d => `<td>${new Intl.NumberFormat('id-ID').format(Math.round(d.endingCoops || 0))}</td>`).join('')}
+              </tr>
+              <tr>
+                <td>Members</td>
+                ${detailedProjectionData.map(d => `<td>${new Intl.NumberFormat('id-ID').format(Math.round(d.totalMembers || 0))}</td>`).join('')}
+              </tr>
+              <tr class="section-header-row">
+                <td colspan="${detailedProjectionData.length + 1}">EBITDA</td>
+              </tr>
+              <tr>
+                <td style="font-weight: 800;">Total Revenue</td>
+                ${detailedProjectionData.map(d => `<td style="font-weight: 800;">${formatCurrency(d.totalRevenue || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
+              </tr>
+              <tr>
+                <td>Annual Recurring Revenue (ARR)</td>
+                ${detailedProjectionData.map(d => `<td>${formatCurrency(d.arr || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
+              </tr>
+              <tr>
+                <td>COGS</td>
+                ${detailedProjectionData.map(d => `<td>${formatCurrency(d.totalCogs || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
+              </tr>
+              <tr class="highlight-row">
+                <td style="font-weight: 800;">Gross Profit</td>
+                ${detailedProjectionData.map(d => `<td style="font-weight: 800;">${formatCurrency(d.grossProfit || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
+              </tr>
+              <tr>
+                <td>Gross Margin</td>
+                ${detailedProjectionData.map(d => `<td>${(d.grossMargin > 1 ? d.grossMargin : (d.grossMargin || 0) * 100).toFixed(1).replace(".", ",")}%</td>`).join('')}
+              </tr>
+              <tr>
+                <td>OPEX</td>
+                ${detailedProjectionData.map(d => `<td>${formatCurrency(d.totalOpex || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
+              </tr>
+              <tr class="highlight-row">
+                <td style="font-weight: 900;">EBITDA</td>
+                ${detailedProjectionData.map(d => `<td style="font-weight: 900;">${formatCurrency(d.ebitda || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
+              </tr>
+              <tr>
+                <td>EBITDA Margin</td>
+                ${detailedProjectionData.map(d => `<td>${(d.ebitdaMargin > 1 ? d.ebitdaMargin : (d.ebitdaMargin || 0) * 100).toFixed(1).replace(".", ",")}%</td>`).join('')}
+              </tr>
+              <tr class="highlight-row">
+                <td style="font-weight: 900;">Net Profit</td>
+                ${detailedProjectionData.map(d => `<td style="font-weight: 900;">${formatCurrency(d.netProfit || 0, { maximumFractionDigits: 0 })}</td>`).join('')}
+              </tr>
+              <tr>
+                <td>Net Margin</td>
+                ${detailedProjectionData.map(d => `<td>${(d.netMargin > 1 ? d.netMargin : (d.netMargin || 0) * 100).toFixed(1).replace(".", ",")}%</td>`).join('')}
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="section-title" style="margin-top: 24px;">Struktur Pendanaan & Return Investor</div>
+          <div class="grid">
+            <div class="card">
+              <div class="card-pill">
+                <div class="big-val">${seedInvShort}</div>
+                <div class="sub-txt">Required Investment</div>
+              </div>
+              <table class="table-details">
+                <tr><td class="label">Investment Stage</td><td class="val">Seed Round</td></tr>
+                <tr><td class="label">Investment Sought</td><td class="val">${seedInvFormatted}</td></tr>
+                <tr><td class="label">Investment Instrument</td><td class="val">Preferred Equity (Seed Preferred Shares)</td></tr>
+                <tr><td class="label">Growth Target (${exitYear})</td><td class="val">${new Intl.NumberFormat("id-ID").format(data2029.endingCoops || 1400)} Active Cooperatives</td></tr>
+                <tr><td class="label">Coop Members (${exitYear})</td><td class="val">${new Intl.NumberFormat("id-ID").format(data2029.totalMembers || 1050000)} Members</td></tr>
+                <tr><td class="label">Projected ARR (${exitYear})</td><td class="val">${formatCurrency(data2029.arr || 0, { compact: true, lang: language })}</td></tr>
+                <tr><td class="label">Projected Revenue (${exitYear})</td><td class="val">${formatCurrency(data2029.totalRevenue || 0, { compact: true, lang: language })}</td></tr>
+              </table>
+            </div>
+
+            <div class="card">
+              <div class="card-pill">
+                <div class="big-val">${equityPct}%</div>
+                <div class="sub-txt">Equity Offered</div>
+              </div>
+              <table class="table-details">
+                <tr><td class="label">Target Equity Offering</td><td class="val">${equityPct} – ${Number(equityPct) + 2}%</td></tr>
+                <tr><td class="label">Projected EBITDA Margin (${exitYear})</td><td class="val">${ebitdaMarginPct}%</td></tr>
+                <tr><td class="label">Estimated IRR (${numYears} years)</td><td class="val">${irrPct}%</td></tr>
+                <tr><td class="label">Estimated Exit Valuation (${exitYear})</td><td class="val">${exitValShort}</td></tr>
+                <tr><td class="label">Investor Equity Value</td><td class="val">${invValShort}</td></tr>
+                <tr><td class="label">MOIC Multiple Assumption</td><td class="val">${moicVal}x</td></tr>
+              </table>
+            </div>
+          </div>
+
+          <div class="footer">
+            DOKUMEN RAHASIA (CONFIDENTIAL) — Diterbitkan oleh Investor Console Smartcoop Financial Platform.
+          </div>
+
+          <script>
+            window.onload = function() {
+              window.print();
+            };
+          </script>
+        </body>
+        </html>
+      `;
+
+      printWindow.document.open();
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
     }, 200);
   };
 
@@ -844,55 +1103,108 @@ export default function InvestorDashboard({ userData, handleLogout }) {
             <div className="p-6 overflow-y-auto flex-1 space-y-4">
               <div>
                 <span className="text-[10px] font-extrabold text-[#005fa4] dark:text-blue-400 uppercase tracking-widest">
-                  {currentSlide === 0 && (language === "en" ? "1. Executive Summary" : "1. Ringkasan Eksekutif")}
-                  {currentSlide === 1 && (language === "en" ? "2. Traction & Market Opportunity" : "2. Traksi & Peluang Pasar")}
-                  {currentSlide === 2 && (language === "en" ? "3. Unit Economics & EBITDA" : "3. Unit Economics & EBITDA")}
-                  {currentSlide === 3 && (language === "en" ? "4. Valuation & Seed Offer" : "4. Valuasi & Penawaran Seed")}
+                  {currentSlide === 0 && (language === "en" ? "1. Required Investment & Operational Targets" : "1. Target Pendanaan & Skala Operasional")}
+                  {currentSlide === 1 && (language === "en" ? "2. Equity Offering & Investor Returns" : "2. Penawaran Ekuitas & Imbal Hasil Investor")}
+                  {currentSlide === 2 && (language === "en" ? "3. SaaS Metrics & Operating Margins" : "3. Metrik SaaS & Margin Operasional")}
+                  {currentSlide === 3 && (language === "en" ? "4. Multi-Year Projections Table" : "4. Tabel Proyeksi Keuangan Multi-Tahun")}
                 </span>
                 <h2 className="text-xl font-black text-slate-900 dark:text-white mt-1">
-                  {currentSlide === 0 && (primaryCompany?.name || "Koperasi Smartcoop")}
-                  {currentSlide === 1 && (language === "en" ? "Target Market: 127,000+ Cooperatives" : "Target Pasar 127.000+ Koperasi")}
-                  {currentSlide === 2 && (language === "en" ? "Profitability & Operating Margin" : "Profitabilitas & Margin Operasional")}
-                  {currentSlide === 3 && (language === "en" ? "Seed Funding Structure & 2029 Exit" : "Struktur Pendanaan Seed & Exit 2029")}
+                  {currentSlide === 0 && (language === "en" ? "Seed Investment & Growth Targets" : "Investasi Seed & Target Pertumbuhan")}
+                  {currentSlide === 1 && (language === "en" ? "Exit Valuation & Investor ROI" : "Valuasi Exit & ROI Investor")}
+                  {currentSlide === 2 && (language === "en" ? "Unit Economics Highlights" : "Ringkasan Unit Economics")}
+                  {currentSlide === 3 && (language === "en" ? `Financial Projections (${detailedProjectionData[0]?.year || 2025} - ${data2029.year || 2029})` : `Proyeksi Keuangan (${detailedProjectionData[0]?.year || 2025} - ${data2029.year || 2029})`)}
                 </h2>
               </div>
 
-              {/* Slide Content Card */}
+              {/* Slide Content Cards matching Financial Projection tab */}
               {currentSlide === 0 && (
-                <div className="space-y-4">
-                  <div className="p-4 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-2xl">
-                    <p className="text-xs font-extrabold text-[#005fa4] dark:text-blue-400 uppercase">{language === "en" ? "Enterprise Financial Planning" : "Perencanaan Keuangan Enterprise"}</p>
-                    <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 font-medium">
-                      {language === "en" ? "Automated real-time financial modeling and valuation platform for Indonesian cooperatives & SMEs." : "Platform proyeksi keuangan & valuasi real-time otomatis khusus untuk ekosistem koperasi dan UMKM di Indonesia."}
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
-                      <p className="text-[10px] text-slate-400 uppercase font-bold">{language === "en" ? "FY2025 Revenue" : "Pendapatan FY2025"}</p>
-                      <p className="text-base font-extrabold text-slate-900 dark:text-white mt-0.5">{formatRupiah(detailedProjectionData[0]?.totalRevenue || 0)}</p>
+                <div className="bg-card border-2 border-amber-400/80 dark:border-amber-600/60 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row items-center md:items-start gap-5">
+                  <div className="flex flex-col items-center justify-center p-4 rounded-xl border border-amber-300/80 dark:border-amber-700 bg-amber-50/70 dark:bg-amber-950/30 text-center min-w-[130px] shrink-0">
+                    <div className="p-3 rounded-full bg-amber-500/10 text-amber-600 mb-2">
+                      <Wallet className="h-7 w-7" />
                     </div>
-                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
-                      <p className="text-[10px] text-slate-400 uppercase font-bold">{language === "en" ? "FY2029 Target" : "Target FY2029"}</p>
-                      <p className="text-base font-extrabold text-[#005fa4] dark:text-blue-400 mt-0.5">{formatRupiah(detailedProjectionData[4]?.totalRevenue || 0)}</p>
+                    <span className="text-2xl font-black text-slate-900 dark:text-white leading-tight">
+                      {formatCurrency(valuation.seedInv || 10_000_000_000, { compact: true, lang: language })}
+                    </span>
+                    <span className="text-[10px] font-extrabold text-amber-800 dark:text-amber-400 mt-1 leading-tight text-center">
+                      {language === "en" ? "Required Investment" : "Kebutuhan Investasi"}
+                    </span>
+                  </div>
+
+                  <div className="flex-1 w-full text-xs space-y-1.5 font-medium text-slate-700 dark:text-slate-300">
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500">{language === "en" ? "Investment Stage" : "Tahap Investasi"}</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">: {language === "en" ? "Seed Round" : "Putaran Seed"}</span>
+                    </div>
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500">{language === "en" ? "Investment Sought" : "Dana Investasi Dicari"}</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">: {formatCurrency(valuation.seedInv || 10_000_000_000, { lang: language })}</span>
+                    </div>
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500">{language === "en" ? "Investment Instrument" : "Instrumen Investasi"}</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">: {language === "en" ? "Preferred Equity (Seed Preferred Shares)" : "Ekuitas Preferen (Saham Preferen Seed)"}</span>
+                    </div>
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500">{language === "en" ? `Growth Target (${data2029.year || 2029})` : `Target Pertumbuhan (${data2029.year || 2029})`}</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">: {new Intl.NumberFormat(language === "en" ? "en-US" : "id-ID").format(data2029.endingCoops || 1400)} {language === "en" ? "Active Cooperatives" : "Koperasi Aktif"}</span>
+                    </div>
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500">{language === "en" ? `Coop Members (${data2029.year || 2029})` : `Anggota Koperasi (${data2029.year || 2029})`}</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">: {new Intl.NumberFormat(language === "en" ? "en-US" : "id-ID").format(data2029.totalMembers || 1050000)} {language === "en" ? "Members" : "Anggota"}</span>
+                    </div>
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500">{language === "en" ? `Projected ARR (${data2029.year || 2029})` : `Proyeksi ARR (${data2029.year || 2029})`}</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">: {formatCurrency(data2029.arr || 15_000_000_000, { compact: true, lang: language })}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500">{language === "en" ? `Projected Revenue (${data2029.year || 2029})` : `Proyeksi Revenue (${data2029.year || 2029})`}</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">: {formatCurrency(data2029.totalRevenue || 33_000_000_000, { compact: true, lang: language })}</span>
                     </div>
                   </div>
                 </div>
               )}
 
               {currentSlide === 1 && (
-                <div className="space-y-4">
-                  <div className="p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl space-y-1">
-                    <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">{language === "en" ? "Indonesian Cooperative Ecosystem" : "Ekosistem Koperasi Indonesia"}</p>
-                    <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">{language === "en" ? "PPOB Digitalization, SaaS Financial Management, White-Label Apps, & Enterprise Licensing." : "Digitalisasi PPOB, SaaS Manajemen Keuangan, White-Label Apps, & Lisensi Enterprise."}</p>
-                  </div>
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-slate-500 font-medium">{language === "en" ? "Active Cooperative Growth (2025 - 2029):" : "Pertumbuhan Koperasi Aktif (2025 - 2029):"}</span>
-                      <span className="font-extrabold text-slate-900 dark:text-white">50 ➔ 500 {language === "en" ? "Coops" : "Koperasi"}</span>
+                <div className="bg-card border-2 border-amber-400/80 dark:border-amber-600/60 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row items-center md:items-start gap-5">
+                  <div className="flex flex-col items-center justify-center p-4 rounded-xl border border-amber-300/80 dark:border-amber-700 bg-amber-50/70 dark:bg-amber-950/30 text-center min-w-[130px] shrink-0">
+                    <div className="p-3 rounded-full bg-amber-500/10 text-amber-600 mb-2">
+                      <Award className="h-7 w-7" />
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500 font-medium">{language === "en" ? "Revenue CAGR:" : "CAGR Pendapatan:"}</span>
-                      <span className="font-extrabold text-emerald-600">+85.4% / {language === "en" ? "Yr" : "Tahun"}</span>
+                    <span className="text-2xl font-black text-slate-900 dark:text-white leading-tight">
+                      {((valuation.dynamicInvestorEquityFrac || 0.23) * 100).toFixed(0)} %
+                    </span>
+                    <span className="text-[10px] font-extrabold text-amber-800 dark:text-amber-400 mt-1 leading-tight text-center">
+                      {language === "en" ? "Equity Offered" : "Saham Ditawarkan"}
+                    </span>
+                  </div>
+
+                  <div className="flex-1 w-full text-xs space-y-1.5 font-medium text-slate-700 dark:text-slate-300">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500">{language === "en" ? "Target Equity Offering" : "Target Penawaran Ekuitas"}</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">: {((valuation.dynamicInvestorEquityFrac || 0.23) * 100).toFixed(0)} – {(((valuation.dynamicInvestorEquityFrac || 0.23) + 0.02) * 100).toFixed(0)}%</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 italic pb-1 border-b border-slate-100 dark:border-slate-800">
+                      {language === "en" ? "(Final percentage subject to due diligence & final valuation)" : "(Persentase final tergantung due diligence & valuasi akhir)"}
+                    </p>
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500">{language === "en" ? `Projected EBITDA Margin (${data2029.year || 2029})` : `Proyeksi EBITDA Margin (${data2029.year || 2029})`}</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">: {(data2029.ebitdaMargin > 1 ? data2029.ebitdaMargin : (data2029.ebitdaMargin || 0.606) * 100).toFixed(1).replace(".", ",")}%</span>
+                    </div>
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500">{language === "en" ? `Estimated IRR (${detailedProjectionData.length} years)` : `Estimasi IRR (${detailedProjectionData.length} tahun)`}</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">: {((valuation.irrBase || 0.223) * 100).toFixed(1).replace(".", ",")}%</span>
+                    </div>
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500">{language === "en" ? `Estimated Exit Valuation (${data2029.year || 2029})` : `Estimasi Valuasi Exit (${data2029.year || 2029})`}</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">: {formatCurrency(valuation.exitValBase || 117_900_000_000, { compact: true, lang: language })}</span>
+                    </div>
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500">{language === "en" ? "Investor Equity Value" : "Nilai Ekuitas Investor"}</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">: {formatCurrency(valuation.invValBase || 27_400_000_000, { compact: true, lang: language })}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500">{language === "en" ? "MOIC Multiple Assumption" : "Asumsi MOIC (Kelipatan)"}</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">: {(valuation.moicBase || 2.7).toFixed(1)}x</span>
                     </div>
                   </div>
                 </div>
@@ -901,38 +1213,117 @@ export default function InvestorDashboard({ userData, handleLogout }) {
               {currentSlide === 2 && (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
-                      <p className="text-[10px] text-slate-400 uppercase font-bold">{language === "en" ? "Monthly ARPU" : "ARPU Bulanan"}</p>
-                      <p className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5">{formatRupiah(detailedProjectionData[0]?.arpu || 0)}</p>
+                    <div className="p-3.5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                      <p className="text-[10px] text-slate-400 uppercase font-bold">{language === "en" ? "MRR (Exit Year)" : "MRR (Tahun Exit)"}</p>
+                      <p className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5">{formatCurrency(data2029.mrr || 0, { lang: language })}</p>
                     </div>
-                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
-                      <p className="text-[10px] text-slate-400 uppercase font-bold">{language === "en" ? "Estimated CAC" : "Estimasi CAC"}</p>
-                      <p className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5">{formatRupiah(detailedProjectionData[0]?.estimatedCac || 0)}</p>
+                    <div className="p-3.5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                      <p className="text-[10px] text-slate-400 uppercase font-bold">{language === "en" ? "Estimasi LTV" : "Estimasi LTV"}</p>
+                      <p className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5">{formatRupiah(data2029.estimatedLtv || 0)}</p>
                     </div>
                   </div>
-                  <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl">
-                    <p className="text-xs font-bold text-amber-900 dark:text-amber-300">{language === "en" ? "EBITDA Projection FY2029:" : "Proyeksi EBITDA FY2029:"}</p>
-                    <p className="text-lg font-black text-amber-800 dark:text-amber-400 mt-0.5">{formatRupiah(detailedProjectionData[4]?.ebitda || 0)}</p>
+                  <div className="p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl space-y-1.5 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600 dark:text-slate-300 font-medium">{language === "en" ? "LTV / CAC Ratio:" : "Rasio LTV / CAC:"}</span>
+                      <span className="font-extrabold text-emerald-600 dark:text-emerald-400">{(data2029.ltvCacRatio || 0).toFixed(1)}x</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600 dark:text-slate-300 font-medium">{language === "en" ? "Gross Margin:" : "Margin Laba Kotor:"}</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">{(data2029.grossMargin || 0).toFixed(1)}%</span>
+                    </div>
                   </div>
                 </div>
               )}
 
               {currentSlide === 3 && (
-                <div className="space-y-3">
-                  <div className="p-4 bg-gradient-to-br from-[#003d6b] to-[#005fa4] text-white rounded-2xl shadow-md space-y-2">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-blue-100 font-medium">Pre-Money Valuation:</span>
-                      <span className="font-extrabold text-white">{formatRupiah(valuation?.preMoneyValuation || 0)}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-blue-100 font-medium">{language === "en" ? "Seed Investment Target:" : "Target Investasi Seed:"}</span>
-                      <span className="font-extrabold text-[#FFD700]">{formatRupiah(valuation?.seedInvestment || 0)}</span>
-                    </div>
-                    <div className="border-t border-white/20 pt-2 flex justify-between items-center text-xs font-bold">
-                      <span>{language === "en" ? "Target Exit Valuation 2029 (5x):" : "Target Valuasi Exit 2029 (5x):"}</span>
-                      <span className="text-sm text-[#FFD700]">{formatRupiah((detailedProjectionData[4]?.totalRevenue * 5) || 0)}</span>
-                    </div>
-                  </div>
+                <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-[#1d4370] text-white font-bold border-b border-slate-200 dark:border-slate-700">
+                      <tr>
+                        <th className="p-2.5 whitespace-nowrap">Metric / Driver</th>
+                        {detailedProjectionData.map(d => (
+                          <th key={d.year} className="p-2.5 text-right whitespace-nowrap">{d.year}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                      <tr>
+                        <td className="p-2.5 font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">Active Cooperatives</td>
+                        {detailedProjectionData.map(d => (
+                          <td key={d.year} className="p-2.5 text-right whitespace-nowrap">{new Intl.NumberFormat('id-ID').format(Math.round(d.endingCoops || 0))}</td>
+                        ))}
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">Members</td>
+                        {detailedProjectionData.map(d => (
+                          <td key={d.year} className="p-2.5 text-right whitespace-nowrap">{new Intl.NumberFormat('id-ID').format(Math.round(d.totalMembers || 0))}</td>
+                        ))}
+                      </tr>
+                      <tr className="bg-[#d9e2ec] dark:bg-slate-800 font-extrabold text-slate-900 dark:text-white">
+                        <td colSpan={detailedProjectionData.length + 1} className="p-2.5 uppercase tracking-wider font-black">EBITDA</td>
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 font-extrabold text-slate-900 dark:text-white whitespace-nowrap">Total Revenue</td>
+                        {detailedProjectionData.map(d => (
+                          <td key={d.year} className="p-2.5 text-right whitespace-nowrap font-extrabold">{formatCurrency(d.totalRevenue || 0, { maximumFractionDigits: 0 })}</td>
+                        ))}
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">Annual Recurring Revenue (ARR)</td>
+                        {detailedProjectionData.map(d => (
+                          <td key={d.year} className="p-2.5 text-right whitespace-nowrap">{formatCurrency(d.arr || 0, { maximumFractionDigits: 0 })}</td>
+                        ))}
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">COGS</td>
+                        {detailedProjectionData.map(d => (
+                          <td key={d.year} className="p-2.5 text-right whitespace-nowrap">{formatCurrency(d.totalCogs || 0, { maximumFractionDigits: 0 })}</td>
+                        ))}
+                      </tr>
+                      <tr className="bg-[#dce6f2] dark:bg-slate-800/80 font-bold text-slate-900 dark:text-white">
+                        <td className="p-2.5 font-extrabold whitespace-nowrap">Gross Profit</td>
+                        {detailedProjectionData.map(d => (
+                          <td key={d.year} className="p-2.5 text-right whitespace-nowrap font-extrabold">{formatCurrency(d.grossProfit || 0, { maximumFractionDigits: 0 })}</td>
+                        ))}
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 text-slate-600 dark:text-slate-400 whitespace-nowrap">Gross Margin</td>
+                        {detailedProjectionData.map(d => (
+                          <td key={d.year} className="p-2.5 text-right whitespace-nowrap">{(d.grossMargin > 1 ? d.grossMargin : (d.grossMargin || 0) * 100).toFixed(1).replace(".", ",")}%</td>
+                        ))}
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">OPEX</td>
+                        {detailedProjectionData.map(d => (
+                          <td key={d.year} className="p-2.5 text-right whitespace-nowrap">{formatCurrency(d.totalOpex || 0, { maximumFractionDigits: 0 })}</td>
+                        ))}
+                      </tr>
+                      <tr className="bg-[#dce6f2] dark:bg-slate-800/80 font-black text-slate-900 dark:text-white">
+                        <td className="p-2.5 font-black whitespace-nowrap">EBITDA</td>
+                        {detailedProjectionData.map(d => (
+                          <td key={d.year} className="p-2.5 text-right whitespace-nowrap font-black text-amber-700 dark:text-amber-400">{formatCurrency(d.ebitda || 0, { maximumFractionDigits: 0 })}</td>
+                        ))}
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 text-slate-600 dark:text-slate-400 whitespace-nowrap">EBITDA Margin</td>
+                        {detailedProjectionData.map(d => (
+                          <td key={d.year} className="p-2.5 text-right whitespace-nowrap">{(d.ebitdaMargin > 1 ? d.ebitdaMargin : (d.ebitdaMargin || 0) * 100).toFixed(1).replace(".", ",")}%</td>
+                        ))}
+                      </tr>
+                      <tr className="bg-[#e8f0fe] dark:bg-slate-800/80 font-extrabold text-slate-900 dark:text-white">
+                        <td className="p-2.5 font-extrabold whitespace-nowrap">Net Profit</td>
+                        {detailedProjectionData.map(d => (
+                          <td key={d.year} className="p-2.5 text-right whitespace-nowrap font-extrabold text-emerald-700 dark:text-emerald-400">{formatCurrency(d.netProfit || 0, { maximumFractionDigits: 0 })}</td>
+                        ))}
+                      </tr>
+                      <tr>
+                        <td className="p-2.5 text-slate-600 dark:text-slate-400 whitespace-nowrap">Net Margin</td>
+                        {detailedProjectionData.map(d => (
+                          <td key={d.year} className="p-2.5 text-right whitespace-nowrap">{(d.netMargin > 1 ? d.netMargin : (d.netMargin || 0) * 100).toFixed(1).replace(".", ",")}%</td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>
