@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { 
   Building2, Users, LayoutDashboard, Settings, LogOut, 
   ChevronRight, Brain, PieChart, Activity, Calculator, Search, Bell, TrendingUp, RefreshCw,
-  AlertTriangle, X, Printer, Globe
+  AlertTriangle, X, Printer, Globe, FileSpreadsheet, ChevronDown, Download
 } from "lucide-react";
 
 import FinancialAnalystTab from "./components/FinancialAnalystTab";
 import AssumptionDriversTab from "./components/AssumptionDriversTab";
 import ProjectionModelTab from "./components/ProjectionModelTab";
+import ExcelPreviewModal from "./components/ExcelPreviewModal";
 
 import { simulateProjections, formatRupiah, getAnalystInsights } from "./utils/financialModel";
 import { useValuationModel } from "./utils/valuationHelper";
@@ -17,10 +18,16 @@ import { useLanguage } from "../../context/LanguageContext";
 import { useCurrency } from "../../context/CurrencyContext";
 import CurrencySwitcher from "../../components/CurrencySwitcher";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "../../components/ui/dropdown-menu";
 
 export default function CfoDashboard({ userData, handleLogout }) {
   const { language, setLanguage, t } = useLanguage();
-  const { formatCurrency } = useCurrency();
+  const { currency, formatCurrency } = useCurrency();
   const formatRupiah = formatCurrency;
   const [activeTab, setActiveTab] = useState("analyst");
   const [loading, setLoading] = useState(true);
@@ -47,6 +54,47 @@ export default function CfoDashboard({ userData, handleLogout }) {
     opex: false,
     funding: false
   });
+  const [exportingExcel, setExportingExcel] = useState(false);
+  const [showExcelPreview, setShowExcelPreview] = useState(false);
+
+  const handleExportExcel = async () => {
+    try {
+      setExportingExcel(true);
+      toast.loading(language === "en" ? "Generating Excel Model with formulas..." : "Membuat file Excel Financial Model beserta rumus...", { id: "excel-export" });
+      
+      const targetProjectId = projectId || 1;
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const response = await fetch(`/api/projects/${targetProjectId}/export-excel?currency=${encodeURIComponent(currency || 'IDR')}&lang=${encodeURIComponent(language || 'en')}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/json',
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.error || 'Export failed');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const compName = companyAccess?.company?.name || userData?.company?.name || 'Smartcoop';
+      link.download = `Smartcoop_Financial_Model_${compName.replace(/[^A-Za-z0-9_]/g, '_')}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(language === "en" ? "Excel Financial Model exported successfully!" : "Berhasil mengunduh Excel Financial Model!", { id: "excel-export" });
+    } catch (err) {
+      console.error(err);
+      toast.error((language === "en" ? "Failed to export Excel model: " : "Gagal mengunduh Excel model: ") + (err.message || ""), { id: "excel-export" });
+    } finally {
+      setExportingExcel(false);
+    }
+  };
 
   // Auth check & data load function
   const fetchData = useCallback(async () => {
@@ -407,13 +455,45 @@ export default function CfoDashboard({ userData, handleLogout }) {
               </div>
 
               {activeTab === "projection" && (
-                <button 
-                  onClick={() => window.print()}
-                  className="flex items-center gap-2 text-xs font-bold bg-[#005fa4] hover:bg-[#004b82] text-white px-4 py-2.5 rounded-xl shadow-md shadow-[#005fa4]/20 transition-all cursor-pointer shrink-0 print:hidden"
-                >
-                  <Printer className="h-4 w-4 text-[#FFD700]" />
-                  <span>{t("finance.projections.exportPdf", "Export PDF")}</span>
-                </button>
+                <div className="shrink-0 print:hidden">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="flex items-center gap-2 text-xs md:text-sm font-semibold bg-[#005fa4] hover:bg-[#004d85] text-white px-3.5 py-2 rounded-xl shadow-sm transition-all cursor-pointer outline-none">
+                        <Download className="h-4 w-4 text-[#FFD700]" />
+                        <span>{language === "en" ? "Export" : "Ekspor"}</span>
+                        <ChevronDown className="h-3.5 w-3.5 opacity-80" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48 p-1.5 rounded-2xl border-slate-200/80 shadow-xl">
+                      <DropdownMenuItem 
+                        onClick={() => setShowExcelPreview(true)}
+                        disabled={exportingExcel}
+                        className="cursor-pointer gap-2.5 px-3 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/70"
+                      >
+                        <div className="p-1.5 rounded-lg bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 shrink-0">
+                          <FileSpreadsheet className="h-4 w-4" />
+                        </div>
+                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                          {exportingExcel 
+                            ? (language === "en" ? "Exporting..." : "Membuat...") 
+                            : (language === "en" ? "Excel (.xlsx)" : "Model Excel (.xlsx)")}
+                        </span>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem 
+                        onClick={() => window.print()}
+                        className="cursor-pointer gap-2.5 px-3 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/70"
+                      >
+                        <div className="p-1.5 rounded-lg bg-blue-100/80 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 shrink-0">
+                          <Printer className="h-4 w-4" />
+                        </div>
+                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                          {language === "en" ? "PDF Document" : "Dokumen PDF"}
+                        </span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               )}
             </div>
 
@@ -506,6 +586,20 @@ export default function CfoDashboard({ userData, handleLogout }) {
           </div>
         </div>
       )}
+
+      {/* Excel Model Interactive Preview Modal */}
+      <ExcelPreviewModal
+        show={showExcelPreview}
+        onClose={() => setShowExcelPreview(false)}
+        onDownload={async () => {
+          await handleExportExcel();
+        }}
+        downloading={exportingExcel}
+        assumptionsByYear={assumptionsByYear}
+        currency={currency}
+        language={language}
+        companyName={companyAccess?.company?.name || userData?.company?.name || "Smartcoop"}
+      />
     </div>
   );
 }

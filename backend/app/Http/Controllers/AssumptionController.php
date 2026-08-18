@@ -116,4 +116,67 @@ class AssumptionController extends Controller
             return response()->json(['message' => 'Gagal mereset asumsi', 'error' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * GET /api/projects/:projectId/export-excel
+     * Mengunduh file Excel model (Smartcoop_Financial_Model_v2.xlsx) beserta rumus aktif (live formulas).
+     */
+    public function exportExcel(\Illuminate\Http\Request $request, $projectId)
+    {
+        $this->checkProjectAccess($projectId);
+        $project = Project::with('company')->findOrFail($projectId);
+
+        $assumptions = \App\Models\AssumptionValue::where('project_id', $project->id)->orderBy('year')->get();
+
+        $assumptionsByYear = [];
+        foreach ($assumptions as $a) {
+            $assumptionsByYear[$a->year] = $a->toArray();
+        }
+
+        $companyName = $project->company->name ?? 'Smartcoop';
+        $currency = $request->query('currency', 'IDR');
+        $lang = $request->query('lang', 'en');
+        $payload = [
+            'company_name' => $companyName,
+            'currency' => $currency,
+            'lang' => $lang,
+            'assumptions' => $assumptionsByYear,
+        ];
+
+        $tempDir = storage_path('app/temp');
+        if (!file_exists($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+
+        $jsonPath = $tempDir . '/payload_' . $project->id . '_' . time() . '.json';
+        $safeName = preg_replace('/[^A-Za-z0-9_]/', '_', $companyName);
+        $outputPath = $tempDir . '/Smartcoop_Financial_Model_' . $safeName . '.xlsx';
+        $templatePath = base_path('../Smartcoop_Financial_Model_v2.xlsx');
+        if (!file_exists($templatePath)) {
+            $templatePath = base_path('Smartcoop_Financial_Model_v2.xlsx');
+        }
+        if (!file_exists($templatePath)) {
+            $templatePath = storage_path('app/Smartcoop_Financial_Model_v2.xlsx');
+        }
+
+        file_put_contents($jsonPath, json_encode($payload));
+
+        $scriptPath = app_path('Services/export_excel.py');
+        $command = "python " . escapeshellarg($scriptPath) . " " . escapeshellarg($jsonPath) . " " . escapeshellarg($templatePath) . " " . escapeshellarg($outputPath);
+
+        exec($command, $output, $returnCode);
+
+        if (file_exists($jsonPath)) {
+            @unlink($jsonPath);
+        }
+
+        if ($returnCode !== 0 || !file_exists($outputPath)) {
+            return response()->json([
+                'message' => 'Gagal menghasilkan file Excel model',
+                'error' => implode("\n", $output)
+            ], 500);
+        }
+
+        return response()->download($outputPath, basename($outputPath))->deleteFileAfterSend(true);
+    }
 }
