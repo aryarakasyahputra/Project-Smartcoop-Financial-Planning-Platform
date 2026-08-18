@@ -59,9 +59,17 @@ export default function ExcelImportModal({
       toast.loading(language === "en" ? "Parsing Excel & recalculating model..." : "Membaca file Excel & menghitung ulang model...", { id: "import-excel" });
 
       const formData = new FormData();
-      formData.append("file", selectedFile);
+      formData.append("file", selectedFile, selectedFile.name);
+      formData.append("excel", selectedFile, selectedFile.name);
 
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token = sessionStorage.getItem("token") || localStorage.getItem("token") || localStorage.getItem("auth_token");
+      
+      if (!token) {
+        toast.error(language === "en" ? "Session expired. Please log in again." : "Sesi telah berakhir. Silakan login kembali.", { id: "import-excel" });
+        setUploading(false);
+        return;
+      }
+
       const res = await fetch(`/api/projects/${projectId}/import-excel`, {
         method: "POST",
         headers: {

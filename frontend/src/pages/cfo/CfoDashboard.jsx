@@ -280,7 +280,6 @@ export default function CfoDashboard({ userData, handleLogout }) {
   // Actually perform the reset after user confirms via modal
   const executeReset = async () => {
     setShowResetModal(false);
-    if (!confirm("Apakah Anda yakin ingin menghapus semua data dan mereset ke nol? Tindakan ini tidak dapat dibatalkan.")) return;
 
     const token = sessionStorage.getItem("token");
     setSaving(true);

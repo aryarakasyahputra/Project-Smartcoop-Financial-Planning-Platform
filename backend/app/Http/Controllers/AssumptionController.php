@@ -204,13 +204,24 @@ class AssumptionController extends Controller
     {
         $this->checkProjectAccess($projectId);
 
-        if (!$request->hasFile('file') && !$request->hasFile('excel')) {
+        $file = null;
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+        } elseif ($request->hasFile('excel')) {
+            $file = $request->file('excel');
+        } else {
+            $allFiles = $request->allFiles();
+            if (!empty($allFiles)) {
+                $file = reset($allFiles);
+            }
+        }
+
+        if (!$file) {
             return response()->json(['message' => 'File Excel tidak ditemukan dalam request upload'], 400);
         }
 
-        $file = $request->file('file') ?? $request->file('excel');
         if (!$file->isValid()) {
-            return response()->json(['message' => 'File upload tidak valid'], 400);
+            return response()->json(['message' => 'File upload tidak valid: ' . $file->getErrorMessage()], 400);
         }
 
         $ext = strtolower($file->getClientOriginalExtension());
@@ -223,26 +234,30 @@ class AssumptionController extends Controller
             mkdir($tempDir, 0755, true);
         }
 
-        $tempPath = $file->storeAs('temp', 'upload_' . $projectId . '_' . time() . '.' . $ext);
-        $fullPath = storage_path('app/' . $tempPath);
+        $filename = 'upload_' . $projectId . '_' . time() . '.' . $ext;
+        $movedFile = $file->move($tempDir, $filename);
+        $fullPath = $movedFile->getRealPath();
 
         try {
             $scriptPath = app_path('Services/import_excel.py');
-            $command = "python " . escapeshellarg($scriptPath) . " " . escapeshellarg($fullPath);
+            $command = "python " . escapeshellarg($scriptPath) . " " . escapeshellarg($fullPath) . " 2>&1";
 
             exec($command, $output, $returnCode);
 
-            if (file_exists($fullPath)) {
-                @unlink($fullPath);
+            if ($returnCode !== 0 || empty($output)) {
+                $output = [];
+                $command2 = "py " . escapeshellarg($scriptPath) . " " . escapeshellarg($fullPath) . " 2>&1";
+                exec($command2, $output, $returnCode);
             }
 
             $rawOutput = implode("\n", $output);
             $parsed = json_decode($rawOutput, true);
 
             if ($returnCode !== 0 || !$parsed || empty($parsed['success'])) {
+                $detail = $parsed['error'] ?? $rawOutput ?? 'Unknown error';
                 return response()->json([
-                    'message' => 'Gagal membaca file Excel',
-                    'error' => $parsed['error'] ?? $rawOutput ?? 'Unknown error'
+                    'message' => 'Gagal membaca file Excel: ' . $detail,
+                    'error' => $detail
                 ], 422);
             }
 
@@ -263,10 +278,11 @@ class AssumptionController extends Controller
                 'financial_summaries' => $summaries
             ]);
         } catch (\Exception $e) {
-            if (file_exists($fullPath)) {
+            return response()->json(['message' => 'Gagal mengimpor file Excel: ' . $e->getMessage(), 'error' => $e->getMessage()], 500);
+        } finally {
+            if (isset($fullPath) && file_exists($fullPath)) {
                 @unlink($fullPath);
             }
-            return response()->json(['message' => 'Gagal mengimpor file Excel', 'error' => $e->getMessage()], 500);
         }
     }
 }
