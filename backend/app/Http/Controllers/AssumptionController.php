@@ -163,29 +163,42 @@ class AssumptionController extends Controller
         $jsonPath = $tempDir . '/payload_' . $project->id . '_' . time() . '.json';
         $safeName = preg_replace('/[^A-Za-z0-9_]/', '_', $companyName);
         $outputPath = $tempDir . '/Smartcoop_Financial_Model_' . $safeName . '.xlsx';
-        $templatePath = base_path('../Smartcoop_Financial_Model_v2.xlsx');
+        $templatePath = storage_path('app/Smartcoop_Financial_Model_v2.xlsx');
         if (!file_exists($templatePath)) {
             $templatePath = base_path('Smartcoop_Financial_Model_v2.xlsx');
         }
         if (!file_exists($templatePath)) {
-            $templatePath = storage_path('app/Smartcoop_Financial_Model_v2.xlsx');
+            $templatePath = base_path('../Smartcoop_Financial_Model_v2.xlsx');
         }
 
         file_put_contents($jsonPath, json_encode($payload));
 
         $scriptPath = app_path('Services/export_excel.py');
-        $command = "python " . escapeshellarg($scriptPath) . " " . escapeshellarg($jsonPath) . " " . escapeshellarg($templatePath) . " " . escapeshellarg($outputPath);
-
+        $command = "python3 " . escapeshellarg($scriptPath) . " " . escapeshellarg($jsonPath) . " " . escapeshellarg($templatePath) . " " . escapeshellarg($outputPath) . " 2>&1";
+        
         exec($command, $output, $returnCode);
+
+        if ($returnCode !== 0 || !file_exists($outputPath)) {
+            $output = [];
+            $command = "python " . escapeshellarg($scriptPath) . " " . escapeshellarg($jsonPath) . " " . escapeshellarg($templatePath) . " " . escapeshellarg($outputPath) . " 2>&1";
+            exec($command, $output, $returnCode);
+        }
+
+        if ($returnCode !== 0 || !file_exists($outputPath)) {
+            $output = [];
+            $command = "py " . escapeshellarg($scriptPath) . " " . escapeshellarg($jsonPath) . " " . escapeshellarg($templatePath) . " " . escapeshellarg($outputPath) . " 2>&1";
+            exec($command, $output, $returnCode);
+        }
 
         if (file_exists($jsonPath)) {
             @unlink($jsonPath);
         }
 
         if ($returnCode !== 0 || !file_exists($outputPath)) {
+            $errDetail = implode("\n", $output);
             return response()->json([
-                'message' => 'Gagal menghasilkan file Excel model',
-                'error' => implode("\n", $output)
+                'message' => 'Gagal menghasilkan file Excel model: ' . ($errDetail ?: 'File template atau Python openpyxl tidak ditemukan di server'),
+                'error' => $errDetail
             ], 500);
         }
 
