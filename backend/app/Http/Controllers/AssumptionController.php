@@ -191,4 +191,98 @@ class AssumptionController extends Controller
 
         return response()->download($outputPath, basename($outputPath))->deleteFileAfterSend(true);
     }
+
+    /**
+     * POST /api/projects/:projectId/import-excel
+     * Mengunggah file Excel model (.xlsx) untuk mengisi nilai asumsi keuangan secara otomatis.
+     * 
+     * @param Request $request
+     * @param int|string $projectId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function importExcel(Request $request, int|string $projectId)
+    {
+        $this->checkProjectAccess($projectId);
+
+        $file = null;
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+        } elseif ($request->hasFile('excel')) {
+            $file = $request->file('excel');
+        } else {
+            $allFiles = $request->allFiles();
+            if (!empty($allFiles)) {
+                $file = reset($allFiles);
+            }
+        }
+
+        if (!$file) {
+            return response()->json(['message' => 'File Excel tidak ditemukan dalam request upload'], 400);
+        }
+
+        if (!$file->isValid()) {
+            return response()->json(['message' => 'File upload tidak valid: ' . $file->getErrorMessage()], 400);
+        }
+
+        $ext = strtolower($file->getClientOriginalExtension());
+        if ($ext !== 'xlsx' && $ext !== 'xls') {
+            return response()->json(['message' => 'Format file harus berupa Excel (.xlsx atau .xls)'], 422);
+        }
+
+        $tempDir = storage_path('app/temp');
+        if (!file_exists($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+
+        $filename = 'upload_' . $projectId . '_' . time() . '.' . $ext;
+        $movedFile = $file->move($tempDir, $filename);
+        $fullPath = $movedFile->getRealPath();
+
+        try {
+            $scriptPath = app_path('Services/import_excel.py');
+            $command = "python " . escapeshellarg($scriptPath) . " " . escapeshellarg($fullPath) . " 2>&1";
+
+            exec($command, $output, $returnCode);
+
+            if ($returnCode !== 0 || empty($output)) {
+                $output = [];
+                $command2 = "py " . escapeshellarg($scriptPath) . " " . escapeshellarg($fullPath) . " 2>&1";
+                exec($command2, $output, $returnCode);
+            }
+
+            $rawOutput = implode("\n", $output);
+            $parsed = json_decode($rawOutput, true);
+
+            if ($returnCode !== 0 || !$parsed || empty($parsed['success'])) {
+                $detail = $parsed['error'] ?? $rawOutput ?? 'Unknown error';
+                return response()->json([
+                    'message' => 'Gagal membaca file Excel: ' . $detail,
+                    'error' => $detail
+                ], 422);
+            }
+
+            $assumptionsData = $parsed['assumptions'] ?? [];
+            if (empty($assumptionsData)) {
+                return response()->json(['message' => 'Tidak ditemukan data asumsi dalam file Excel'], 422);
+            }
+
+            // Recalculate and update database
+            $summaries = $this->service->recalculate($projectId, $assumptionsData);
+            $updatedProjectData = $this->service->getProjectData($projectId);
+
+            return response()->json([
+                'message' => 'Data asumsi berhasil diimpor dari file Excel',
+                'years' => $parsed['years'] ?? [],
+                'sheet_name' => $parsed['sheet_name'] ?? '02_Assumptions',
+                'data' => $updatedProjectData,
+                'financial_summaries' => $summaries
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Gagal mengimpor file Excel: ' . $e->getMessage(), 'error' => $e->getMessage()], 500);
+        } finally {
+            if (isset($fullPath) && file_exists($fullPath)) {
+                @unlink($fullPath);
+            }
+        }
+    }
 }

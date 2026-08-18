@@ -415,7 +415,8 @@ class FinancialModelService
                 $prevEndingCash = $endingCash;
 
                 $monthlyBurn = abs(min($ebitda / 12, 0));
-                $runwayMonths = $monthlyBurn > 0 ? $endingCash / $monthlyBurn : 999.00; // 999 represents Profitable
+                $rawRunway = $monthlyBurn > 0 ? $endingCash / $monthlyBurn : 999.00; // 999 represents Profitable
+                $runwayMonths = max(0, min(999.00, $rawRunway));
 
                 // 7. Perform SaaS Metrics
                 $mrr = $arr / 12;
@@ -423,10 +424,12 @@ class FinancialModelService
                 
                 // LTV = (MRR * GrossMargin%) / Churn%
                 $estimatedLtv = $churnRateFrac > 0 ? ($mrr * ($grossMargin / 100)) / $churnRateFrac : 0;
-                $ltvCacRatio = $estimatedCac > 0 ? $estimatedLtv / $estimatedCac : 0;
+                $rawLtvCac = $estimatedCac > 0 ? $estimatedLtv / $estimatedCac : 0;
+                $ltvCacRatio = max(0, min(999.00, $rawLtvCac));
                 
                 $mrrGross = $mrr * ($grossMargin / 100);
-                $cacPaybackMonths = $mrrGross > 0 ? $estimatedCac / $mrrGross : 0;
+                $rawPayback = $mrrGross > 0 ? $estimatedCac / $mrrGross : 0;
+                $cacPaybackMonths = max(0, min(999.00, $rawPayback));
 
                 // Rule of 40
                 if ($year == 2025) {
@@ -435,6 +438,7 @@ class FinancialModelService
                     $growthRate = $prevTotalRevenue > 0 ? ($totalRevenue / $prevTotalRevenue) - 1 : 0;
                     $ruleOf40 = $growthRate + ($ebitdaMargin / 100);
                 }
+                $ruleOf40 = max(-999.00, min(999.00, $ruleOf40));
                 $prevTotalRevenue = $totalRevenue;
 
                 // 8. Valuation Ratios

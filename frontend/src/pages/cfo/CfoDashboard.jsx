@@ -10,6 +10,7 @@ import FinancialAnalystTab from "./components/FinancialAnalystTab";
 import AssumptionDriversTab from "./components/AssumptionDriversTab";
 import ProjectionModelTab from "./components/ProjectionModelTab";
 import ExcelPreviewModal from "./components/ExcelPreviewModal";
+import ExcelImportModal from "../../components/modals/ExcelImportModal";
 
 import { simulateProjections, formatRupiah, getAnalystInsights } from "./utils/financialModel";
 import { useValuationModel } from "./utils/valuationHelper";
@@ -56,6 +57,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
   });
   const [exportingExcel, setExportingExcel] = useState(false);
   const [showExcelPreview, setShowExcelPreview] = useState(false);
+  const [showExcelImport, setShowExcelImport] = useState(false);
 
   const handleExportExcel = async () => {
     try {
@@ -278,7 +280,6 @@ export default function CfoDashboard({ userData, handleLogout }) {
   // Actually perform the reset after user confirms via modal
   const executeReset = async () => {
     setShowResetModal(false);
-    if (!confirm("Apakah Anda yakin ingin menghapus semua data dan mereset ke nol? Tindakan ini tidak dapat dibatalkan.")) return;
 
     const token = sessionStorage.getItem("token");
     setSaving(true);
@@ -522,6 +523,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
                 availableYears={availableYears}
                 handleAddYear={handleAddYear}
                 handleRemoveYear={handleRemoveYear}
+                onOpenExcelImport={() => setShowExcelImport(true)}
               />
             )}
 
@@ -599,6 +601,17 @@ export default function CfoDashboard({ userData, handleLogout }) {
         currency={currency}
         language={language}
         companyName={companyAccess?.company?.name || userData?.company?.name || "Smartcoop"}
+      />
+
+      {/* Excel Import Modal */}
+      <ExcelImportModal
+        show={showExcelImport}
+        onClose={() => setShowExcelImport(false)}
+        projectId={projectId || 1}
+        onImportSuccess={() => {
+          fetchData();
+        }}
+        language={language}
       />
     </div>
   );
