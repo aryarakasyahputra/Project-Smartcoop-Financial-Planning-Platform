@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { 
   LogOut, Building, LayoutDashboard, LineChart as LineChartIcon, Users, 
-  RefreshCw, Globe
+  RefreshCw, Globe, FileText, X, ChevronLeft, ChevronRight, Download, Wallet, Award, Eye
 } from "lucide-react";
 
 import FounderOverviewTab from "./components/FounderOverviewTab";
 import FounderProjectionsTab from "./components/FounderProjectionsTab";
 import FounderTeamTab from "./components/FounderTeamTab";
+import ExcelPreviewModal from "../cfo/components/ExcelPreviewModal";
 
 import { toast } from "sonner";
 import { simulateProjections, formatRupiah } from "../cfo/utils/financialModel";
@@ -61,7 +62,7 @@ function getScenarioAssumptions(baseAssumptions, scenario) {
 
 export default function FounderDashboard({ userData, handleLogout }) {
   const { language, setLanguage, t } = useLanguage();
-  const { formatCurrency } = useCurrency();
+  const { currency, formatCurrency } = useCurrency();
   const formatRupiah = formatCurrency;
   const [activeTab, setActiveTab] = useState("overview");
   const [activeScenario, setActiveScenario] = useState("base");
@@ -71,6 +72,13 @@ export default function FounderDashboard({ userData, handleLogout }) {
   const [projectionData, setProjectionData] = useState([]);
   const [loadingProjections, setLoadingProjections] = useState(true);
   const [hoveredYear, setHoveredYear] = useState(null);
+
+  const [exportingExcel, setExportingExcel] = useState(false);
+  const [showExcelPreview, setShowExcelPreview] = useState(false);
+  const [showDeckPreview, setShowDeckPreview] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [downloadingDeck, setDownloadingDeck] = useState(false);
+  const [downloadingReport, setDownloadingReport] = useState(false);
 
   // Members & Invitations State
   const [members, setMembers] = useState([]);
@@ -342,6 +350,60 @@ export default function FounderDashboard({ userData, handleLogout }) {
     return "";
   };
 
+  const handleExportExcel = async () => {
+    try {
+      setExportingExcel(true);
+      toast.loading(language === "en" ? "Generating Excel Model with formulas..." : "Membuat file Excel Financial Model beserta rumus...", { id: "excel-export" });
+      
+      const targetProjectId = projectId || 1;
+      const token = getToken();
+      const response = await fetch(`/api/projects/${targetProjectId}/export-excel?currency=${encodeURIComponent(currency || 'IDR')}&lang=${encodeURIComponent(language || 'en')}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/json',
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.error || 'Export failed');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const compName = primaryCompany?.name || 'Smartcoop';
+      link.download = `Smartcoop_Financial_Model_${compName.replace(/[^A-Za-z0-9_]/g, '_')}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(language === "en" ? "Excel Financial Model exported successfully!" : "Berhasil mengunduh Excel Financial Model!", { id: "excel-export" });
+    } catch (err) {
+      console.error(err);
+      toast.error((language === "en" ? "Failed to export Excel model: " : "Gagal mengunduh Excel model: ") + (err.message || ""), { id: "excel-export" });
+    } finally {
+      setExportingExcel(false);
+    }
+  };
+
+  const handleDownloadReport = () => {
+    setActiveTab("projections");
+    setTimeout(() => {
+      window.print();
+    }, 150);
+  };
+
+  const handleDownloadDeck = () => {
+    setDownloadingDeck(true);
+    setTimeout(() => {
+      setDownloadingDeck(false);
+      window.print();
+    }, 150);
+  };
+
   // Exit Val calculations based on scenario
   const activeExitVal = useMemo(() => {
     if (activeScenario === "optimistic") return valuation.exitValOpt || 0;
@@ -510,6 +572,14 @@ export default function FounderDashboard({ userData, handleLogout }) {
             hoveredYear={hoveredYear}
             setHoveredYear={setHoveredYear}
             getColHighlightClass={getColHighlightClass}
+            handleDownloadDeck={handleDownloadDeck}
+            handleDownloadReport={handleDownloadReport}
+            setShowExcelPreview={setShowExcelPreview}
+            exportingExcel={exportingExcel}
+            setShowDeckPreview={setShowDeckPreview}
+            setCurrentSlide={setCurrentSlide}
+            downloadingDeck={downloadingDeck}
+            downloadingReport={downloadingReport}
           />
         )}
 
@@ -546,6 +616,20 @@ export default function FounderDashboard({ userData, handleLogout }) {
           />
         )}
       </main>
+
+      {/* Excel Model Interactive Preview Modal */}
+      <ExcelPreviewModal
+        show={showExcelPreview}
+        onClose={() => setShowExcelPreview(false)}
+        onDownload={async () => {
+          await handleExportExcel();
+        }}
+        downloading={exportingExcel}
+        assumptionsByYear={baseAssumptions}
+        currency={currency}
+        language={language}
+        companyName={primaryCompany?.name || "Smartcoop"}
+      />
     </div>
   );
 }

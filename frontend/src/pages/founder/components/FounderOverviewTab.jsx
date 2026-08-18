@@ -1,7 +1,7 @@
 import React from "react";
 import { 
   Sparkles, Coins, Activity, Calculator, Users, ShieldAlert, TrendingUp, Award, Wallet,
-  ShieldCheck, AlertTriangle, ArrowUpRight, ArrowDownRight, Layers, Info
+  ShieldCheck, AlertTriangle, ArrowUpRight, ArrowDownRight, Layers, Info, FileText, Download, Eye, FileSpreadsheet, BarChart3
 } from "lucide-react";
 import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area
@@ -30,18 +30,26 @@ const MetricTooltip = ({ label, textEn, textId, language, align = "left" }) => (
 export default function FounderOverviewTab({
   activeScenario,
   setActiveScenario,
-  data2029,
-  valuation,
+  data2029 = {},
+  valuation = {},
   activeExitVal,
   activeMOIC,
   activeIRR,
   chartMetric,
   setChartMetric,
   chartData,
-  projectionData,
+  projectionData = [],
   hoveredYear,
   setHoveredYear,
-  getColHighlightClass
+  getColHighlightClass,
+  handleDownloadDeck,
+  handleDownloadReport,
+  setShowExcelPreview,
+  exportingExcel,
+  setShowDeckPreview,
+  setCurrentSlide,
+  downloadingDeck,
+  downloadingReport
 }) {
   const { language } = useLanguage();
   const { formatCurrency } = useCurrency();
@@ -210,261 +218,287 @@ export default function FounderOverviewTab({
         </div>
       </section>
 
-      {/* Comprehensive Visualizations */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
-          <h3 className="text-base font-extrabold flex items-center gap-2 text-slate-900 dark:text-white mb-2">
-            <TrendingUp className="h-5 w-5 text-[#005fa4]" /> {language === "en" ? "Revenue Trajectory (5 Years)" : "Lintasan Pendapatan (5 Tahun)"}
-          </h3>
-          <RevenueChart data={chartData} />
-        </div>
-        
-        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
-          <h3 className="text-base font-extrabold flex items-center gap-2 text-slate-900 dark:text-white mb-2">
-            <Activity className="h-5 w-5 text-indigo-600" /> {language === "en" ? "ARR Growth" : "Pertumbuhan ARR"}
-          </h3>
-          <ARRChart data={chartData} />
-        </div>
-
-        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
-          <h3 className="text-base font-extrabold flex items-center gap-2 text-slate-900 dark:text-white mb-2">
-            <Calculator className="h-5 w-5 text-amber-500" /> {language === "en" ? "EBITDA Projection" : "Proyeksi EBITDA"}
-          </h3>
-          <EBITDAChart data={chartData} />
+      {/* Financial Projection Table Card (Matching Photo 1) */}
+      <section className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6" style={{ boxShadow: "var(--shadow-card)" }}>
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-blue-100 dark:bg-blue-950/60 text-[#005fa4] dark:text-blue-400 shrink-0">
+            <BarChart3 className="h-6 w-6" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+              {language === "en" ? "Financial Projection" : "Proyeksi Keuangan"}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {language === "en" 
+                ? "Proforma P&L statement, unit economics, and operational growth forecasts." 
+                : "Laporan Laba Rugi Proforma, unit economics, dan proyeksi pertumbuhan operasional."}
+            </p>
+          </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
-          <h3 className="text-base font-extrabold flex items-center gap-2 text-slate-900 dark:text-white mb-2">
-            <Users className="h-5 w-5 text-emerald-600" /> {language === "en" ? "Cooperative Growth" : "Pertumbuhan Koperasi"}
-          </h3>
-          <CoopsChart data={chartData} />
-        </div>
-
-        <div className="bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-sm lg:col-span-2">
-          <h3 className="text-base font-extrabold flex items-center gap-2 text-slate-900 dark:text-white mb-2">
-            <Layers className="h-5 w-5 text-[#005fa4]" /> {language === "en" ? "Valuation Waterfall (Exit Year 5)" : "Waterfall Valuasi (Exit Tahun 5)"}
-          </h3>
-          <ValuationWaterfallChart valuation={valuation} activeExitVal={activeExitVal} />
-        </div>
-      </div>
-
-      {/* Metric / Driver Table */}
-      <div className="bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-          <h3 className="text-base font-extrabold flex items-center gap-2 text-slate-900 dark:text-white">
-            <Wallet className="h-5 w-5 text-[#005fa4]" /> {language === "en" ? "Projection Summary & Financial Drivers (Rp)" : "Ringkasan Proyeksi & Driver Finansial (Rp)"}
-          </h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left">
-            <thead className="text-[10px] uppercase bg-slate-50/80 dark:bg-slate-800/50 text-slate-500 border-b border-slate-200 dark:border-slate-800">
+        <div className="overflow-x-auto rounded-xl border border-slate-300 dark:border-slate-700 shadow-xs">
+          <table className="w-full text-xs text-left border-collapse">
+            <thead className="bg-[#1d4370] text-white">
               <tr>
-                <th className="px-6 py-4 font-bold">{language === "en" ? "Metric / Driver" : "Metrik / Driver"}</th>
+                <th className="px-4 py-3 font-extrabold text-white text-xs md:text-sm bg-[#1d4370] border-r border-blue-900/30">
+                  {language === "en" ? "Metric / Driver" : "Metrik / Asumsi"}
+                </th>
                 {projectionData.map((col) => (
-                  <th 
-                    key={col.year} 
-                    className={`px-6 py-4 font-bold text-right transition-colors duration-150 ${getColHighlightClass(col.year)}`}
-                    onMouseEnter={() => setHoveredYear(col.year)}
-                    onMouseLeave={() => setHoveredYear(null)}
-                  >
+                  <th key={col.year} className="px-4 py-3 font-extrabold text-white text-right text-xs md:text-sm bg-[#1d4370]">
                     {col.year}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900">
               {/* Active Cooperatives */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                <td className="px-6 py-3.5 font-medium text-slate-800 dark:text-slate-200">
-                  {language === "en" ? "Active Cooperatives" : "Jumlah Koperasi Aktif"}
+              <tr className="hover:bg-muted/5 transition-colors text-slate-700 dark:text-slate-200">
+                <td className="px-4 py-3 font-semibold border-r border-slate-200 dark:border-slate-800">
+                  {language === "en" ? "Active Cooperatives" : "Koperasi Aktif"}
                 </td>
                 {projectionData.map((c) => (
-                  <td 
-                    key={c.year} 
-                    className={`px-6 py-3.5 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                    onMouseEnter={() => setHoveredYear(c.year)}
-                    onMouseLeave={() => setHoveredYear(null)}
-                  >
-                    {new Intl.NumberFormat(language === "en" ? "en-US" : "id-ID").format(c.endingCoops)}
-                  </td>
-                ))}
-              </tr>
-              
-              {/* Members */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                <td className="px-6 py-3.5 text-slate-600 dark:text-slate-400">
-                  {language === "en" ? "Cooperative Members" : "Total Anggota Koperasi"}
-                </td>
-                {projectionData.map((c) => (
-                  <td 
-                    key={c.year} 
-                    className={`px-6 py-3.5 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                    onMouseEnter={() => setHoveredYear(c.year)}
-                    onMouseLeave={() => setHoveredYear(null)}
-                  >
-                    {new Intl.NumberFormat(language === "en" ? "en-US" : "id-ID").format(c.totalMembers)}
+                  <td key={c.year} className="px-4 py-3 whitespace-nowrap text-right font-mono font-medium">
+                    {new Intl.NumberFormat(language === "en" ? "en-US" : "id-ID").format(Math.round(c.endingCoops || 0))}
                   </td>
                 ))}
               </tr>
 
-              {/* Revenue */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                <td className="px-6 py-3.5 font-bold text-slate-900 dark:text-white">
+              {/* Members */}
+              <tr className="hover:bg-muted/5 transition-colors text-slate-700 dark:text-slate-200">
+                <td className="px-4 py-3 font-semibold border-r border-slate-200 dark:border-slate-800">
+                  {language === "en" ? "Members" : "Anggota Koperasi"}
+                </td>
+                {projectionData.map((c) => (
+                  <td key={c.year} className="px-4 py-3 whitespace-nowrap text-right font-mono font-medium">
+                    {new Intl.NumberFormat(language === "en" ? "en-US" : "id-ID").format(Math.round(c.totalMembers || 0))}
+                  </td>
+                ))}
+              </tr>
+
+              {/* Section Header Bar: EBITDA */}
+              <tr className="bg-[#d9e2ec] dark:bg-slate-800 text-slate-900 dark:text-white font-extrabold">
+                <td colSpan={projectionData.length + 1} className="px-4 py-2.5 text-xs md:text-sm uppercase tracking-wider font-black">
+                  EBITDA
+                </td>
+              </tr>
+
+              {/* Total Revenue */}
+              <tr className="hover:bg-muted/5 transition-colors text-slate-900 dark:text-white font-extrabold">
+                <td className="px-4 py-3 font-extrabold border-r border-slate-200 dark:border-slate-800">
                   {language === "en" ? "Total Revenue" : "Total Pendapatan"}
                 </td>
                 {projectionData.map((c) => (
-                  <td 
-                    key={c.year} 
-                    className={`px-6 py-3.5 text-right font-mono font-bold text-slate-900 dark:text-white transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                    onMouseEnter={() => setHoveredYear(c.year)}
-                    onMouseLeave={() => setHoveredYear(null)}
-                  >
-                    {formatRupiah(c.totalRevenue)}
+                  <td key={c.year} className="px-4 py-3 whitespace-nowrap text-right font-mono font-extrabold">
+                    {formatRupiah(c.totalRevenue || 0, { maximumFractionDigits: 0 })}
                   </td>
                 ))}
               </tr>
 
               {/* ARR */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors text-slate-600 dark:text-slate-400">
-                <td className="px-6 py-3.5">ARR</td>
+              <tr className="hover:bg-muted/5 transition-colors text-slate-700 dark:text-slate-300">
+                <td className="px-4 py-3 font-semibold border-r border-slate-200 dark:border-slate-800">
+                  {language === "en" ? "Annual Recurring Revenue (ARR)" : "Pendapatan Berulang Tahunan (ARR)"}
+                </td>
                 {projectionData.map((c) => (
-                  <td 
-                    key={c.year} 
-                    className={`px-6 py-3.5 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                    onMouseEnter={() => setHoveredYear(c.year)}
-                    onMouseLeave={() => setHoveredYear(null)}
-                  >
-                    {formatRupiah(c.arr)}
+                  <td key={c.year} className="px-4 py-3 whitespace-nowrap text-right font-mono">
+                    {formatRupiah(c.arr || 0, { maximumFractionDigits: 0 })}
+                  </td>
+                ))}
+              </tr>
+
+              {/* COGS */}
+              <tr className="hover:bg-muted/5 transition-colors text-slate-700 dark:text-slate-300">
+                <td className="px-4 py-3 font-semibold border-r border-slate-200 dark:border-slate-800">
+                  {language === "en" ? "COGS" : "HPP / COGS"}
+                </td>
+                {projectionData.map((c) => (
+                  <td key={c.year} className="px-4 py-3 whitespace-nowrap text-right font-mono">
+                    {formatRupiah(c.totalCogs || 0, { maximumFractionDigits: 0 })}
+                  </td>
+                ))}
+              </tr>
+
+              {/* Gross Profit (Highlighted row) */}
+              <tr className="bg-[#dce6f2] dark:bg-slate-800/80 font-bold text-slate-900 dark:text-white">
+                <td className="px-4 py-3 font-extrabold border-r border-slate-300 dark:border-slate-700">
+                  {language === "en" ? "Gross Profit" : "Laba Kotor"}
+                </td>
+                {projectionData.map((c) => (
+                  <td key={c.year} className="px-4 py-3 whitespace-nowrap text-right font-mono font-extrabold">
+                    {formatRupiah(c.grossProfit || 0, { maximumFractionDigits: 0 })}
                   </td>
                 ))}
               </tr>
 
               {/* Gross Margin */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors text-slate-600 dark:text-slate-400">
-                <td className="px-6 py-3.5">
-                  {language === "en" ? "Gross Margin %" : "Margin Laba Kotor (%)"}
+              <tr className="hover:bg-muted/5 transition-colors text-slate-600 dark:text-slate-400">
+                <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800">
+                  {language === "en" ? "Gross Margin" : "Margin Laba Kotor"}
                 </td>
                 {projectionData.map((c) => (
-                  <td 
-                    key={c.year} 
-                    className={`px-6 py-3.5 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                    onMouseEnter={() => setHoveredYear(c.year)}
-                    onMouseLeave={() => setHoveredYear(null)}
-                  >
-                    {c.grossMargin.toFixed(1)}%
+                  <td key={c.year} className="px-4 py-3 whitespace-nowrap text-right font-mono">
+                    {(c.grossMargin > 1 ? c.grossMargin : (c.grossMargin || 0) * 100).toFixed(1).replace(".", ",")}%
                   </td>
                 ))}
               </tr>
 
-              {/* EBITDA */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                <td className="px-6 py-3.5 font-bold text-slate-900 dark:text-white">EBITDA</td>
+              {/* OPEX */}
+              <tr className="hover:bg-muted/5 transition-colors text-slate-700 dark:text-slate-300">
+                <td className="px-4 py-3 font-semibold border-r border-slate-200 dark:border-slate-800">
+                  {language === "en" ? "OPEX" : "Beban Operasional (OPEX)"}
+                </td>
                 {projectionData.map((c) => (
-                  <td 
-                    key={c.year} 
-                    className={`px-6 py-3.5 text-right font-mono font-bold transition-colors duration-150 ${getColHighlightClass(c.year)} ${c.ebitda >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}
-                    onMouseEnter={() => setHoveredYear(c.year)}
-                    onMouseLeave={() => setHoveredYear(null)}
-                  >
-                    {formatRupiah(c.ebitda)}
+                  <td key={c.year} className="px-4 py-3 whitespace-nowrap text-right font-mono">
+                    {formatRupiah(c.totalOpex || 0, { maximumFractionDigits: 0 })}
+                  </td>
+                ))}
+              </tr>
+
+              {/* EBITDA (Highlighted row) */}
+              <tr className="bg-[#dce6f2] dark:bg-slate-800/80 font-black text-slate-900 dark:text-white">
+                <td className="px-4 py-3 font-black border-r border-slate-300 dark:border-slate-700">EBITDA</td>
+                {projectionData.map((c) => (
+                  <td key={c.year} className="px-4 py-3 whitespace-nowrap text-right font-mono font-black">
+                    {formatRupiah(c.ebitda || 0, { maximumFractionDigits: 0 })}
                   </td>
                 ))}
               </tr>
 
               {/* EBITDA Margin */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors text-slate-600 dark:text-slate-400">
-                <td className="px-6 py-3.5">
-                  {language === "en" ? "EBITDA Margin %" : "Margin EBITDA (%)"}
+              <tr className="hover:bg-muted/5 transition-colors text-slate-600 dark:text-slate-400">
+                <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800">
+                  {language === "en" ? "EBITDA Margin" : "Margin EBITDA"}
                 </td>
                 {projectionData.map((c) => (
-                  <td 
-                    key={c.year} 
-                    className={`px-6 py-3.5 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                    onMouseEnter={() => setHoveredYear(c.year)}
-                    onMouseLeave={() => setHoveredYear(null)}
-                  >
-                    {c.ebitdaMargin.toFixed(1)}%
+                  <td key={c.year} className="px-4 py-3 whitespace-nowrap text-right font-mono">
+                    {(c.ebitdaMargin > 1 ? c.ebitdaMargin : (c.ebitdaMargin || 0) * 100).toFixed(1).replace(".", ",")}%
                   </td>
                 ))}
               </tr>
 
               {/* Net Profit */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                <td className="px-6 py-3.5 font-bold text-slate-900 dark:text-white">
+              <tr className="bg-[#e8f0fe] dark:bg-slate-800/40 font-bold text-slate-900 dark:text-white border-t border-slate-200 dark:border-slate-700">
+                <td className="px-4 py-3 font-bold border-r border-slate-300 dark:border-slate-700">
                   {language === "en" ? "Net Profit" : "Laba Bersih"}
                 </td>
                 {projectionData.map((c) => (
-                  <td 
-                    key={c.year} 
-                    className={`px-6 py-3.5 text-right font-mono font-bold transition-colors duration-150 ${getColHighlightClass(c.year)} ${c.netProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}
-                    onMouseEnter={() => setHoveredYear(c.year)}
-                    onMouseLeave={() => setHoveredYear(null)}
-                  >
-                    {formatRupiah(c.netProfit || 0)}
+                  <td key={c.year} className="px-4 py-3 whitespace-nowrap text-right font-mono font-bold">
+                    {formatRupiah(c.netProfit || 0, { maximumFractionDigits: 0 })}
                   </td>
                 ))}
               </tr>
 
               {/* Net Margin */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
-                <td className="px-6 py-3.5">
-                  {language === "en" ? "Net Margin %" : "Margin Laba Bersih (%)"}
+              <tr className="hover:bg-muted/5 transition-colors text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800">
+                  {language === "en" ? "Net Margin" : "Margin Laba Bersih"}
                 </td>
                 {projectionData.map((c) => (
-                  <td 
-                    key={c.year} 
-                    className={`px-6 py-3.5 text-right font-mono transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                    onMouseEnter={() => setHoveredYear(c.year)}
-                    onMouseLeave={() => setHoveredYear(null)}
-                  >
-                    {(c.netMargin || 0).toFixed(1)}%
-                  </td>
-                ))}
-              </tr>
-
-              {/* Ending Cash */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors font-medium">
-                <td className="px-6 py-3.5 font-bold text-slate-900 dark:text-white">
-                  {language === "en" ? "Ending Cash Balance" : "Saldo Kas Akhir"}
-                </td>
-                {projectionData.map((c) => (
-                  <td 
-                    key={c.year} 
-                    className={`px-6 py-3.5 text-right font-mono font-bold text-slate-900 dark:text-white transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                    onMouseEnter={() => setHoveredYear(c.year)}
-                    onMouseLeave={() => setHoveredYear(null)}
-                  >
-                    {formatRupiah(c.endingCash)}
-                  </td>
-                ))}
-              </tr>
-
-              {/* Cash Runway */}
-              <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors text-slate-600 dark:text-slate-400">
-                <td className="px-6 py-3.5 font-semibold">
-                  {language === "en" ? "Cash Runway (Months)" : "Runway Kas (Bulan)"}
-                </td>
-                {projectionData.map((c) => (
-                  <td 
-                    key={c.year} 
-                    className={`px-6 py-3.5 text-right transition-colors duration-150 ${getColHighlightClass(c.year)}`}
-                    onMouseEnter={() => setHoveredYear(c.year)}
-                    onMouseLeave={() => setHoveredYear(null)}
-                  >
-                    {c.ebitda >= 0 ? (
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200">
-                        {language === "en" ? "Profitable" : "Profitable"}
-                      </span>
-                    ) : (
-                      <span className="font-bold text-slate-700 dark:text-slate-300 font-mono">
-                        {c.runwayMonths ? (c.runwayMonths % 1 === 0 ? c.runwayMonths.toFixed(0) : c.runwayMonths.toFixed(1)) : '0'} {language === "en" ? "Months" : "Bulan"}
-                      </span>
-                    )}
+                  <td key={c.year} className="px-4 py-3 whitespace-nowrap text-right font-mono">
+                    {(c.netMargin > 1 ? c.netMargin : (c.netMargin || 0) * 100).toFixed(1).replace(".", ",")}%
                   </td>
                 ))}
               </tr>
             </tbody>
           </table>
+        </div>
+      </section>
+
+      {/* Investment Return Summary Cards (Matching Photo 2) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Card: Investment Needed */}
+        <div className="bg-card border-2 border-amber-400/80 dark:border-amber-600/60 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row items-center md:items-start gap-5">
+          {/* Icon Pill */}
+          <div className="flex flex-col items-center justify-center p-4 rounded-xl border border-amber-300/80 dark:border-amber-700 bg-amber-50/70 dark:bg-amber-950/30 text-center min-w-[130px] shrink-0">
+            <div className="p-3 rounded-full bg-amber-500/10 text-amber-600 mb-2">
+              <Wallet className="h-7 w-7" />
+            </div>
+            <span className="text-xl font-black text-slate-900 dark:text-white leading-tight">
+              {formatCurrency(valuation.seedInv || 10_000_000_000, { compact: true, lang: language })}
+            </span>
+            <span className="text-[10px] font-extrabold text-amber-800 dark:text-amber-400 mt-1 leading-tight text-center">
+              {language === "en" ? "Required Investment" : "Kebutuhan Investasi"}
+            </span>
+          </div>
+
+          {/* Details List */}
+          <div className="flex-1 w-full text-xs space-y-1.5 font-medium text-slate-700 dark:text-slate-300">
+            <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-slate-500">{language === "en" ? "Investment Stage" : "Tahap Investasi"}</span>
+              <span className="font-extrabold text-slate-900 dark:text-white">: {language === "en" ? "Seed Round" : "Putaran Seed"}</span>
+            </div>
+            <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-slate-500">{language === "en" ? "Investment Sought" : "Dana Investasi Dicari"}</span>
+              <span className="font-extrabold text-slate-900 dark:text-white">: {formatCurrency(valuation.seedInv || 10_000_000_000, { lang: language })}</span>
+            </div>
+            <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-slate-500">{language === "en" ? "Investment Instrument" : "Instrumen Investasi"}</span>
+              <span className="font-extrabold text-slate-900 dark:text-white">: {language === "en" ? "Preferred Equity (Seed Preferred Shares)" : "Ekuitas Preferen (Saham Preferen Seed)"}</span>
+            </div>
+            <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-slate-500">{language === "en" ? `Growth Target (${data2029.year || 2029})` : `Target Pertumbuhan (${data2029.year || 2029})`}</span>
+              <span className="font-extrabold text-slate-900 dark:text-white">: {new Intl.NumberFormat(language === "en" ? "en-US" : "id-ID").format(data2029.endingCoops || 1400)} {language === "en" ? "Active Cooperatives" : "Koperasi Aktif"}</span>
+            </div>
+            <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-slate-500">{language === "en" ? `Coop Members (${data2029.year || 2029})` : `Anggota Koperasi (${data2029.year || 2029})`}</span>
+              <span className="font-extrabold text-slate-900 dark:text-white">: {new Intl.NumberFormat(language === "en" ? "en-US" : "id-ID").format(data2029.totalMembers || 1050000)} {language === "en" ? "Members" : "Anggota"}</span>
+            </div>
+            <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-slate-500">{language === "en" ? `Projected ARR (${data2029.year || 2029})` : `Proyeksi ARR (${data2029.year || 2029})`}</span>
+              <span className="font-extrabold text-slate-900 dark:text-white">: {formatCurrency(data2029.arr || 15_000_000_000, { compact: true, lang: language })}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">{language === "en" ? `Projected Revenue (${data2029.year || 2029})` : `Proyeksi Revenue (${data2029.year || 2029})`}</span>
+              <span className="font-extrabold text-slate-900 dark:text-white">: {formatCurrency(data2029.totalRevenue || 33_000_000_000, { compact: true, lang: language })}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Card: Equity Offered */}
+        <div className="bg-card border-2 border-amber-400/80 dark:border-amber-600/60 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row items-center md:items-start gap-5">
+          {/* Icon Pill */}
+          <div className="flex flex-col items-center justify-center p-4 rounded-xl border border-amber-300/80 dark:border-amber-700 bg-amber-50/70 dark:bg-amber-950/30 text-center min-w-[130px] shrink-0">
+            <div className="p-3 rounded-full bg-amber-500/10 text-amber-600 mb-2">
+              <Award className="h-7 w-7" />
+            </div>
+            <span className="text-2xl font-black text-slate-900 dark:text-white leading-tight">
+              {((valuation.dynamicInvestorEquityFrac || 0.25) * 100).toFixed(0)} %
+            </span>
+            <span className="text-[10px] font-extrabold text-amber-800 dark:text-amber-400 mt-1 leading-tight text-center">
+              {language === "en" ? "Equity Offered" : "Saham Ditawarkan"}
+            </span>
+          </div>
+
+          {/* Details List */}
+          <div className="flex-1 w-full text-xs space-y-1 font-medium text-slate-700 dark:text-slate-300">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">{language === "en" ? "Target Equity Offering" : "Target Penawaran Ekuitas"}</span>
+              <span className="font-extrabold text-slate-900 dark:text-white">: {((valuation.dynamicInvestorEquityFrac || 0.25) * 100).toFixed(0)} – {(((valuation.dynamicInvestorEquityFrac || 0.25) + 0.02) * 100).toFixed(0)}%</span>
+            </div>
+            <p className="text-[10px] text-slate-400 italic pb-1 border-b border-slate-100 dark:border-slate-800">
+              {language === "en" ? "(Final percentage subject to due diligence & final valuation)" : "(Persentase final tergantung due diligence & valuasi akhir)"}
+            </p>
+            <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-slate-500">{language === "en" ? `Projected EBITDA Margin (${data2029.year || 2029})` : `Proyeksi EBITDA Margin (${data2029.year || 2029})`}</span>
+              <span className="font-extrabold text-slate-900 dark:text-white">: {(data2029.ebitdaMargin > 1 ? data2029.ebitdaMargin : (data2029.ebitdaMargin || 0.627) * 100).toFixed(1).replace(".", ",")}%</span>
+            </div>
+            <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-slate-500">{language === "en" ? `Estimated IRR (${projectionData.length || 5} years)` : `Estimasi IRR (${projectionData.length || 5} tahun)`}</span>
+              <span className="font-extrabold text-slate-900 dark:text-white">: {((valuation.irrBase || 0.311) * 100).toFixed(1).replace(".", ",")}%</span>
+            </div>
+            <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-slate-500">{language === "en" ? `Estimated Exit Valuation (${data2029.year || 2029})` : `Estimasi Valuasi Exit (${data2029.year || 2029})`}</span>
+              <span className="font-extrabold text-slate-900 dark:text-white">: {formatCurrency(valuation.exitValBase || 166_000_000_000, { compact: true, lang: language })}</span>
+            </div>
+            <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-slate-500">{language === "en" ? "Investor Equity Value" : "Nilai Ekuitas Investor"}</span>
+              <span className="font-extrabold text-slate-900 dark:text-white">: {formatCurrency(valuation.invValBase || 38_000_000_000, { compact: true, lang: language })}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">{language === "en" ? "MOIC Multiple Assumption" : "Asumsi MOIC (Kelipatan)"}</span>
+              <span className="font-extrabold text-slate-900 dark:text-white">: {(valuation.moicBase || 3.9).toFixed(1)}x</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
