@@ -140,12 +140,17 @@ class AssumptionController extends Controller
 
         $modelService = app(\App\Services\FinancialModelService::class);
         $projectData = $modelService->getProjectData($project->id);
-        $assumptionsByYear = $projectData['assumptions'] ?? [];
+        $assumptionsRaw = $projectData['assumptions'] ?? [];
 
-        if (empty($assumptionsByYear)) {
-            $assumptions = \App\Models\AssumptionValue::where('project_id', $project->id)->orderBy('year')->get();
-            foreach ($assumptions as $a) {
-                $assumptionsByYear[(string)$a->year] = $a->toArray();
+        if (is_object($assumptionsRaw) && method_exists($assumptionsRaw, 'toArray')) {
+            $assumptionsRaw = $assumptionsRaw->toArray();
+        }
+
+        $assumptionsByYear = [];
+        if (is_array($assumptionsRaw)) {
+            foreach ($assumptionsRaw as $k => $val) {
+                $y = is_array($val) ? ($val['year'] ?? $k) : $k;
+                $assumptionsByYear[(string)$y] = is_object($val) && method_exists($val, 'toArray') ? $val->toArray() : (array)$val;
             }
         }
 

@@ -30,6 +30,13 @@ class ExcelExportService
     public function generateModel(array $payload, string $templatePath, string $outputPath): bool
     {
         $assumptionsByYear = $payload['assumptions'] ?? [];
+        if (is_object($assumptionsByYear) && method_exists($assumptionsByYear, 'toArray')) {
+            $assumptionsByYear = $assumptionsByYear->toArray();
+        }
+        if (!is_array($assumptionsByYear)) {
+            $assumptionsByYear = (array)$assumptionsByYear;
+        }
+
         $companyName = $payload['company_name'] ?? 'Smartcoop';
         $currency = strtoupper((string)($payload['currency'] ?? 'IDR'));
         $lang = strtolower((string)($payload['lang'] ?? 'en'));
