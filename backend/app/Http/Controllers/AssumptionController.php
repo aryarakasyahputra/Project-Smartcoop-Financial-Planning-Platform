@@ -138,17 +138,15 @@ class AssumptionController extends Controller
         $this->checkProjectAccess($projectId);
         $project = Project::with('company')->findOrFail($projectId);
 
-        $assumptions = \App\Models\AssumptionValue::where('project_id', $project->id)->orderBy('year')->get();
+        $modelService = app(\App\Services\FinancialModelService::class);
+        $projectData = $modelService->getProjectData($project->id);
+        $assumptionsByYear = $projectData['assumptions'] ?? [];
 
-        if ($assumptions->isEmpty()) {
-            $modelService = app(\App\Services\FinancialModelService::class);
-            $modelService->getProjectData($project->id);
+        if (empty($assumptionsByYear)) {
             $assumptions = \App\Models\AssumptionValue::where('project_id', $project->id)->orderBy('year')->get();
-        }
-
-        $assumptionsByYear = [];
-        foreach ($assumptions as $a) {
-            $assumptionsByYear[(string)$a->year] = $a->toArray();
+            foreach ($assumptions as $a) {
+                $assumptionsByYear[(string)$a->year] = $a->toArray();
+            }
         }
 
         $companyName = $project->company->name ?? 'Smartcoop';
