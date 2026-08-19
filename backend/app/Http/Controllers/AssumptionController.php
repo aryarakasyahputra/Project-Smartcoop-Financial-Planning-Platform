@@ -243,27 +243,11 @@ class AssumptionController extends Controller
         $fullPath = $movedFile->getRealPath();
 
         try {
-            $scriptPath = app_path('Services/import_excel.py');
-            $command = "python " . escapeshellarg($scriptPath) . " " . escapeshellarg($fullPath) . " 2>&1";
+            @ini_set('memory_limit', '512M');
+            @set_time_limit(300);
 
-            exec($command, $output, $returnCode);
-
-            if ($returnCode !== 0 || empty($output)) {
-                $output = [];
-                $command2 = "py " . escapeshellarg($scriptPath) . " " . escapeshellarg($fullPath) . " 2>&1";
-                exec($command2, $output, $returnCode);
-            }
-
-            $rawOutput = implode("\n", $output);
-            $parsed = json_decode($rawOutput, true);
-
-            if ($returnCode !== 0 || !$parsed || empty($parsed['success'])) {
-                $detail = $parsed['error'] ?? $rawOutput ?? 'Unknown error';
-                return response()->json([
-                    'message' => 'Gagal membaca file Excel: ' . $detail,
-                    'error' => $detail
-                ], 422);
-            }
+            $importService = app(\App\Services\ExcelImportService::class);
+            $parsed = $importService->parseExcel($fullPath);
 
             $assumptionsData = $parsed['assumptions'] ?? [];
             if (empty($assumptionsData)) {
@@ -274,6 +258,10 @@ class AssumptionController extends Controller
             $summaries = $this->service->recalculate($projectId, $assumptionsData);
             $updatedProjectData = $this->service->getProjectData($projectId);
 
+            if (file_exists($fullPath)) {
+                @unlink($fullPath);
+            }
+
             return response()->json([
                 'message' => 'Data asumsi berhasil diimpor dari file Excel',
                 'years' => $parsed['years'] ?? [],
@@ -282,6 +270,9 @@ class AssumptionController extends Controller
                 'financial_summaries' => $summaries
             ]);
         } catch (\Exception $e) {
+            if (file_exists($fullPath)) {
+                @unlink($fullPath);
+            }
             return response()->json(['message' => 'Gagal mengimpor file Excel: ' . $e->getMessage(), 'error' => $e->getMessage()], 500);
         } finally {
             if (isset($fullPath) && file_exists($fullPath)) {
