@@ -1,8 +1,8 @@
 [phases.setup]
-nixPkgs = ["php83", "php83Extensions.gd", "php83Packages.composer"]
+nixPkgs = ["php83", "php83Extensions.gd", "php83Extensions.zip", "php83Packages.composer"]
 
 [phases.build]
-cmds = ["composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-gd"]
+cmds = ["composer install --no-dev --optimize-autoloader --ignore-platform-reqs"]
 
 [start]
 cmd = "php artisan migrate --force && php artisan db:seed --force && php artisan serve --host=0.0.0.0 --port=$PORT"

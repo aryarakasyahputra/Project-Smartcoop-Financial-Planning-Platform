@@ -78,7 +78,11 @@
     "config": {
         "platform": {
             "php": "8.3.33",
-            "ext-gd": "8.3"
+            "ext-gd": "8.3",
+            "ext-zip": "8.3",
+            "ext-xml": "8.3",
+            "ext-simplexml": "8.3",
+            "ext-dom": "8.3"
         },
         "platform-check": false,
         "optimize-autoloader": true,
