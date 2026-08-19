@@ -140,9 +140,15 @@ class AssumptionController extends Controller
 
         $assumptions = \App\Models\AssumptionValue::where('project_id', $project->id)->orderBy('year')->get();
 
+        if ($assumptions->isEmpty()) {
+            $modelService = app(\App\Services\FinancialModelService::class);
+            $modelService->calculateFinancialModel($project->id);
+            $assumptions = \App\Models\AssumptionValue::where('project_id', $project->id)->orderBy('year')->get();
+        }
+
         $assumptionsByYear = [];
         foreach ($assumptions as $a) {
-            $assumptionsByYear[$a->year] = $a->toArray();
+            $assumptionsByYear[(string)$a->year] = $a->toArray();
         }
 
         $companyName = $project->company->name ?? 'Smartcoop';
