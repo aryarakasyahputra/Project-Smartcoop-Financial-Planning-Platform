@@ -129,7 +129,15 @@ class ExcelImportService
      */
     public function parseExcel(string $excelPath): array
     {
-        $spreadsheet = IOFactory::load($excelPath);
+        if (!class_exists('ZipArchive')) {
+            return $this->parseExcelStreamFallback($excelPath);
+        }
+
+        try {
+            $spreadsheet = IOFactory::load($excelPath);
+        } catch (\Throwable $e) {
+            return $this->parseExcelStreamFallback($excelPath);
+        }
 
         $mainSheet = null;
         $targetNames = ['02_assumptions', 'assumptions', 'asumsi'];
@@ -225,6 +233,204 @@ class ExcelImportService
         return [
             'success' => true,
             'sheet_name' => $mainSheet->getTitle(),
+            'years' => $sortedYears,
+            'assumptions' => $resultByYear
+        ];
+    }
+
+    /**
+     * Fallback stream reader using PHP built-in zip:// stream wrapper when ZipArchive class is missing.
+     */
+    private function parseExcelStreamFallback(string $excelPath): array
+    {
+        $zipPath = str_replace('\\', '/', $excelPath);
+        
+        // 1. Read shared strings
+        $sharedStrings = [];
+        $ssContent = @file_get_contents("zip://{$zipPath}#xl/sharedStrings.xml");
+        if ($ssContent) {
+            $xmlSS = @simplexml_load_string($ssContent);
+            if ($xmlSS) {
+                foreach ($xmlSS->si as $si) {
+                    if (isset($si->t)) {
+                        $sharedStrings[] = (string)$si->t;
+                    } elseif (isset($si->r)) {
+                        $text = '';
+                        foreach ($si->r as $r) {
+                            $text .= (string)$r->t;
+                        }
+                        $sharedStrings[] = $text;
+                    } else {
+                        $sharedStrings[] = '';
+                    }
+                }
+            }
+        }
+
+        // 2. Read workbook to map sheet names to targets
+        $workbookContent = @file_get_contents("zip://{$zipPath}#xl/workbook.xml");
+        $sheetTargets = [];
+        if ($workbookContent) {
+            $wbXml = @simplexml_load_string($workbookContent);
+            if ($wbXml && isset($wbXml->sheets->sheet)) {
+                $idx = 1;
+                foreach ($wbXml->sheets->sheet as $s) {
+                    $name = (string)$s['name'];
+                    $sheetTargets[$name] = "xl/worksheets/sheet{$idx}.xml";
+                    $idx++;
+                }
+            }
+        }
+
+        // Target 02_Assumptions sheet
+        $targetFile = null;
+        $mainSheetTitle = '02_Assumptions';
+        foreach ($sheetTargets as $sName => $file) {
+            if (str_contains(strtolower($sName), '02_assumptions') || str_contains(strtolower($sName), 'assumptions')) {
+                $targetFile = $file;
+                $mainSheetTitle = $sName;
+                break;
+            }
+        }
+        if (!$targetFile) $targetFile = "xl/worksheets/sheet2.xml";
+
+        $sheetContent = @file_get_contents("zip://{$zipPath}#{$targetFile}");
+        if (!$sheetContent) {
+            throw new \Exception("Gagal membaca file Excel melalui stream reader.");
+        }
+
+        $sheetXml = @simplexml_load_string($sheetContent);
+        $rows = [];
+        if ($sheetXml && isset($sheetXml->sheetData->row)) {
+            foreach ($sheetXml->sheetData->row as $r) {
+                $rIdx = (int)$r['r'];
+                foreach ($r->c as $c) {
+                    $rName = (string)$c['r'];
+                    if (preg_match('/^([A-Z]+)(\d+)$/', $rName, $m)) {
+                        $colLetter = $m[1];
+                        $colIdx = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($colLetter);
+                        $val = null;
+                        $t = (string)$c['t'];
+                        if ($t === 's') {
+                            $sIdx = (int)$c->v;
+                            $val = $sharedStrings[$sIdx] ?? null;
+                        } elseif (isset($c->v)) {
+                            $val = (string)$c->v;
+                        }
+                        $rows[$rIdx][$colIdx] = $val;
+                    }
+                }
+            }
+        }
+
+        $sortedYears = [2025, 2026, 2027, 2028, 2029];
+        $yearCols = [2025 => 2, 2026 => 3, 2027 => 4, 2028 => 5, 2029 => 6];
+
+        $resultByYear = [];
+        foreach ($sortedYears as $y) {
+            $resultByYear[$y] = [];
+        }
+
+        // Read main assumptions
+        foreach ($this->standardRowMap as $rowIdx => $key) {
+            foreach ($yearCols as $y => $colIdx) {
+                $rawVal = $rows[$rowIdx][$colIdx] ?? null;
+                $resultByYear[$y][$key] = $this->cleanNum($rawVal);
+            }
+        }
+
+        // Read HR sheet if present
+        $hrFile = null;
+        foreach ($sheetTargets as $sName => $file) {
+            if (str_contains(strtolower($sName), 'hr_planning') || str_contains(strtolower($sName), 'hr') || str_contains(strtolower($sName), 'payroll')) {
+                $hrFile = $file;
+                break;
+            }
+        }
+        if ($hrFile) {
+            $hrContent = @file_get_contents("zip://{$zipPath}#{$hrFile}");
+            if ($hrContent) {
+                $hrXml = @simplexml_load_string($hrContent);
+                $hrRows = [];
+                if ($hrXml && isset($hrXml->sheetData->row)) {
+                    foreach ($hrXml->sheetData->row as $r) {
+                        $rIdx = (int)$r['r'];
+                        foreach ($r->c as $c) {
+                            $rName = (string)$c['r'];
+                            if (preg_match('/^([A-Z]+)(\d+)$/', $rName, $m)) {
+                                $colIdx = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($m[1]);
+                                $val = (string)($c->v ?? '');
+                                $hrRows[$rIdx][$colIdx] = $val;
+                            }
+                        }
+                    }
+                }
+                foreach ($this->hrRowMap as $rowIdx => $key) {
+                    foreach ($sortedYears as $y) {
+                        $colIdx = $yearCols[$y];
+                        $rawVal = $hrRows[$rowIdx][$colIdx] ?? null;
+                        if ($rawVal !== null) {
+                            $resultByYear[$y][$key] = $this->cleanNum($rawVal);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Read OPEX sheet if present
+        $opexFile = null;
+        foreach ($sheetTargets as $sName => $file) {
+            if (str_contains(strtolower($sName), 'opex') || str_contains(strtolower($sName), 'operating')) {
+                $opexFile = $file;
+                break;
+            }
+        }
+        if ($opexFile) {
+            $opexContent = @file_get_contents("zip://{$zipPath}#{$opexFile}");
+            if ($opexContent) {
+                $opexXml = @simplexml_load_string($opexContent);
+                $opexRows = [];
+                if ($opexXml && isset($opexXml->sheetData->row)) {
+                    foreach ($opexXml->sheetData->row as $r) {
+                        $rIdx = (int)$r['r'];
+                        foreach ($r->c as $c) {
+                            $rName = (string)$c['r'];
+                            if (preg_match('/^([A-Z]+)(\d+)$/', $rName, $m)) {
+                                $colIdx = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($m[1]);
+                                $val = (string)($c->v ?? '');
+                                $opexRows[$rIdx][$colIdx] = $val;
+                            }
+                        }
+                    }
+                }
+                foreach ($this->opexRowMap as $rowIdx => $key) {
+                    foreach ($sortedYears as $y) {
+                        $colIdx = $yearCols[$y];
+                        $rawVal = $opexRows[$rowIdx][$colIdx] ?? null;
+                        $val = $this->cleanNum($rawVal);
+                        if ($key !== 'payroll_cost' || $val > 0) {
+                            $resultByYear[$y][$key] = $val;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Normalize percentage fractions
+        foreach ($sortedYears as $y) {
+            foreach ($this->fracKeys as $k) {
+                if (isset($resultByYear[$y][$k])) {
+                    $val = $resultByYear[$y][$k];
+                    if ($val > 0 && $val <= 1.0) {
+                        $resultByYear[$y][$k] = round($val * 100.0, 4);
+                    }
+                }
+            }
+        }
+
+        return [
+            'success' => true,
+            'sheet_name' => $mainSheetTitle,
             'years' => $sortedYears,
             'assumptions' => $resultByYear
         ];
