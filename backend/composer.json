@@ -77,7 +77,8 @@
     },
     "config": {
         "platform": {
-            "php": "8.3.33"
+            "php": "8.3.33",
+            "ext-gd": "8.3"
         },
         "platform-check": false,
         "optimize-autoloader": true,
