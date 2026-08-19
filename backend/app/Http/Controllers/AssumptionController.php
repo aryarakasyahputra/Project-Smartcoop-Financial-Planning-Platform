@@ -171,43 +171,23 @@ class AssumptionController extends Controller
             $templatePath = base_path('../Smartcoop_Financial_Model_v2.xlsx');
         }
 
-        // 1. Primary Native PHP Generation (PhpSpreadsheet) - Works on Vercel & Cloud without Python
+        @ini_set('memory_limit', '512M');
+        @set_time_limit(300);
+
         try {
             $exportService = app(\App\Services\ExcelExportService::class);
             $success = $exportService->generateModel($payload, $templatePath, $outputPath);
             if ($success && file_exists($outputPath)) {
                 return response()->download($outputPath, basename($outputPath))->deleteFileAfterSend(true);
             }
+            throw new \Exception("File output gagal dibuat di path " . $outputPath);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning("Native PHP Excel Export failed, trying Python fallback: " . $e->getMessage());
-        }
-
-        // 2. Python Fallback if needed
-        file_put_contents($jsonPath, json_encode($payload));
-        $scriptPath = app_path('Services/export_excel.py');
-        $command = "python3 " . escapeshellarg($scriptPath) . " " . escapeshellarg($jsonPath) . " " . escapeshellarg($templatePath) . " " . escapeshellarg($outputPath) . " 2>&1";
-        
-        exec($command, $output, $returnCode);
-
-        if ($returnCode !== 0 || !file_exists($outputPath)) {
-            $output = [];
-            $command = "python " . escapeshellarg($scriptPath) . " " . escapeshellarg($jsonPath) . " " . escapeshellarg($templatePath) . " " . escapeshellarg($outputPath) . " 2>&1";
-            exec($command, $output, $returnCode);
-        }
-
-        if (file_exists($jsonPath)) {
-            @unlink($jsonPath);
-        }
-
-        if ($returnCode !== 0 || !file_exists($outputPath)) {
-            $errDetail = implode("\n", $output);
+            \Illuminate\Support\Facades\Log::error("Excel Export Error: " . $e->getMessage());
             return response()->json([
-                'message' => 'Gagal menghasilkan file Excel model',
-                'error' => $errDetail
+                'message' => 'Gagal menghasilkan file Excel model: ' . $e->getMessage(),
+                'error' => $e->getMessage()
             ], 500);
         }
-
-        return response()->download($outputPath, basename($outputPath))->deleteFileAfterSend(true);
     }
 
     /**
