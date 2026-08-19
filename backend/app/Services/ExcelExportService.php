@@ -57,9 +57,16 @@ class ExcelExportService
             $payloadYears = [2025, 2026, 2027, 2028, 2029];
         }
 
-        if (file_exists($templatePath)) {
-            $spreadsheet = IOFactory::load($templatePath);
-        } else {
+        $spreadsheet = null;
+        if (file_exists($templatePath) && class_exists('ZipArchive')) {
+            try {
+                $spreadsheet = IOFactory::load($templatePath);
+            } catch (\Throwable $e) {
+                $spreadsheet = null;
+            }
+        }
+
+        if (!$spreadsheet) {
             $spreadsheet = new Spreadsheet();
             $coverSheet = $spreadsheet->getActiveSheet();
             $coverSheet->setTitle('01_Cover');
