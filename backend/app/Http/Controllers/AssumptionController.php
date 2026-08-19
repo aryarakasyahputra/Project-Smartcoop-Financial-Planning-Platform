@@ -171,8 +171,19 @@ class AssumptionController extends Controller
             $templatePath = base_path('../Smartcoop_Financial_Model_v2.xlsx');
         }
 
-        file_put_contents($jsonPath, json_encode($payload));
+        // 1. Primary Native PHP Generation (PhpSpreadsheet) - Works on Vercel & Cloud without Python
+        try {
+            $exportService = app(\App\Services\ExcelExportService::class);
+            $success = $exportService->generateModel($payload, $templatePath, $outputPath);
+            if ($success && file_exists($outputPath)) {
+                return response()->download($outputPath, basename($outputPath))->deleteFileAfterSend(true);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Native PHP Excel Export failed, trying Python fallback: " . $e->getMessage());
+        }
 
+        // 2. Python Fallback if needed
+        file_put_contents($jsonPath, json_encode($payload));
         $scriptPath = app_path('Services/export_excel.py');
         $command = "python3 " . escapeshellarg($scriptPath) . " " . escapeshellarg($jsonPath) . " " . escapeshellarg($templatePath) . " " . escapeshellarg($outputPath) . " 2>&1";
         
@@ -184,12 +195,6 @@ class AssumptionController extends Controller
             exec($command, $output, $returnCode);
         }
 
-        if ($returnCode !== 0 || !file_exists($outputPath)) {
-            $output = [];
-            $command = "py " . escapeshellarg($scriptPath) . " " . escapeshellarg($jsonPath) . " " . escapeshellarg($templatePath) . " " . escapeshellarg($outputPath) . " 2>&1";
-            exec($command, $output, $returnCode);
-        }
-
         if (file_exists($jsonPath)) {
             @unlink($jsonPath);
         }
@@ -197,7 +202,7 @@ class AssumptionController extends Controller
         if ($returnCode !== 0 || !file_exists($outputPath)) {
             $errDetail = implode("\n", $output);
             return response()->json([
-                'message' => 'Gagal menghasilkan file Excel model: ' . ($errDetail ?: 'File template atau Python openpyxl tidak ditemukan di server'),
+                'message' => 'Gagal menghasilkan file Excel model',
                 'error' => $errDetail
             ], 500);
         }
