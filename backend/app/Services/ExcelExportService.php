@@ -297,8 +297,8 @@ class ExcelExportService
                 // 07_OPEX Sheet
                 // ----------------------------------------------------
                 if ($sheetOpex) {
-                    $v = $this->getVal($data, ['payroll_cost', 'payrollCost']);
-                    if ($v !== null) $sheetOpex->setCellValue([$colIdx, 5], (float)$v * $rate);
+                    // Row 5 is Payroll formula ='06_HR_Planning'!B13. Ensure formula is preserved for each year column.
+                    $sheetOpex->setCellValue([$colIdx, 5], "='06_HR_Planning'!{$colLetter}13");
 
                     $v = $this->getVal($data, ['sales_marketing_spend', 'salesMarketingSpend']);
                     if ($v !== null) $sheetOpex->setCellValue([$colIdx, 6], (float)$v * $rate);
