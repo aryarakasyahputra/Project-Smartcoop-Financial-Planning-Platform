@@ -239,15 +239,80 @@ class ExcelImportService
     }
 
     /**
-     * Fallback stream reader using PHP built-in zip:// stream wrapper when ZipArchive class is missing.
+     * Fallback stream reader using pure PHP binary unpacker and zip:// stream wrapper when ZipArchive class is missing.
      */
+    private function unzipXlsxFiles(string $excelPath): array
+    {
+        $files = [];
+        $zipPath = str_replace('\\', '/', $excelPath);
+
+        // 1. Try zip:// stream wrapper
+        $ssContent = @file_get_contents("zip://{$zipPath}#xl/sharedStrings.xml");
+        $wbContent = @file_get_contents("zip://{$zipPath}#xl/workbook.xml");
+
+        if ($wbContent !== false) {
+            $files['xl/workbook.xml'] = $wbContent;
+            if ($ssContent !== false) $files['xl/sharedStrings.xml'] = $ssContent;
+            for ($i = 1; $i <= 15; $i++) {
+                $stContent = @file_get_contents("zip://{$zipPath}#xl/worksheets/sheet{$i}.xml");
+                if ($stContent !== false) {
+                    $files["xl/worksheets/sheet{$i}.xml"] = $stContent;
+                }
+            }
+            if (isset($files['xl/workbook.xml'])) {
+                return $files;
+            }
+        }
+
+        // 2. Pure PHP binary zip unpacker (0 dependencies, 100% compatible)
+        $data = @file_get_contents($excelPath);
+        if (!$data) return [];
+
+        $offset = 0;
+        $len = strlen($data);
+
+        while ($offset < $len - 30) {
+            $sig = substr($data, $offset, 4);
+            if ($sig !== "\x50\x4b\x03\x04") {
+                break;
+            }
+
+            $method = unpack('v', substr($data, $offset + 8, 2))[1];
+            $compSize = unpack('V', substr($data, $offset + 18, 4))[1];
+            $fnLen = unpack('v', substr($data, $offset + 26, 2))[1];
+            $extraLen = unpack('v', substr($data, $offset + 28, 2))[1];
+
+            $fn = substr($data, $offset + 30, $fnLen);
+            $dataOffset = $offset + 30 + $fnLen + $extraLen;
+            $compData = substr($data, $dataOffset, $compSize);
+
+            $uncompData = null;
+            if ($method == 8) {
+                $uncompData = @gzinflate($compData);
+            } elseif ($method == 0) {
+                $uncompData = $compData;
+            }
+
+            if ($uncompData !== false && $uncompData !== null) {
+                $files[$fn] = $uncompData;
+            }
+
+            $offset = $dataOffset + $compSize;
+        }
+
+        return $files;
+    }
+
     private function parseExcelStreamFallback(string $excelPath): array
     {
-        $zipPath = str_replace('\\', '/', $excelPath);
+        $files = $this->unzipXlsxFiles($excelPath);
+        if (empty($files)) {
+            throw new \Exception("File Excel tidak dapat dibaca atau korup.");
+        }
         
         // 1. Read shared strings
         $sharedStrings = [];
-        $ssContent = @file_get_contents("zip://{$zipPath}#xl/sharedStrings.xml");
+        $ssContent = $files['xl/sharedStrings.xml'] ?? null;
         if ($ssContent) {
             $xmlSS = @simplexml_load_string($ssContent);
             if ($xmlSS) {
@@ -268,7 +333,7 @@ class ExcelImportService
         }
 
         // 2. Read workbook to map sheet names to targets
-        $workbookContent = @file_get_contents("zip://{$zipPath}#xl/workbook.xml");
+        $workbookContent = $files['xl/workbook.xml'] ?? null;
         $sheetTargets = [];
         if ($workbookContent) {
             $wbXml = @simplexml_load_string($workbookContent);
@@ -294,9 +359,9 @@ class ExcelImportService
         }
         if (!$targetFile) $targetFile = "xl/worksheets/sheet2.xml";
 
-        $sheetContent = @file_get_contents("zip://{$zipPath}#{$targetFile}");
+        $sheetContent = $files[$targetFile] ?? reset($files);
         if (!$sheetContent) {
-            throw new \Exception("Gagal membaca file Excel melalui stream reader.");
+            throw new \Exception("Gagal membaca sheet asumsi dalam file Excel.");
         }
 
         $sheetXml = @simplexml_load_string($sheetContent);
@@ -348,7 +413,7 @@ class ExcelImportService
             }
         }
         if ($hrFile) {
-            $hrContent = @file_get_contents("zip://{$zipPath}#{$hrFile}");
+            $hrContent = $files[$hrFile] ?? null;
             if ($hrContent) {
                 $hrXml = @simplexml_load_string($hrContent);
                 $hrRows = [];
@@ -386,7 +451,7 @@ class ExcelImportService
             }
         }
         if ($opexFile) {
-            $opexContent = @file_get_contents("zip://{$zipPath}#{$opexFile}");
+            $opexContent = $files[$opexFile] ?? null;
             if ($opexContent) {
                 $opexXml = @simplexml_load_string($opexContent);
                 $opexRows = [];
