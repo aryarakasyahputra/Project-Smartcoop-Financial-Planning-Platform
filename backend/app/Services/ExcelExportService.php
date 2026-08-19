@@ -141,7 +141,10 @@ class ExcelExportService
                 $colLetter = Coordinate::stringFromColumnIndex($colIdx);
                 $prevColLetter = $i > 0 ? Coordinate::stringFromColumnIndex($colIdx - 1) : null;
 
-                $data = $assumptionsByYear[(string)$yr] ?? $assumptionsByYear[$yr] ?? [];
+                $data = $assumptionsByYear[(string)$yr] ?? $assumptionsByYear[(int)$yr] ?? [];
+                if (is_object($data) && method_exists($data, 'toArray')) {
+                    $data = $data->toArray();
+                }
 
                 // Row 6: Beginning Active Cooperatives
                 if ($i === 0) {
