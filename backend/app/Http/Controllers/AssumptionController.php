@@ -169,7 +169,10 @@ class AssumptionController extends Controller
         $jsonPath = $tempDir . '/payload_' . $project->id . '_' . time() . '.json';
         $safeName = preg_replace('/[^A-Za-z0-9_]/', '_', $companyName);
         $outputPath = $tempDir . '/Smartcoop_Financial_Model_' . $safeName . '.xlsx';
-        $templatePath = storage_path('app/Smartcoop_Financial_Model_v2.xlsx');
+        $templatePath = app_path('Services/Smartcoop_Financial_Model_v2.xlsx');
+        if (!file_exists($templatePath)) {
+            $templatePath = storage_path('app/Smartcoop_Financial_Model_v2.xlsx');
+        }
         if (!file_exists($templatePath)) {
             $templatePath = base_path('Smartcoop_Financial_Model_v2.xlsx');
         }
