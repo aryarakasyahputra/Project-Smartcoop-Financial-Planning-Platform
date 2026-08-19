@@ -142,7 +142,7 @@ class AssumptionController extends Controller
 
         if ($assumptions->isEmpty()) {
             $modelService = app(\App\Services\FinancialModelService::class);
-            $modelService->calculateFinancialModel($project->id);
+            $modelService->getProjectData($project->id);
             $assumptions = \App\Models\AssumptionValue::where('project_id', $project->id)->orderBy('year')->get();
         }
 
