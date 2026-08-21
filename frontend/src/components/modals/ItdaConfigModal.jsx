@@ -1,0 +1,347 @@
+import React, { useState, useEffect } from "react";
+import { 
+  X, SlidersHorizontal, Percent, Landmark, TrendingDown, Layers, 
+  HelpCircle, Check, RotateCcw, Globe, Calendar, ChevronDown 
+} from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
+import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator
+} from "../ui/dropdown-menu";
+
+export default function ItdaConfigModal({
+  isOpen,
+  onClose,
+  assumptionsByYear,
+  availableYears,
+  onSaveAssumptions,
+  currency = "IDR"
+}) {
+  const { language, t } = useLanguage();
+  const lang = language || "id";
+
+  const [selectedScope, setSelectedScope] = useState("all"); // "all" or specific year
+  const [taxRate, setTaxRate] = useState("");
+  const [interestRate, setInterestRate] = useState(0.0);
+  const [depreciationPercent, setDepreciationPercent] = useState(0.0);
+  const [amortizationPercent, setAmortizationPercent] = useState(0.0);
+
+  // Sync initial values when modal opens
+  useEffect(() => {
+    if (isOpen && availableYears.length > 0) {
+      const sampleYear = selectedScope === "all" ? availableYears[0] : Number(selectedScope);
+      const data = assumptionsByYear[sampleYear] || {};
+      
+      setTaxRate(data.tax_rate_percent !== undefined ? data.tax_rate_percent : "");
+      setInterestRate(data.interest_rate_percent !== undefined ? Number(data.interest_rate_percent) : 0.0);
+      setDepreciationPercent(data.depreciation_percent !== undefined ? Number(data.depreciation_percent) : 0.0);
+      setAmortizationPercent(data.amortization_percent !== undefined ? Number(data.amortization_percent) : 0.0);
+    }
+  }, [isOpen, selectedScope, assumptionsByYear, availableYears]);
+
+  if (!isOpen) return null;
+
+  const handleApply = (e) => {
+    e.preventDefault();
+    const updated = { ...assumptionsByYear };
+    const targetYears = selectedScope === "all" ? availableYears : [Number(selectedScope)];
+
+    targetYears.forEach(year => {
+      updated[year] = {
+        ...(updated[year] || { year }),
+        tax_rate_percent: taxRate === "" ? 0 : Number(taxRate),
+        interest_rate_percent: Number(interestRate) || 0,
+        depreciation_percent: Number(depreciationPercent) || 0,
+        amortization_percent: Number(amortizationPercent) || 0,
+      };
+    });
+
+    onSaveAssumptions(updated);
+    toast.success(
+      lang === "en" 
+        ? `Tax & ITDA parameters successfully applied to ${selectedScope === "all" ? "all years" : `year ${selectedScope}`}.` 
+        : `Parameter Pajak & ITDA berhasil diterapkan ke ${selectedScope === "all" ? "seluruh tahun" : `tahun ${selectedScope}`}.`
+    );
+    onClose();
+  };
+
+  const handleResetDefaults = () => {
+    setTaxRate("");
+    setInterestRate(0.0);
+    setDepreciationPercent(0.0);
+    setAmortizationPercent(0.0);
+    toast.info(lang === "en" ? "Parameters reset to 0%." : "Parameter dikembalikan ke 0%.");
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div 
+        className="relative w-full max-w-xl bg-card border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-blue-900 to-indigo-900 text-white border-b border-blue-800/60 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-amber-400 text-slate-900 flex items-center justify-center font-bold shadow-md shadow-amber-400/20 shrink-0">
+              <SlidersHorizontal className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-base font-bold text-white leading-tight">
+                  {lang === "en" ? "Net Profit & ITDA Parameters" : "Konfigurasi Laba Bersih & ITDA"}
+                </h3>
+                {/* Tooltip for Calculation Flow */}
+                <div className="relative group cursor-pointer inline-flex items-center">
+                  <HelpCircle className="h-4 w-4 text-amber-300 hover:text-white transition-colors" />
+                  <div className="absolute left-1/2 -translate-x-1/2 top-7 z-50 hidden group-hover:block w-80 p-3 rounded-xl bg-slate-900/95 text-white text-[11px] shadow-2xl border border-slate-700 backdrop-blur-md pointer-events-none">
+                    <p className="font-bold text-amber-400 mb-1 flex items-center gap-1">
+                      <HelpCircle className="h-3.5 w-3.5" />
+                      {lang === "en" ? "Net Profit Calculation Flow:" : "Alur Perhitungan Laba Bersih:"}
+                    </p>
+                    <p className="font-mono text-[10.5px] leading-relaxed text-slate-200">
+                      EBITDA ➔ (-) Depresiasi/Amortisasi ➔ <strong>EBIT</strong> ➔ (-) Bunga Pinjaman ➔ <strong>EBT</strong> ➔ (-) PPh ➔ <strong className="text-emerald-400">Net Profit</strong>
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-blue-200/80 mt-0.5">
+                {lang === "en" ? "Interest, Tax, Depreciation & Amortization Controls" : "Pengaturan Pajak (Tax), Bunga Pinjaman, Depresiasi & Amortisasi"}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="h-8 w-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer border-none"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <form onSubmit={handleApply} className="p-6 overflow-y-auto space-y-6 flex-1 text-foreground">
+          {/* Scope Selector using Radix DropdownMenu */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-muted/40 border border-border rounded-xl">
+            <label className="text-xs font-bold text-foreground flex items-center gap-2">
+              <Layers className="h-4 w-4 text-primary" />
+              {lang === "en" ? "Apply Configuration To:" : "Terapkan Konfigurasi Ke:"}
+            </label>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-background hover:bg-muted/70 border border-border text-xs font-bold text-foreground shadow-xs transition-colors cursor-pointer min-w-[190px]"
+                >
+                  <div className="flex items-center gap-2">
+                    {selectedScope === "all" ? (
+                      <Globe className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                    ) : (
+                      <Calendar className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                    )}
+                    <span>
+                      {selectedScope === "all"
+                        ? (lang === "en" ? "All Projection Years" : "Seluruh Tahun Proyeksi")
+                        : (lang === "en" ? `Year ${selectedScope} Only` : `Tahun ${selectedScope} Saja`)}
+                    </span>
+                  </div>
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 p-1.5 bg-card border border-border shadow-xl rounded-xl z-50">
+                <DropdownMenuItem
+                  onClick={() => setSelectedScope("all")}
+                  className={`flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer ${
+                    selectedScope === "all" ? "bg-primary/10 text-primary font-bold" : "hover:bg-muted"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-3.5 w-3.5 text-blue-500" />
+                    <span>{lang === "en" ? "All Projection Years" : "Seluruh Tahun Proyeksi"}</span>
+                  </div>
+                  {selectedScope === "all" && <Check className="h-3.5 w-3.5 text-primary" />}
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator className="my-1 border-t border-border" />
+                
+                {availableYears.map(yr => (
+                  <DropdownMenuItem
+                    key={yr}
+                    onClick={() => setSelectedScope(String(yr))}
+                    className={`flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer ${
+                      selectedScope === String(yr) ? "bg-primary/10 text-primary font-bold" : "hover:bg-muted"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-3.5 w-3.5 text-amber-500" />
+                      <span>{lang === "en" ? `Year ${yr} Only` : `Tahun ${yr} Saja`}</span>
+                    </div>
+                    {selectedScope === String(yr) && <Check className="h-3.5 w-3.5 text-primary" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* 1. Corporate Income Tax Rate */}
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5">
+              <label className="text-xs font-bold flex items-center gap-1.5 text-foreground">
+                <Percent className="h-3.5 w-3.5 text-amber-500" />
+                {lang === "en" ? "Corporate Income Tax Rate (PPh %)" : "Tarif Pajak Penghasilan (PPh %)"}
+              </label>
+              <div className="relative group cursor-pointer inline-flex items-center">
+                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                <div className="absolute left-0 top-5 z-50 hidden group-hover:block w-64 p-2.5 rounded-xl bg-slate-900 text-white text-[11px] font-normal shadow-xl border border-slate-700 pointer-events-none">
+                  {lang === "en" 
+                    ? "Deducted automatically from positive Earnings Before Tax (EBT)."
+                    : "Dipotong otomatis dari Laba Sebelum Pajak (EBT) jika bernilai positif."}
+                </div>
+              </div>
+            </div>
+
+            <div className="relative">
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                max="100"
+                value={taxRate}
+                onChange={(e) => setTaxRate(e.target.value)}
+                placeholder="Masukkan tarif PPh (misal: 22, 11, atau 0.5)"
+                className="w-full px-3.5 py-2 text-xs rounded-xl bg-background border border-border font-medium focus:ring-2 focus:ring-primary focus:outline-hidden pr-8"
+              />
+              <span className="absolute right-3 top-2.5 text-xs text-muted-foreground font-bold">%</span>
+            </div>
+          </div>
+
+          {/* 2. Interest Expense / Loan Rate */}
+          <div className="space-y-1.5 pt-2 border-t border-border">
+            <div className="flex items-center gap-1.5">
+              <label className="text-xs font-bold flex items-center gap-1.5 text-foreground">
+                <Landmark className="h-3.5 w-3.5 text-blue-500" />
+                {lang === "en" ? "Interest Expense (Beban Bunga Pinjaman %)" : "Beban Bunga Pinjaman / Hutang (Interest %)"}
+              </label>
+              <div className="relative group cursor-pointer inline-flex items-center">
+                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                <div className="absolute left-0 top-5 z-50 hidden group-hover:block w-64 p-2.5 rounded-xl bg-slate-900 text-white text-[11px] font-normal shadow-xl border border-slate-700 pointer-events-none">
+                  {lang === "en"
+                    ? "Interest expense on loans/debt. Enter 0% if the company is debt-free."
+                    : "Beban bunga dari pinjaman bank. Isi 0% jika perusahaan tidak memiliki pinjaman hutang."}
+                </div>
+              </div>
+            </div>
+            <div className="relative">
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                max="100"
+                value={interestRate}
+                onChange={(e) => setInterestRate(e.target.value)}
+                placeholder="0.0"
+                className="w-full px-3.5 py-2 text-xs rounded-xl bg-background border border-border font-medium focus:ring-2 focus:ring-primary focus:outline-hidden pr-8"
+              />
+              <span className="absolute right-3 top-2.5 text-xs text-muted-foreground font-bold">%</span>
+            </div>
+          </div>
+
+          {/* 3 & 4. Depreciation & Amortization */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <label className="text-xs font-bold flex items-center gap-1.5 text-foreground">
+                  <TrendingDown className="h-3.5 w-3.5 text-rose-500" />
+                  {lang === "en" ? "Depreciation (% Gross Profit)" : "Depresiasi (% Laba Kotor)"}
+                </label>
+                <div className="relative group cursor-pointer inline-flex items-center">
+                  <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                  <div className="absolute left-0 top-5 z-50 hidden group-hover:block w-56 p-2.5 rounded-xl bg-slate-900 text-white text-[11px] font-normal shadow-xl border border-slate-700 pointer-events-none">
+                    {lang === "en" 
+                      ? "Depreciation expense on tangible fixed assets (e.g. laptops, servers)."
+                      : "Penyusutan aset fisik (misal: laptop, server, peralatan kantor)."}
+                  </div>
+                </div>
+              </div>
+              <div className="relative">
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  value={depreciationPercent}
+                  onChange={(e) => setDepreciationPercent(e.target.value)}
+                  placeholder="0.0"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-background border border-border font-medium focus:ring-2 focus:ring-primary focus:outline-hidden pr-8"
+                />
+                <span className="absolute right-3 top-2.5 text-xs text-muted-foreground font-bold">%</span>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <label className="text-xs font-bold flex items-center gap-1.5 text-foreground">
+                  <Layers className="h-3.5 w-3.5 text-purple-500" />
+                  {lang === "en" ? "Amortization (% Gross Profit)" : "Amortisasi (% Laba Kotor)"}
+                </label>
+                <div className="relative group cursor-pointer inline-flex items-center">
+                  <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                  <div className="absolute right-0 top-5 z-50 hidden group-hover:block w-56 p-2.5 rounded-xl bg-slate-900 text-white text-[11px] font-normal shadow-xl border border-slate-700 pointer-events-none">
+                    {lang === "en" 
+                      ? "Amortization on intangible assets (e.g. licenses, patents)."
+                      : "Amortisasi aset tak berwujud (misal: lisensi software, hak paten)."}
+                  </div>
+                </div>
+              </div>
+              <div className="relative">
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  value={amortizationPercent}
+                  onChange={(e) => setAmortizationPercent(e.target.value)}
+                  placeholder="0.0"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl bg-background border border-border font-medium focus:ring-2 focus:ring-primary focus:outline-hidden pr-8"
+                />
+                <span className="absolute right-3 top-2.5 text-xs text-muted-foreground font-bold">%</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Actions */}
+          <div className="flex items-center justify-between pt-3 border-t border-border">
+            <button
+              type="button"
+              onClick={handleResetDefaults}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md"
+            >
+              <RotateCcw className="h-3 w-3" />
+              {lang === "en" ? "Reset Defaults" : "Kembalikan Default"}
+            </button>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-xs font-semibold rounded-xl bg-muted hover:bg-muted/80 text-foreground transition-colors"
+              >
+                {lang === "en" ? "Cancel" : "Batal"}
+              </button>
+              <button
+                type="submit"
+                className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+              >
+                <Check className="h-3.5 w-3.5" />
+                {lang === "en" ? "Save & Apply" : "Simpan & Terapkan"}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

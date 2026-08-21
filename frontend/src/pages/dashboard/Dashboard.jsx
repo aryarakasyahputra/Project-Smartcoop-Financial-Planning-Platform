@@ -13,7 +13,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const token = sessionStorage.getItem("token");
+      const token = sessionStorage.getItem("token") || localStorage.getItem("token");
       if (!token) {
         navigate("/login");
         return;

@@ -11,6 +11,8 @@ import AssumptionDriversTab from "./components/AssumptionDriversTab";
 import ProjectionModelTab from "./components/ProjectionModelTab";
 import ExcelPreviewModal from "./components/ExcelPreviewModal";
 import ExcelImportModal from "../../components/modals/ExcelImportModal";
+import ItdaConfigModal from "../../components/modals/ItdaConfigModal";
+import { SlidersHorizontal } from "lucide-react";
 
 import { simulateProjections, formatRupiah, getAnalystInsights } from "./utils/financialModel";
 import { useValuationModel } from "./utils/valuationHelper";
@@ -44,6 +46,7 @@ export default function CfoDashboard({ userData, handleLogout }) {
   const projectId = companyAccess?.company?.projects?.[0]?.id;
 
   // States
+  const [showItdaModal, setShowItdaModal] = useState(false);
   const [selectedEditYear, setSelectedEditYear] = useState(2025);
   const [assumptionsByYear, setAssumptionsByYear] = useState({});
   const [isDirty, setIsDirty] = useState(false);
@@ -388,6 +391,16 @@ export default function CfoDashboard({ userData, handleLogout }) {
         </div>
 
         <div className="pt-6 border-t border-white/15 space-y-3">
+          {/* ITDA & Tax Config Button */}
+          <button
+            type="button"
+            onClick={() => setShowItdaModal(true)}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white transition-all text-xs font-bold cursor-pointer group shadow-xs"
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5 text-[#FFD700] shrink-0 group-hover:rotate-45 transition-transform duration-300" />
+            <span className="truncate">{language === "en" ? "ITDA & Tax Config" : "Konfigurasi ITDA & Pajak"}</span>
+          </button>
+
           {/* Currency & Language Switchers */}
           <div className="flex items-center gap-2">
             <CurrencySwitcher variant="sidebar" />
@@ -612,6 +625,19 @@ export default function CfoDashboard({ userData, handleLogout }) {
           fetchData();
         }}
         language={language}
+      />
+
+      {/* ITDA & Tax Config Modal */}
+      <ItdaConfigModal
+        isOpen={showItdaModal}
+        onClose={() => setShowItdaModal(false)}
+        assumptionsByYear={assumptionsByYear}
+        availableYears={availableYears}
+        onSaveAssumptions={(newAssumptions) => {
+          setAssumptionsByYear(newAssumptions);
+          setIsDirty(true);
+        }}
+        currency={currency}
       />
     </div>
   );
