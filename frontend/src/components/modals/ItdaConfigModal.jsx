@@ -15,7 +15,7 @@ export default function ItdaConfigModal({
   const lang = language || "id";
 
   const [selectedScope, setSelectedScope] = useState("all"); // "all" or specific year
-  const [taxRate, setTaxRate] = useState(22.0);
+  const [taxRate, setTaxRate] = useState("");
   const [interestRate, setInterestRate] = useState(0.0);
   const [depreciationPercent, setDepreciationPercent] = useState(0.0);
   const [amortizationPercent, setAmortizationPercent] = useState(0.0);
@@ -26,7 +26,7 @@ export default function ItdaConfigModal({
       const sampleYear = selectedScope === "all" ? availableYears[0] : Number(selectedScope);
       const data = assumptionsByYear[sampleYear] || {};
       
-      setTaxRate(data.tax_rate_percent !== undefined ? Number(data.tax_rate_percent) : 22.0);
+      setTaxRate(data.tax_rate_percent !== undefined ? data.tax_rate_percent : "");
       setInterestRate(data.interest_rate_percent !== undefined ? Number(data.interest_rate_percent) : 0.0);
       setDepreciationPercent(data.depreciation_percent !== undefined ? Number(data.depreciation_percent) : 0.0);
       setAmortizationPercent(data.amortization_percent !== undefined ? Number(data.amortization_percent) : 0.0);
@@ -43,7 +43,7 @@ export default function ItdaConfigModal({
     targetYears.forEach(year => {
       updated[year] = {
         ...(updated[year] || { year }),
-        tax_rate_percent: Number(taxRate) || 0,
+        tax_rate_percent: taxRate === "" ? 0 : Number(taxRate),
         interest_rate_percent: Number(interestRate) || 0,
         depreciation_percent: Number(depreciationPercent) || 0,
         amortization_percent: Number(amortizationPercent) || 0,
@@ -60,11 +60,11 @@ export default function ItdaConfigModal({
   };
 
   const handleResetDefaults = () => {
-    setTaxRate(22.0);
+    setTaxRate("");
     setInterestRate(0.0);
     setDepreciationPercent(0.0);
     setAmortizationPercent(0.0);
-    toast.info(lang === "en" ? "Parameters reset to default (22% Tax, 0% Interest, 0% Depr/Amort)." : "Parameter dikembalikan ke default (PPh 22%, Bunga 0%, Depr/Amort 0%).");
+    toast.info(lang === "en" ? "Parameters reset to 0%." : "Parameter dikembalikan ke 0%.");
   };
 
   return (
@@ -80,9 +80,24 @@ export default function ItdaConfigModal({
               <SlidersHorizontal className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white leading-tight">
-                {lang === "en" ? "Net Profit & ITDA Parameters" : "Konfigurasi Laba Bersih & ITDA"}
-              </h3>
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-base font-bold text-white leading-tight">
+                  {lang === "en" ? "Net Profit & ITDA Parameters" : "Konfigurasi Laba Bersih & ITDA"}
+                </h3>
+                {/* Tooltip for Calculation Flow */}
+                <div className="relative group cursor-pointer inline-flex items-center">
+                  <HelpCircle className="h-4 w-4 text-amber-300 hover:text-white transition-colors" />
+                  <div className="absolute left-1/2 -translate-x-1/2 top-7 z-50 hidden group-hover:block w-80 p-3 rounded-xl bg-slate-900/95 text-white text-[11px] shadow-2xl border border-slate-700 backdrop-blur-md pointer-events-none">
+                    <p className="font-bold text-amber-400 mb-1 flex items-center gap-1">
+                      <HelpCircle className="h-3.5 w-3.5" />
+                      {lang === "en" ? "Net Profit Calculation Flow:" : "Alur Perhitungan Laba Bersih:"}
+                    </p>
+                    <p className="font-mono text-[10.5px] leading-relaxed text-slate-200">
+                      EBITDA ➔ (-) Depresiasi/Amortisasi ➔ <strong>EBIT</strong> ➔ (-) Bunga Pinjaman ➔ <strong>EBT</strong> ➔ (-) PPh ➔ <strong className="text-emerald-400">Net Profit</strong>
+                    </p>
+                  </div>
+                </div>
+              </div>
               <p className="text-xs text-blue-200/80 mt-0.5">
                 {lang === "en" ? "Interest, Tax, Depreciation & Amortization Controls" : "Pengaturan Pajak (Tax), Bunga Pinjaman, Depresiasi & Amortisasi"}
               </p>
@@ -212,17 +227,6 @@ export default function ItdaConfigModal({
                 <span className="absolute right-3 top-2.5 text-xs text-muted-foreground font-bold">%</span>
               </div>
             </div>
-          </div>
-
-          {/* Formula Breakdown Info Box */}
-          <div className="p-3.5 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/80 dark:border-blue-900/40 text-xs text-blue-900 dark:text-blue-200 space-y-1.5">
-            <p className="font-bold flex items-center gap-1.5 text-blue-950 dark:text-blue-100">
-              <HelpCircle className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-              {lang === "en" ? "Financial Formula Flow:" : "Alur Perhitungan Laba Bersih:"}
-            </p>
-            <p className="font-mono text-[11px] leading-relaxed text-blue-800 dark:text-blue-300">
-              EBITDA ➔ (-) Depresiasi/Amortisasi ➔ <strong>EBIT</strong> ➔ (-) Bunga Pinjaman ({interestRate}%) ➔ <strong>EBT</strong> ➔ (-) PPh ({taxRate}%) ➔ <strong className="text-emerald-700 dark:text-emerald-400">Net Profit</strong>
-            </p>
           </div>
 
           {/* Footer Actions */}

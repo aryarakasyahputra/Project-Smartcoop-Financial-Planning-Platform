@@ -402,7 +402,7 @@ class FinancialModelService
                 $ebitdaMargin = $totalRevenue > 0 ? ($ebitda / $totalRevenue) * 100 : 0;
 
                 // ITDA Parameters (Interest, Tax, Depreciation, Amortization)
-                $taxRate = isset($assumptions->tax_rate_percent) ? (float)$assumptions->tax_rate_percent : 22.0;
+                $taxRate = (isset($assumptions->tax_rate_percent) && $assumptions->tax_rate_percent !== '') ? (float)$assumptions->tax_rate_percent : 0.0;
                 $interestRate = isset($assumptions->interest_rate_percent) ? (float)$assumptions->interest_rate_percent : 0.0;
                 $depreciationPct = isset($assumptions->depreciation_percent) ? (float)$assumptions->depreciation_percent : 0.0;
                 $amortizationPct = isset($assumptions->amortization_percent) ? (float)$assumptions->amortization_percent : 0.0;

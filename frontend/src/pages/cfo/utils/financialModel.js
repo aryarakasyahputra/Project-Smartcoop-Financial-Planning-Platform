@@ -153,7 +153,9 @@ export const simulateProjections = (assumptionsByYear) => {
     const ebitdaMargin = totalRevenue > 0 ? (ebitda / totalRevenue) * 100 : 0;
     
     // ITDA Parameters (Interest, Tax, Depreciation, Amortization)
-    const taxRate = a.tax_rate_percent !== undefined ? Number(a.tax_rate_percent) : 22.0;
+    const taxRate = (a.tax_rate_percent !== undefined && a.tax_rate_percent !== null && a.tax_rate_percent !== "") 
+      ? Number(a.tax_rate_percent) 
+      : 0.0;
     const interestRate = a.interest_rate_percent !== undefined ? Number(a.interest_rate_percent) : 0.0;
     const depreciationAmount = a.depreciation_amount !== undefined ? Number(a.depreciation_amount) : (a.depreciation_percent ? (grossProfit * Number(a.depreciation_percent) / 100) : 0);
     const amortizationAmount = a.amortization_amount !== undefined ? Number(a.amortization_amount) : (a.amortization_percent ? (grossProfit * Number(a.amortization_percent) / 100) : 0);
