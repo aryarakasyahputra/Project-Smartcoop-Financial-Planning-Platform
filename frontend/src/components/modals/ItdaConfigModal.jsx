@@ -119,38 +119,15 @@ export default function ItdaConfigModal({
           </div>
 
           {/* 1. Corporate Income Tax Rate */}
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold flex items-center gap-1.5 text-foreground">
                 <Percent className="h-3.5 w-3.5 text-amber-500" />
-                {lang === "en" ? "Corporate Income Tax Rate (PPh Badan %)" : "Tarif Pajak Penghasilan (PPh Badan %)"}
+                {lang === "en" ? "Corporate Income Tax Rate (PPh %)" : "Tarif Pajak Penghasilan (PPh %)"}
               </label>
               <span className="text-xs font-extrabold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-900/50">
                 {taxRate}%
               </span>
-            </div>
-
-            {/* Quick Presets */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {[
-                { label: "22% (PPh Normal)", val: 22.0 },
-                { label: "11% (Khusus)", val: 11.0 },
-                { label: "0.5% (UMKM Final)", val: 0.5 },
-                { label: "0% (Bebas Pajak)", val: 0.0 },
-              ].map(preset => (
-                <button
-                  type="button"
-                  key={preset.val}
-                  onClick={() => setTaxRate(preset.val)}
-                  className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all border text-center ${
-                    taxRate === preset.val 
-                      ? "bg-primary text-primary-foreground border-primary shadow-xs" 
-                      : "bg-background border-border text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  {preset.label}
-                </button>
-              ))}
             </div>
 
             <div className="relative">
@@ -161,7 +138,7 @@ export default function ItdaConfigModal({
                 max="100"
                 value={taxRate}
                 onChange={(e) => setTaxRate(e.target.value)}
-                placeholder="22.0"
+                placeholder="Masukkan tarif PPh (misal: 22, 11, atau 0.5)"
                 className="w-full px-3.5 py-2 text-xs rounded-xl bg-background border border-border font-medium focus:ring-2 focus:ring-primary focus:outline-hidden pr-8"
               />
               <span className="absolute right-3 top-2.5 text-xs text-muted-foreground font-bold">%</span>
