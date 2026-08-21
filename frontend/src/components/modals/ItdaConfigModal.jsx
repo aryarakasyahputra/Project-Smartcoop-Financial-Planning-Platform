@@ -187,11 +187,21 @@ export default function ItdaConfigModal({
           </div>
 
           {/* 1. Corporate Income Tax Rate */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold flex items-center gap-1.5 text-foreground">
-              <Percent className="h-3.5 w-3.5 text-amber-500" />
-              {lang === "en" ? "Corporate Income Tax Rate (PPh %)" : "Tarif Pajak Penghasilan (PPh %)"}
-            </label>
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5">
+              <label className="text-xs font-bold flex items-center gap-1.5 text-foreground">
+                <Percent className="h-3.5 w-3.5 text-amber-500" />
+                {lang === "en" ? "Corporate Income Tax Rate (PPh %)" : "Tarif Pajak Penghasilan (PPh %)"}
+              </label>
+              <div className="relative group cursor-pointer inline-flex items-center">
+                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                <div className="absolute left-0 top-5 z-50 hidden group-hover:block w-64 p-2.5 rounded-xl bg-slate-900 text-white text-[11px] font-normal shadow-xl border border-slate-700 pointer-events-none">
+                  {lang === "en" 
+                    ? "Deducted automatically from positive Earnings Before Tax (EBT)."
+                    : "Dipotong otomatis dari Laba Sebelum Pajak (EBT) jika bernilai positif."}
+                </div>
+              </div>
+            </div>
 
             <div className="relative">
               <input
@@ -206,19 +216,24 @@ export default function ItdaConfigModal({
               />
               <span className="absolute right-3 top-2.5 text-xs text-muted-foreground font-bold">%</span>
             </div>
-            <p className="text-[11px] text-muted-foreground">
-              {lang === "en" 
-                ? "Deducted automatically from positive Earnings Before Tax (EBT)."
-                : "Dipotong otomatis dari Laba Sebelum Pajak (EBT) jika bernilai positif."}
-            </p>
           </div>
 
           {/* 2. Interest Expense / Loan Rate */}
-          <div className="space-y-2 pt-2 border-t border-border">
-            <label className="text-xs font-bold flex items-center gap-1.5 text-foreground">
-              <Landmark className="h-3.5 w-3.5 text-blue-500" />
-              {lang === "en" ? "Interest Expense (Beban Bunga Pinjaman %)" : "Beban Bunga Pinjaman / Hutang (Interest %)"}
-            </label>
+          <div className="space-y-1.5 pt-2 border-t border-border">
+            <div className="flex items-center gap-1.5">
+              <label className="text-xs font-bold flex items-center gap-1.5 text-foreground">
+                <Landmark className="h-3.5 w-3.5 text-blue-500" />
+                {lang === "en" ? "Interest Expense (Beban Bunga Pinjaman %)" : "Beban Bunga Pinjaman / Hutang (Interest %)"}
+              </label>
+              <div className="relative group cursor-pointer inline-flex items-center">
+                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                <div className="absolute left-0 top-5 z-50 hidden group-hover:block w-64 p-2.5 rounded-xl bg-slate-900 text-white text-[11px] font-normal shadow-xl border border-slate-700 pointer-events-none">
+                  {lang === "en"
+                    ? "Interest expense on loans/debt. Enter 0% if the company is debt-free."
+                    : "Beban bunga dari pinjaman bank. Isi 0% jika perusahaan tidak memiliki pinjaman hutang."}
+                </div>
+              </div>
+            </div>
             <div className="relative">
               <input
                 type="number"
@@ -232,20 +247,25 @@ export default function ItdaConfigModal({
               />
               <span className="absolute right-3 top-2.5 text-xs text-muted-foreground font-bold">%</span>
             </div>
-            <p className="text-[11px] text-muted-foreground">
-              {lang === "en"
-                ? "Bunga pinjaman modal/bank. Masukkan 0% jika startup tidak memiliki hutang."
-                : "Beban bunga dari pinjaman bank. Isi 0% jika perusahaan tidak memiliki pinjaman hutang."}
-            </p>
           </div>
 
           {/* 3 & 4. Depreciation & Amortization */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold flex items-center gap-1.5 text-foreground">
-                <TrendingDown className="h-3.5 w-3.5 text-rose-500" />
-                {lang === "en" ? "Depreciation (% of Gross Profit)" : "Depresiasi Aset Fisik (% Laba Kotor)"}
-              </label>
+              <div className="flex items-center gap-1.5">
+                <label className="text-xs font-bold flex items-center gap-1.5 text-foreground">
+                  <TrendingDown className="h-3.5 w-3.5 text-rose-500" />
+                  {lang === "en" ? "Depreciation (% Gross Profit)" : "Depresiasi (% Laba Kotor)"}
+                </label>
+                <div className="relative group cursor-pointer inline-flex items-center">
+                  <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                  <div className="absolute left-0 top-5 z-50 hidden group-hover:block w-56 p-2.5 rounded-xl bg-slate-900 text-white text-[11px] font-normal shadow-xl border border-slate-700 pointer-events-none">
+                    {lang === "en" 
+                      ? "Depreciation expense on tangible fixed assets (e.g. laptops, servers)."
+                      : "Penyusutan aset fisik (misal: laptop, server, peralatan kantor)."}
+                  </div>
+                </div>
+              </div>
               <div className="relative">
                 <input
                   type="number"
@@ -262,10 +282,20 @@ export default function ItdaConfigModal({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold flex items-center gap-1.5 text-foreground">
-                <Layers className="h-3.5 w-3.5 text-purple-500" />
-                {lang === "en" ? "Amortization (% of Gross Profit)" : "Amortisasi IP/Lisensi (% Laba Kotor)"}
-              </label>
+              <div className="flex items-center gap-1.5">
+                <label className="text-xs font-bold flex items-center gap-1.5 text-foreground">
+                  <Layers className="h-3.5 w-3.5 text-purple-500" />
+                  {lang === "en" ? "Amortization (% Gross Profit)" : "Amortisasi (% Laba Kotor)"}
+                </label>
+                <div className="relative group cursor-pointer inline-flex items-center">
+                  <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+                  <div className="absolute right-0 top-5 z-50 hidden group-hover:block w-56 p-2.5 rounded-xl bg-slate-900 text-white text-[11px] font-normal shadow-xl border border-slate-700 pointer-events-none">
+                    {lang === "en" 
+                      ? "Amortization on intangible assets (e.g. licenses, patents)."
+                      : "Amortisasi aset tak berwujud (misal: lisensi software, hak paten)."}
+                  </div>
+                </div>
+              </div>
               <div className="relative">
                 <input
                   type="number"
