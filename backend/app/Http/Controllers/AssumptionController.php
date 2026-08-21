@@ -38,7 +38,7 @@ class AssumptionController extends Controller
     }
 
     /**
-     * GET /api/projects/:projectId/assumptions
+     * GET https://api.finpro.4visionmedia.net/projects/:projectId/assumptions
      * Mengambil data asumsi aktif beserta hasil proyeksi keuangannya (Tahun 2025-2029).
      * 
      * @param int|string $projectId
@@ -59,7 +59,7 @@ class AssumptionController extends Controller
     }
 
     /**
-     * PUT /api/projects/:projectId/assumptions
+     * PUT https://api.finpro.4visionmedia.net/projects/:projectId/assumptions
      * Menyimpan perubahan nilai asumsi dan memicu perhitungan ulang (Auto-Recalculation).
      * 
      * @param Request $request
@@ -126,7 +126,7 @@ class AssumptionController extends Controller
     }
 
     /**
-     * GET /api/projects/:projectId/export-excel
+     * GET https://api.finpro.4visionmedia.net/projects/:projectId/export-excel
      * Mengunduh file Excel model (Smartcoop_Financial_Model_v2.xlsx) beserta rumus aktif (live formulas).
      * 
      * @param Request $request
@@ -203,7 +203,7 @@ class AssumptionController extends Controller
     }
 
     /**
-     * POST /api/projects/:projectId/import-excel
+     * POST https://api.finpro.4visionmedia.net/projects/:projectId/import-excel
      * Mengunggah file Excel model (.xlsx) untuk mengisi nilai asumsi keuangan secara otomatis.
      * 
      * @param Request $request
