@@ -342,7 +342,7 @@ class ExcelExportService
         }
 
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->setPreCalculateFormulas(false); // Preserve live Excel formulas
+        $writer->setPreCalculateFormulas(true); // Pre-calculate formulas so viewers and previewers display calculated values
         $writer->save($outputPath);
 
         return file_exists($outputPath);
