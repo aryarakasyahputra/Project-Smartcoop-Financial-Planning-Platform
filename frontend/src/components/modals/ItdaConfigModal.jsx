@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { X, SlidersHorizontal, Percent, Landmark, TrendingDown, Layers, HelpCircle, Check, RotateCcw } from "lucide-react";
+import { 
+  X, SlidersHorizontal, Percent, Landmark, TrendingDown, Layers, 
+  HelpCircle, Check, RotateCcw, Globe, Calendar, ChevronDown 
+} from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator
+} from "../ui/dropdown-menu";
 
 export default function ItdaConfigModal({
   isOpen,
@@ -113,24 +123,67 @@ export default function ItdaConfigModal({
 
         {/* Body */}
         <form onSubmit={handleApply} className="p-6 overflow-y-auto space-y-6 flex-1 text-foreground">
-          {/* Scope Selector (All years vs specific year) */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-muted/50 border border-border rounded-xl">
-            <label className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
-              <Layers className="h-3.5 w-3.5 text-primary" />
+          {/* Scope Selector using Radix DropdownMenu */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-muted/40 border border-border rounded-xl">
+            <label className="text-xs font-bold text-foreground flex items-center gap-2">
+              <Layers className="h-4 w-4 text-primary" />
               {lang === "en" ? "Apply Configuration To:" : "Terapkan Konfigurasi Ke:"}
             </label>
-            <select
-              value={selectedScope}
-              onChange={(e) => setSelectedScope(e.target.value)}
-              className="px-3 py-1.5 rounded-lg bg-background border border-border text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-primary"
-            >
-              <option value="all">{lang === "en" ? "🌐 All Projection Years" : "🌐 Seluruh Tahun Proyeksi"}</option>
-              {availableYears.map(yr => (
-                <option key={yr} value={yr}>
-                  {lang === "en" ? `📅 Year ${yr} Only` : `📅 Tahun ${yr} Saja`}
-                </option>
-              ))}
-            </select>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-background hover:bg-muted/70 border border-border text-xs font-bold text-foreground shadow-xs transition-colors cursor-pointer min-w-[190px]"
+                >
+                  <div className="flex items-center gap-2">
+                    {selectedScope === "all" ? (
+                      <Globe className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                    ) : (
+                      <Calendar className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                    )}
+                    <span>
+                      {selectedScope === "all"
+                        ? (lang === "en" ? "All Projection Years" : "Seluruh Tahun Proyeksi")
+                        : (lang === "en" ? `Year ${selectedScope} Only` : `Tahun ${selectedScope} Saja`)}
+                    </span>
+                  </div>
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 p-1.5 bg-card border border-border shadow-xl rounded-xl z-50">
+                <DropdownMenuItem
+                  onClick={() => setSelectedScope("all")}
+                  className={`flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer ${
+                    selectedScope === "all" ? "bg-primary/10 text-primary font-bold" : "hover:bg-muted"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-3.5 w-3.5 text-blue-500" />
+                    <span>{lang === "en" ? "All Projection Years" : "Seluruh Tahun Proyeksi"}</span>
+                  </div>
+                  {selectedScope === "all" && <Check className="h-3.5 w-3.5 text-primary" />}
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator className="my-1 border-t border-border" />
+                
+                {availableYears.map(yr => (
+                  <DropdownMenuItem
+                    key={yr}
+                    onClick={() => setSelectedScope(String(yr))}
+                    className={`flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold rounded-lg cursor-pointer ${
+                      selectedScope === String(yr) ? "bg-primary/10 text-primary font-bold" : "hover:bg-muted"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-3.5 w-3.5 text-amber-500" />
+                      <span>{lang === "en" ? `Year ${yr} Only` : `Tahun ${yr} Saja`}</span>
+                    </div>
+                    {selectedScope === String(yr) && <Check className="h-3.5 w-3.5 text-primary" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* 1. Corporate Income Tax Rate */}
