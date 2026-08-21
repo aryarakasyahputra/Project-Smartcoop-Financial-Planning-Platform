@@ -120,15 +120,10 @@ export default function ItdaConfigModal({
 
           {/* 1. Corporate Income Tax Rate */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold flex items-center gap-1.5 text-foreground">
-                <Percent className="h-3.5 w-3.5 text-amber-500" />
-                {lang === "en" ? "Corporate Income Tax Rate (PPh %)" : "Tarif Pajak Penghasilan (PPh %)"}
-              </label>
-              <span className="text-xs font-extrabold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-900/50">
-                {taxRate}%
-              </span>
-            </div>
+            <label className="text-xs font-bold flex items-center gap-1.5 text-foreground">
+              <Percent className="h-3.5 w-3.5 text-amber-500" />
+              {lang === "en" ? "Corporate Income Tax Rate (PPh %)" : "Tarif Pajak Penghasilan (PPh %)"}
+            </label>
 
             <div className="relative">
               <input
@@ -151,16 +146,11 @@ export default function ItdaConfigModal({
           </div>
 
           {/* 2. Interest Expense / Loan Rate */}
-          <div className="space-y-2.5 pt-2 border-t border-border">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold flex items-center gap-1.5 text-foreground">
-                <Landmark className="h-3.5 w-3.5 text-blue-500" />
-                {lang === "en" ? "Interest Expense (Beban Bunga Pinjaman %)" : "Beban Bunga Pinjaman / Hutang (Interest %)"}
-              </label>
-              <span className="text-xs font-extrabold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md border border-blue-200 dark:border-blue-900/50">
-                {interestRate}%
-              </span>
-            </div>
+          <div className="space-y-2 pt-2 border-t border-border">
+            <label className="text-xs font-bold flex items-center gap-1.5 text-foreground">
+              <Landmark className="h-3.5 w-3.5 text-blue-500" />
+              {lang === "en" ? "Interest Expense (Beban Bunga Pinjaman %)" : "Beban Bunga Pinjaman / Hutang (Interest %)"}
+            </label>
             <div className="relative">
               <input
                 type="number"

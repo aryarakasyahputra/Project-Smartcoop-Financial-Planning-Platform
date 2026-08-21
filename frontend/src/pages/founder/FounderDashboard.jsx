@@ -502,15 +502,10 @@ export default function FounderDashboard({ userData, handleLogout }) {
           <button
             type="button"
             onClick={() => setShowItdaModal(true)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white transition-all text-xs font-bold cursor-pointer group shadow-xs"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white transition-all text-xs font-bold cursor-pointer group shadow-xs"
           >
-            <div className="flex items-center gap-2 min-w-0">
-              <SlidersHorizontal className="h-3.5 w-3.5 text-[#FFD700] shrink-0 group-hover:rotate-45 transition-transform duration-300" />
-              <span className="truncate">{language === "en" ? "ITDA & Tax Config" : "Konfigurasi ITDA & Pajak"}</span>
-            </div>
-            <span className="text-[10px] font-extrabold bg-[#FFD700] text-[#003d6b] px-1.5 py-0.5 rounded-md shrink-0">
-              {baseAssumptions[years[0]]?.tax_rate_percent !== undefined ? `${baseAssumptions[years[0]].tax_rate_percent}%` : "22%"}
-            </span>
+            <SlidersHorizontal className="h-3.5 w-3.5 text-[#FFD700] shrink-0 group-hover:rotate-45 transition-transform duration-300" />
+            <span className="truncate">{language === "en" ? "ITDA & Tax Config" : "Konfigurasi ITDA & Pajak"}</span>
           </button>
 
           {/* Currency & Language Switcher */}
