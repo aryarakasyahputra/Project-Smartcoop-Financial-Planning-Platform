@@ -66,8 +66,13 @@ const METRIC_DEFINITIONS = {
   "Beban Operasional (OPEX)": "Total beban penjualan, umum, dan administrasi.",
   "EBITDA": "Earnings Before Interest, Taxes, Depreciation, and Amortization (indikator profitabilitas operasional inti).",
   "EBITDA Margin (%)": "Rasio EBITDA dibandingkan dengan Total Pendapatan.",
-  "Net Profit (Laba Bersih)": "Laba bersih akhir setelah dikurangi beban pajak penghasilan perusahaan (estimasi 22% jika EBITDA positif).",
-  "Net Profit": "Laba bersih akhir setelah dikurangi beban pajak penghasilan perusahaan (estimasi 22% jika EBITDA positif).",
+  "Depresiasi & Amortisasi": "Beban penyusutan aset fisik dan amortisasi lisensi/IP tak berwujud.",
+  "EBIT (Laba Usaha)": "Earnings Before Interest and Taxes (Laba Operasional setelah depresiasi & amortisasi).",
+  "Beban Bunga (Interest)": "Beban bunga pinjaman atau kredit modal kerja.",
+  "EBT (Laba Sebelum Pajak)": "Earnings Before Taxes, laba usaha sebelum dipotong pajak penghasilan badan.",
+  "Beban Pajak PPh (Tax)": "Estimasi beban pajak penghasilan badan berdasarkan tarif yang dikonfigurasi.",
+  "Net Profit (Laba Bersih)": "Laba bersih akhir setelah dikurangi bunga, penyusutan, dan beban pajak penghasilan perusahaan.",
+  "Net Profit": "Laba bersih akhir setelah dikurangi bunga, penyusutan, dan beban pajak penghasilan perusahaan.",
   "Net Margin (%)": "Persentase Laba Bersih dibandingkan dengan Total Pendapatan.",
   "Net Margin": "Persentase Laba Bersih dibandingkan dengan Total Pendapatan.",
 
@@ -150,8 +155,13 @@ const METRIC_DEFINITIONS_EN = {
   "Beban Operasional (OPEX)": "Total sales, general & administrative expenses.",
   "EBITDA": "Earnings Before Interest, Taxes, Depreciation & Amortization.",
   "EBITDA Margin (%)": "Ratio of EBITDA to Total Revenue.",
-  "Net Profit (Laba Bersih)": "Net profit after corporate income tax deduction (estimated 22% tax rate for positive EBITDA).",
-  "Net Profit": "Net profit after corporate income tax deduction (estimated 22% tax rate for positive EBITDA).",
+  "Depresiasi & Amortisasi": "Depreciation and amortization expense on tangible and intangible assets.",
+  "EBIT (Laba Usaha)": "Earnings Before Interest and Taxes (Operating Profit).",
+  "Beban Bunga (Interest)": "Interest expense on debt or working capital loans.",
+  "EBT (Laba Sebelum Pajak)": "Earnings Before Taxes, operating income before corporate income tax.",
+  "Beban Pajak PPh (Tax)": "Corporate income tax expense based on configured tax rate.",
+  "Net Profit (Laba Bersih)": "Net profit after deducting interest, depreciation, amortization, and corporate taxes.",
+  "Net Profit": "Net profit after deducting interest, depreciation, amortization, and corporate taxes.",
   "Net Margin (%)": "Net profit percentage relative to Total Revenue.",
   "Net Margin": "Net profit percentage relative to Total Revenue.",
   "Monthly Churn": "Monthly cooperative churn rate percentage.",
@@ -234,6 +244,11 @@ const METRIC_TRANSLATIONS_EN = {
   "EBITDA": "EBITDA",
   "EBITDA Margin (%)": "EBITDA Margin (%)",
   "EBITDA Margin": "EBITDA Margin",
+  "Depresiasi & Amortisasi": "Depreciation & Amortization",
+  "EBIT (Laba Usaha)": "EBIT (Operating Profit)",
+  "Beban Bunga (Interest)": "Interest Expense",
+  "EBT (Laba Sebelum Pajak)": "EBT (Earnings Before Tax)",
+  "Beban Pajak PPh (Tax)": "Corporate Income Tax",
   "Net Profit (Laba Bersih)": "Net Profit",
   "Net Profit": "Net Profit",
   "Net Margin (%)": "Net Margin (%)",
@@ -318,6 +333,11 @@ const METRIC_TRANSLATIONS_ID = {
   "EBITDA": "EBITDA",
   "EBITDA Margin (%)": "Margin EBITDA (%)",
   "EBITDA Margin": "Margin EBITDA",
+  "Depresiasi & Amortisasi": "Depresiasi & Amortisasi",
+  "EBIT (Laba Usaha)": "EBIT (Laba Usaha)",
+  "Beban Bunga (Interest)": "Beban Bunga Pinjaman",
+  "EBT (Laba Sebelum Pajak)": "EBT (Laba Sebelum Pajak)",
+  "Beban Pajak PPh (Tax)": "Beban Pajak Penghasilan (PPh)",
   "Net Profit (Laba Bersih)": "Net Profit (Laba Bersih)",
   "Net Profit": "Laba Bersih",
   "Net Margin (%)": "Net Margin (%)",
@@ -1590,6 +1610,94 @@ export default function ProjectionModelTab({ data, formatRupiah: propFormatRupia
                           onMouseLeave={() => setHoveredYear(null)}
                         >
                           <ColoredNumber value={c.ebitdaMargin} format="percent" />
+                        </td>
+                      ))}
+                    </tr>
+
+                    {/* Depreciation & Amortization */}
+                    <tr className="hover:bg-muted/5 transition-colors font-medium text-slate-800 border-b">
+                      <td className="px-4 py-2.5 pl-6 text-xs text-slate-600 dark:text-slate-400">
+                        <MetricLabel label="Depresiasi & Amortisasi" />
+                      </td>
+                      {data.map((c) => (
+                        <td
+                          key={c.year}
+                          className={`px-4 py-2.5 whitespace-nowrap text-right font-mono text-xs transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                          onMouseEnter={() => setHoveredYear(c.year)}
+                          onMouseLeave={() => setHoveredYear(null)}
+                        >
+                          <ColoredNumber value={((c.depreciation || 0) + (c.amortization || 0))} format="rupiah" />
+                        </td>
+                      ))}
+                    </tr>
+
+                    {/* EBIT (Operating Profit) */}
+                    <tr className="hover:bg-muted/5 transition-colors font-semibold text-slate-800 border-b bg-slate-50/40 dark:bg-slate-900/20">
+                      <td className="px-4 py-3 pl-6 text-xs font-bold text-slate-800 dark:text-slate-200">
+                        <MetricLabel label="EBIT (Laba Usaha)" />
+                      </td>
+                      {data.map((c, i) => (
+                        <td
+                          key={c.year}
+                          className={`px-4 py-3 whitespace-nowrap text-right font-mono font-bold transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                          onMouseEnter={() => setHoveredYear(c.year)}
+                          onMouseLeave={() => setHoveredYear(null)}
+                        >
+                          <div className="flex justify-end items-center">
+                            <ColoredNumber value={c.ebit !== undefined ? c.ebit : c.ebitda} format="rupiah" />
+                            {i > 0 && renderTrend(c.ebit !== undefined ? c.ebit : c.ebitda, data[i - 1].ebit !== undefined ? data[i - 1].ebit : data[i - 1].ebitda)}
+                          </div>
+                        </td>
+                      ))}
+                    </tr>
+
+                    {/* Interest Expense */}
+                    <tr className="hover:bg-muted/5 transition-colors font-medium text-slate-800 border-b">
+                      <td className="px-4 py-2.5 pl-6 text-xs text-slate-600 dark:text-slate-400">
+                        <MetricLabel label="Beban Bunga (Interest)" />
+                      </td>
+                      {data.map((c) => (
+                        <td
+                          key={c.year}
+                          className={`px-4 py-2.5 whitespace-nowrap text-right font-mono text-xs transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                          onMouseEnter={() => setHoveredYear(c.year)}
+                          onMouseLeave={() => setHoveredYear(null)}
+                        >
+                          <ColoredNumber value={c.interestExpense || 0} format="rupiah" />
+                        </td>
+                      ))}
+                    </tr>
+
+                    {/* EBT (Earnings Before Tax) */}
+                    <tr className="hover:bg-muted/5 transition-colors font-semibold text-slate-800 border-b bg-slate-50/40 dark:bg-slate-900/20">
+                      <td className="px-4 py-3 pl-6 text-xs font-bold text-slate-800 dark:text-slate-200">
+                        <MetricLabel label="EBT (Laba Sebelum Pajak)" />
+                      </td>
+                      {data.map((c) => (
+                        <td
+                          key={c.year}
+                          className={`px-4 py-3 whitespace-nowrap text-right font-mono font-bold transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                          onMouseEnter={() => setHoveredYear(c.year)}
+                          onMouseLeave={() => setHoveredYear(null)}
+                        >
+                          <ColoredNumber value={c.ebt !== undefined ? c.ebt : c.ebitda} format="rupiah" />
+                        </td>
+                      ))}
+                    </tr>
+
+                    {/* Tax Expense */}
+                    <tr className="hover:bg-muted/5 transition-colors font-medium text-slate-800 border-b">
+                      <td className="px-4 py-2.5 pl-6 text-xs text-slate-600 dark:text-slate-400">
+                        <MetricLabel label="Beban Pajak PPh (Tax)" />
+                      </td>
+                      {data.map((c) => (
+                        <td
+                          key={c.year}
+                          className={`px-4 py-2.5 whitespace-nowrap text-right font-mono text-xs transition-colors duration-150 ${getColHighlightClass(c.year)}`}
+                          onMouseEnter={() => setHoveredYear(c.year)}
+                          onMouseLeave={() => setHoveredYear(null)}
+                        >
+                          <ColoredNumber value={c.taxAmount || 0} format="rupiah" />
                         </td>
                       ))}
                     </tr>

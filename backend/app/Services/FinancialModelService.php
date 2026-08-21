@@ -397,13 +397,26 @@ class FinancialModelService
                     'total_opex' => $totalOpex,
                 ]);
 
-                // 6. Perform EBITDA & Cash Flow
+                // 6. Perform EBITDA, ITDA & Net Profit
                 $ebitda = $grossProfit - $totalOpex;
                 $ebitdaMargin = $totalRevenue > 0 ? ($ebitda / $totalRevenue) * 100 : 0;
 
-                // Net Profit Calculation (22% Tax Rate for positive EBITDA)
-                $taxAmount = $ebitda > 0 ? $ebitda * 0.22 : 0;
-                $netProfit = $ebitda - $taxAmount;
+                // ITDA Parameters (Interest, Tax, Depreciation, Amortization)
+                $taxRate = isset($assumptions->tax_rate_percent) ? (float)$assumptions->tax_rate_percent : 22.0;
+                $interestRate = isset($assumptions->interest_rate_percent) ? (float)$assumptions->interest_rate_percent : 0.0;
+                $depreciationPct = isset($assumptions->depreciation_percent) ? (float)$assumptions->depreciation_percent : 0.0;
+                $amortizationPct = isset($assumptions->amortization_percent) ? (float)$assumptions->amortization_percent : 0.0;
+
+                $depreciationAmount = isset($assumptions->depreciation_amount) ? (float)$assumptions->depreciation_amount : ($grossProfit * ($depreciationPct / 100));
+                $amortizationAmount = isset($assumptions->amortization_amount) ? (float)$assumptions->amortization_amount : ($grossProfit * ($amortizationPct / 100));
+
+                $ebit = $ebitda - $depreciationAmount - $amortizationAmount;
+                $interestExpense = isset($assumptions->interest_expense) ? (float)$assumptions->interest_expense : ($ebit > 0 ? ($ebit * ($interestRate / 100)) : 0);
+                $ebt = $ebit - $interestExpense;
+
+                // Net Profit Calculation
+                $taxAmount = $ebt > 0 ? ($ebt * ($taxRate / 100)) : 0;
+                $netProfit = $ebt - $taxAmount;
                 $netMargin = $totalRevenue > 0 ? ($netProfit / $totalRevenue) * 100 : 0;
 
                 // Seed Inflow happens only in 2026

@@ -152,9 +152,26 @@ export const simulateProjections = (assumptionsByYear) => {
     const ebitda = grossProfit - totalOpex;
     const ebitdaMargin = totalRevenue > 0 ? (ebitda / totalRevenue) * 100 : 0;
     
-    // Net Profit Calculation (22% Tax Rate for positive EBITDA)
-    const taxAmount = ebitda > 0 ? ebitda * 0.22 : 0;
-    const netProfit = ebitda - taxAmount;
+    // ITDA Parameters (Interest, Tax, Depreciation, Amortization)
+    const taxRate = a.tax_rate_percent !== undefined ? Number(a.tax_rate_percent) : 22.0;
+    const interestRate = a.interest_rate_percent !== undefined ? Number(a.interest_rate_percent) : 0.0;
+    const depreciationAmount = a.depreciation_amount !== undefined ? Number(a.depreciation_amount) : (a.depreciation_percent ? (grossProfit * Number(a.depreciation_percent) / 100) : 0);
+    const amortizationAmount = a.amortization_amount !== undefined ? Number(a.amortization_amount) : (a.amortization_percent ? (grossProfit * Number(a.amortization_percent) / 100) : 0);
+    
+    // 1. EBIT = EBITDA - Depreciation - Amortization
+    const ebit = ebitda - depreciationAmount - amortizationAmount;
+    const ebitMargin = totalRevenue > 0 ? (ebit / totalRevenue) * 100 : 0;
+    
+    // 2. EBT = EBIT - Interest Expense
+    const interestExpense = a.interest_expense !== undefined ? Number(a.interest_expense) : (ebit > 0 ? ebit * (interestRate / 100) : 0);
+    const ebt = ebit - interestExpense;
+    const ebtMargin = totalRevenue > 0 ? (ebt / totalRevenue) * 100 : 0;
+    
+    // 3. Tax Amount = EBT * Tax Rate % (for positive EBT)
+    const taxAmount = ebt > 0 ? ebt * (taxRate / 100) : 0;
+    
+    // 4. Net Profit = EBT - Tax Amount
+    const netProfit = ebt - taxAmount;
     const netMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
     
     // Cash Flow
@@ -209,6 +226,16 @@ export const simulateProjections = (assumptionsByYear) => {
       totalOpex,
       ebitda,
       ebitdaMargin,
+      depreciation: depreciationAmount,
+      amortization: amortizationAmount,
+      ebit,
+      ebitMargin,
+      interestExpense,
+      interestRate,
+      ebt,
+      ebtMargin,
+      taxRate,
+      taxAmount,
       netProfit,
       netMargin,
       openingCash,
